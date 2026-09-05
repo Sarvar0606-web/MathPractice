@@ -48,11 +48,482 @@ const NO_SUFFIX_OPS = new Set([
   ...WORD_PROBLEM_OPS,
 ]);
 
-const QUESTION_INSTRUCTIONS = {
-  frac_simplify: "Kasrni qisqartiring:",
-  frac_mixed: "Aralash songa aylantiring:",
-  frac_decimal: "O'nli kasrga aylantiring:",
+// ============================================================
+// TIL (i18n)
+// ============================================================
+
+const LANGS = ["uz", "ru", "en"];
+const LANG_META = {
+  uz: { flag: "🇺🇿", name: "O'zbekcha" },
+  ru: { flag: "🇷🇺", name: "Русский" },
+  en: { flag: "🇬🇧", name: "English" },
 };
+const LANG_STORAGE_KEY = "mathbot_lang";
+
+let LANG = "uz";
+
+const I18N = {
+  uz: {
+    genericError: "Xatolik yuz berdi",
+    loading: "Yuklanmoqda...",
+    openInTelegram: "Iltimos, botni Telegram ichida oching.",
+    chooseLanguageTitle: "Tilni tanlang",
+    chooseLanguageSubtitle: "Ilova tilini tanlang",
+    registerTitle: "Ro'yxatdan o'tish",
+    registerSubtitle: "Testlarni boshlashdan oldin ma'lumotlaringizni kiriting",
+    firstNameLabel: "Ism",
+    firstNamePlaceholder: "Ismingiz",
+    lastNameLabel: "Familiya",
+    lastNamePlaceholder: "Familiyangiz",
+    fatherNameLabel: "Otasining ismi (Sharif)",
+    fatherNamePlaceholder: "Otangizning ismi",
+    dayLabel: "Kun",
+    monthLabel: "Oy",
+    yearLabel: "Yil",
+    fillAllFields: "Iltimos, barcha maydonlarni to'ldiring.",
+    continueBtn: "Davom etish",
+    mainGreeting: (name) => `Salom, ${name} 👋`,
+    mainSubtitle: "Nima bilan shug'ullanamiz?",
+    myResultsTitle: "Natijalarim",
+    myResultsDesc: "Yechilgan testlar tarixi",
+    adminPanelTitle: "Admin panel",
+    adminPanelDesc: "Barcha foydalanuvchilar natijalari",
+    chooseOperationSubtitle: "Amal turini tanlang",
+    chooseLevelSubtitle: "Murakkablik darajasini tanlang",
+    chooseDigitsSubtitle: "Sonlar xonasini tanlang",
+    chooseTimeSubtitle: (label) => `${label} — har bir savol uchun vaqtni tanlang`,
+    finishTestBtn: "🏁 Testni tugatish",
+    finishModalTitle: "Testni yakunlaysizmi?",
+    finishModalBody: (answered, total) => `Hozirgacha ${answered} / ${total} savolga javob berdingiz. Qolgan savollar hisoblanmaydi.`,
+    finishModalCancel: "Davom etish",
+    finishModalConfirm: "🏁 Ha, tugatish",
+    confirmModalTitle: (choice) => `Javobingiz: ${choice}`,
+    confirmModalBody: "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?",
+    rethinkBtn: "🔄 Qayta o'ylash",
+    confirmBtn: "✅ Tasdiqlash",
+    timedOutFeedback: (correct) => `⏰ Vaqt tugadi — javob berolmadingiz. To'g'ri javob: ${correct}`,
+    correctFeedback: "✅ To'g'ri!",
+    wrongFeedback: (chosen, correct) => `❌ Xato. Siz tanladingiz: ${chosen}. To'g'ri javob: ${correct}`,
+    progressLine: (answered, total) => `${answered} / ${total} savol`,
+    testFinishedTitle: "Test yakunlandi! 🎉",
+    summaryEarly: (total, answered, correct, wrong) => `${total} tadan <b>${answered}</b> tasiga javob berdingiz — shundan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`,
+    summaryFull: (total, correct, wrong) => `${total} tadan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`,
+    detailBtn: "Batafsil ko'rish",
+    homeBtn: "Bosh menyu",
+    noTestsYet: "Hozircha testlar yo'q",
+    errorTitle: "Xatolik",
+    userTestsTitle: (name) => `${name} testlari`,
+    noAnswer: "Javob berilmagan",
+    timeoutLine: (correct) => `⏰ Vaqt tugadi — to'g'ri javob: ${correct}`,
+    yourAnswerCorrect: (val) => `Javobingiz: ${val} ✔`,
+    yourAnswerWrong: (chosen, correct) => `Javobingiz: ${chosen} — to'g'risi: ${correct}`,
+    resultSummary: (total, correct, wrong) => `${total} tadan <b>${correct}</b> to'g'ri, <b>${wrong}</b> noto'g'ri`,
+    noUsersYet: "Hozircha foydalanuvchilar yo'q",
+    noUsername: "username yo'q",
+    testsCountSuffix: (n) => `${n} ta test`,
+    levelLabel: (d) => `${d}-daraja`,
+    digitLabel: (d) => `${d} xonali`,
+    operations: {
+      add: "Qo'shish", sub: "Ayirish", mul: "Ko'paytirish", div: "Bo'lish", compare: "Solishtirish",
+      frac_compare: "Solishtirish", frac_simplify: "Qisqartirish", frac_add: "Qo'shish",
+      frac_sub: "Ayirish", frac_mul: "Ko'paytirish", frac_div: "Bo'lish",
+      frac_mixed: "Aralash kasr", frac_decimal: "O'nli kasr",
+      percent_of: "Sonning foizini topish", percent_find_whole: "Foiz bo'yicha sonni topish",
+      percent_increase: "Narx oshishi", percent_discount: "Chegirma",
+      percent_profit_loss: "Foyda/zarar", percent_successive: "Ketma-ket foiz o'zgarishi",
+      algebra_equation: "Tenglama", algebra_inequality: "Tengsizlik", algebra_expand: "Qavs ochish",
+      algebra_simplify: "Soddalashtirish", algebra_exponent: "Darajalar", algebra_root: "Ildizlar",
+      algebra_system: "Sistemalar",
+      geo_perimeter: "Perimetr", geo_area: "Yuza", geo_volume: "Hajm", geo_triangle: "Uchburchak",
+      geo_quad: "To'rtburchak", geo_circle: "Aylana", geo_pythagoras: "Pifagor teoremasi",
+      geo_angles: "Burchaklar",
+    },
+    sections: {
+      arithmetic: { label: "Arifmetika", desc: "Qo'shish, ayirish, ko'paytirish, bo'lish, solishtirish" },
+      fractions: { label: "Kasrlar", desc: "Kasrlar ustida amallar" },
+      percent: { label: "Foizlar", desc: "Foizlar bilan bog'liq masalalar" },
+      algebra: { label: "Algebra", desc: "Tenglama, tengsizlik, ifodalar bilan ishlash" },
+      geometry: { label: "Geometriya", desc: "Perimetr, yuza, hajm va boshqa masalalar" },
+    },
+    sectionCardDesc: {
+      fractions: "Kasrlar ustida", percent: "Foizlar ustida",
+      algebra: "Algebraik ifodalar ustida", geometry: "Geometrik masalalar ustida",
+      default: "1–5 xonali sonlar ustida",
+    },
+    timeOptions: { 30: "30 soniya", 60: "1 daqiqa", 120: "2 daqiqa", 180: "3 daqiqa", 300: "5 daqiqa" },
+    instructions: {
+      frac_simplify: "Kasrni qisqartiring:",
+      frac_mixed: "Aralash songa aylantiring:",
+      frac_decimal: "O'nli kasrga aylantiring:",
+    },
+    profitLossWords: { profit: "foyda", loss: "zarar" },
+    sentences: {
+      percent_of: (q) => `${q.a} ning <b>${q.b}%</b> i nechiga teng?`,
+      percent_find_whole: (q) => `Biror sonning <b>${q.b}%</b> i ${q.a} ga teng. O'sha son nechiga teng?`,
+      percent_increase: (q) => `${q.a} so'm bo'lgan narx <b>${q.b}%</b> ga oshdi. Yangi narx nechiga teng?`,
+      percent_discount: (q) => `${q.a} so'm bo'lgan mahsulotga <b>${q.b}%</b> chegirma qilindi. Chegirmadagi narx nechiga teng?`,
+      percent_profit_loss: (q) => `Tannarxi ${q.a} so'm bo'lgan mahsulot ${q.b} so'mga sotildi. Foyda yoki zarar necha foiz bo'ldi?`,
+      percent_successive: (q) => {
+        const dir1 = q.b >= 0 ? "oshdi" : "kamaydi";
+        const dir2 = q.c >= 0 ? "oshdi" : "kamaydi";
+        return `${q.a} dastlab <b>${Math.abs(q.b)}%</b> ga ${dir1}, keyin <b>${Math.abs(q.c)}%</b> ga ${dir2}. Oxirgi qiymat nechiga teng?`;
+      },
+      geo_perimeter: (q) => `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning perimetrini toping.`,
+      geo_area: (q) => `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning yuzasini toping.`,
+      geo_volume: (q) => `O'lchamlari <b>${q.a}</b>, <b>${q.b}</b> va <b>${q.c}</b> bo'lgan to'g'ri burchakli parallelepipedning hajmini toping.`,
+      geo_triangle: (q) => `Asosi <b>${q.a}</b> va balandligi <b>${q.b}</b> bo'lgan uchburchakning yuzasini toping.`,
+      geo_quad: (q) => `Asoslari <b>${q.a}</b> va <b>${q.b}</b>, balandligi <b>${q.c}</b> bo'lgan trapetsiyaning yuzasini toping.`,
+      geo_circle: (q) => q.c === 1
+        ? `Radiusi <b>${q.a}</b> bo'lgan aylananing uzunligini toping (π ≈ 3.14).`
+        : `Radiusi <b>${q.a}</b> bo'lgan doiraning yuzasini toping (π ≈ 3.14).`,
+      geo_pythagoras: (q) => `Katetlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri burchakli uchburchakning gipotenuzasini toping.`,
+      geo_angles: (q) => `Uchburchakning ikkita burchagi <b>${q.a}°</b> va <b>${q.b}°</b> ga teng. Uchinchi burchakni toping.`,
+    },
+  },
+
+  ru: {
+    genericError: "Произошла ошибка",
+    loading: "Загрузка...",
+    openInTelegram: "Пожалуйста, откройте бота в Telegram.",
+    chooseLanguageTitle: "Выберите язык",
+    chooseLanguageSubtitle: "Выберите язык приложения",
+    registerTitle: "Регистрация",
+    registerSubtitle: "Введите свои данные перед началом тестов",
+    firstNameLabel: "Имя",
+    firstNamePlaceholder: "Ваше имя",
+    lastNameLabel: "Фамилия",
+    lastNamePlaceholder: "Ваша фамилия",
+    fatherNameLabel: "Отчество",
+    fatherNamePlaceholder: "Имя отца",
+    dayLabel: "День",
+    monthLabel: "Месяц",
+    yearLabel: "Год",
+    fillAllFields: "Пожалуйста, заполните все поля.",
+    continueBtn: "Продолжить",
+    mainGreeting: (name) => `Привет, ${name} 👋`,
+    mainSubtitle: "Чем займёмся?",
+    myResultsTitle: "Мои результаты",
+    myResultsDesc: "История пройденных тестов",
+    adminPanelTitle: "Панель администратора",
+    adminPanelDesc: "Результаты всех пользователей",
+    chooseOperationSubtitle: "Выберите тип задания",
+    chooseLevelSubtitle: "Выберите уровень сложности",
+    chooseDigitsSubtitle: "Выберите разрядность чисел",
+    chooseTimeSubtitle: (label) => `${label} — выберите время на каждый вопрос`,
+    finishTestBtn: "🏁 Завершить тест",
+    finishModalTitle: "Завершить тест?",
+    finishModalBody: (answered, total) => `Вы ответили на ${answered} из ${total} вопросов. Оставшиеся вопросы не будут учтены.`,
+    finishModalCancel: "Продолжить",
+    finishModalConfirm: "🏁 Да, завершить",
+    confirmModalTitle: (choice) => `Ваш ответ: ${choice}`,
+    confirmModalBody: "Подтверждаете или хотите подумать ещё раз?",
+    rethinkBtn: "🔄 Подумать ещё",
+    confirmBtn: "✅ Подтвердить",
+    timedOutFeedback: (correct) => `⏰ Время вышло — вы не успели ответить. Правильный ответ: ${correct}`,
+    correctFeedback: "✅ Правильно!",
+    wrongFeedback: (chosen, correct) => `❌ Неверно. Вы выбрали: ${chosen}. Правильный ответ: ${correct}`,
+    progressLine: (answered, total) => `${answered} / ${total} вопрос(ов)`,
+    testFinishedTitle: "Тест завершён! 🎉",
+    summaryEarly: (total, answered, correct, wrong) => `Вы ответили на <b>${answered}</b> из ${total} — из них <b>${correct}</b> верно, <b>${wrong}</b> неверно`,
+    summaryFull: (total, correct, wrong) => `Из ${total}: <b>${correct}</b> верно, <b>${wrong}</b> неверно`,
+    detailBtn: "Подробнее",
+    homeBtn: "Главное меню",
+    noTestsYet: "Пока нет тестов",
+    errorTitle: "Ошибка",
+    userTestsTitle: (name) => `Тесты пользователя ${name}`,
+    noAnswer: "Нет ответа",
+    timeoutLine: (correct) => `⏰ Время вышло — правильный ответ: ${correct}`,
+    yourAnswerCorrect: (val) => `Ваш ответ: ${val} ✔`,
+    yourAnswerWrong: (chosen, correct) => `Ваш ответ: ${chosen} — правильно: ${correct}`,
+    resultSummary: (total, correct, wrong) => `Из ${total}: <b>${correct}</b> верно, <b>${wrong}</b> неверно`,
+    noUsersYet: "Пока нет пользователей",
+    noUsername: "нет username",
+    testsCountSuffix: (n) => `тестов: ${n}`,
+    levelLabel: (d) => `${d}-уровень`,
+    digitLabel: (d) => `${d}-значные`,
+    operations: {
+      add: "Сложение", sub: "Вычитание", mul: "Умножение", div: "Деление", compare: "Сравнение",
+      frac_compare: "Сравнение", frac_simplify: "Сокращение", frac_add: "Сложение",
+      frac_sub: "Вычитание", frac_mul: "Умножение", frac_div: "Деление",
+      frac_mixed: "Смешанная дробь", frac_decimal: "Десятичная дробь",
+      percent_of: "Процент от числа", percent_find_whole: "Число по проценту",
+      percent_increase: "Повышение цены", percent_discount: "Скидка",
+      percent_profit_loss: "Прибыль/убыток", percent_successive: "Последовательное изменение процента",
+      algebra_equation: "Уравнение", algebra_inequality: "Неравенство", algebra_expand: "Раскрытие скобок",
+      algebra_simplify: "Упрощение", algebra_exponent: "Степени", algebra_root: "Корни",
+      algebra_system: "Системы уравнений",
+      geo_perimeter: "Периметр", geo_area: "Площадь", geo_volume: "Объём", geo_triangle: "Треугольник",
+      geo_quad: "Четырёхугольник", geo_circle: "Окружность", geo_pythagoras: "Теорема Пифагора",
+      geo_angles: "Углы",
+    },
+    sections: {
+      arithmetic: { label: "Арифметика", desc: "Сложение, вычитание, умножение, деление, сравнение" },
+      fractions: { label: "Дроби", desc: "Действия с дробями" },
+      percent: { label: "Проценты", desc: "Задачи на проценты" },
+      algebra: { label: "Алгебра", desc: "Уравнения, неравенства, работа с выражениями" },
+      geometry: { label: "Геометрия", desc: "Периметр, площадь, объём и другие задачи" },
+    },
+    sectionCardDesc: {
+      fractions: "Действия с дробями", percent: "Задачи на проценты",
+      algebra: "Алгебраические выражения", geometry: "Геометрические задачи",
+      default: "Числа от 1 до 5 разрядов",
+    },
+    timeOptions: { 30: "30 секунд", 60: "1 минута", 120: "2 минуты", 180: "3 минуты", 300: "5 минут" },
+    instructions: {
+      frac_simplify: "Сократите дробь:",
+      frac_mixed: "Преобразуйте в смешанное число:",
+      frac_decimal: "Преобразуйте в десятичную дробь:",
+    },
+    profitLossWords: { profit: "прибыль", loss: "убыток" },
+    sentences: {
+      percent_of: (q) => `Чему равно <b>${q.b}%</b> от ${q.a}?`,
+      percent_find_whole: (q) => `<b>${q.b}%</b> некоторого числа равны ${q.a}. Чему равно это число?`,
+      percent_increase: (q) => `Цена ${q.a} сум выросла на <b>${q.b}%</b>. Чему равна новая цена?`,
+      percent_discount: (q) => `На товар стоимостью ${q.a} сум сделали скидку <b>${q.b}%</b>. Чему равна цена со скидкой?`,
+      percent_profit_loss: (q) => `Товар себестоимостью ${q.a} сум продали за ${q.b} сум. Сколько процентов составила прибыль или убыток?`,
+      percent_successive: (q) => {
+        const dir1 = q.b >= 0 ? "увеличилось" : "уменьшилось";
+        const dir2 = q.c >= 0 ? "увеличилось" : "уменьшилось";
+        return `Значение ${q.a} сначала <b>${dir1}</b> на ${Math.abs(q.b)}%, затем <b>${dir2}</b> на ${Math.abs(q.c)}%. Чему равно итоговое значение?`;
+      },
+      geo_perimeter: (q) => `Найдите периметр прямоугольника со сторонами <b>${q.a}</b> и <b>${q.b}</b>.`,
+      geo_area: (q) => `Найдите площадь прямоугольника со сторонами <b>${q.a}</b> и <b>${q.b}</b>.`,
+      geo_volume: (q) => `Найдите объём прямоугольного параллелепипеда с измерениями <b>${q.a}</b>, <b>${q.b}</b> и <b>${q.c}</b>.`,
+      geo_triangle: (q) => `Найдите площадь треугольника с основанием <b>${q.a}</b> и высотой <b>${q.b}</b>.`,
+      geo_quad: (q) => `Найдите площадь трапеции с основаниями <b>${q.a}</b> и <b>${q.b}</b> и высотой <b>${q.c}</b>.`,
+      geo_circle: (q) => q.c === 1
+        ? `Найдите длину окружности радиусом <b>${q.a}</b> (π ≈ 3.14).`
+        : `Найдите площадь круга радиусом <b>${q.a}</b> (π ≈ 3.14).`,
+      geo_pythagoras: (q) => `Найдите гипотенузу прямоугольного треугольника с катетами <b>${q.a}</b> и <b>${q.b}</b>.`,
+      geo_angles: (q) => `Два угла треугольника равны <b>${q.a}°</b> и <b>${q.b}°</b>. Найдите третий угол.`,
+    },
+  },
+
+  en: {
+    genericError: "Something went wrong",
+    loading: "Loading...",
+    openInTelegram: "Please open the bot inside Telegram.",
+    chooseLanguageTitle: "Choose language",
+    chooseLanguageSubtitle: "Choose the app language",
+    registerTitle: "Registration",
+    registerSubtitle: "Enter your details before starting the tests",
+    firstNameLabel: "First name",
+    firstNamePlaceholder: "Your first name",
+    lastNameLabel: "Last name",
+    lastNamePlaceholder: "Your last name",
+    fatherNameLabel: "Father's name",
+    fatherNamePlaceholder: "Your father's name",
+    dayLabel: "Day",
+    monthLabel: "Month",
+    yearLabel: "Year",
+    fillAllFields: "Please fill in all the fields.",
+    continueBtn: "Continue",
+    mainGreeting: (name) => `Hi, ${name} 👋`,
+    mainSubtitle: "What shall we work on?",
+    myResultsTitle: "My results",
+    myResultsDesc: "History of completed tests",
+    adminPanelTitle: "Admin panel",
+    adminPanelDesc: "Results of all users",
+    chooseOperationSubtitle: "Choose a topic",
+    chooseLevelSubtitle: "Choose the difficulty level",
+    chooseDigitsSubtitle: "Choose the number of digits",
+    chooseTimeSubtitle: (label) => `${label} — choose the time per question`,
+    finishTestBtn: "🏁 Finish test",
+    finishModalTitle: "Finish the test?",
+    finishModalBody: (answered, total) => `So far you've answered ${answered} of ${total} questions. Remaining questions won't be counted.`,
+    finishModalCancel: "Keep going",
+    finishModalConfirm: "🏁 Yes, finish",
+    confirmModalTitle: (choice) => `Your answer: ${choice}`,
+    confirmModalBody: "Confirm your answer, or think again?",
+    rethinkBtn: "🔄 Think again",
+    confirmBtn: "✅ Confirm",
+    timedOutFeedback: (correct) => `⏰ Time's up — you didn't answer in time. Correct answer: ${correct}`,
+    correctFeedback: "✅ Correct!",
+    wrongFeedback: (chosen, correct) => `❌ Wrong. You chose: ${chosen}. Correct answer: ${correct}`,
+    progressLine: (answered, total) => `${answered} / ${total} questions`,
+    testFinishedTitle: "Test finished! 🎉",
+    summaryEarly: (total, answered, correct, wrong) => `You answered <b>${answered}</b> of ${total} — <b>${correct}</b> correct, <b>${wrong}</b> wrong`,
+    summaryFull: (total, correct, wrong) => `Out of ${total}: <b>${correct}</b> correct, <b>${wrong}</b> wrong`,
+    detailBtn: "View details",
+    homeBtn: "Main menu",
+    noTestsYet: "No tests yet",
+    errorTitle: "Error",
+    userTestsTitle: (name) => `${name}'s tests`,
+    noAnswer: "No answer given",
+    timeoutLine: (correct) => `⏰ Time's up — correct answer: ${correct}`,
+    yourAnswerCorrect: (val) => `Your answer: ${val} ✔`,
+    yourAnswerWrong: (chosen, correct) => `Your answer: ${chosen} — correct: ${correct}`,
+    resultSummary: (total, correct, wrong) => `Out of ${total}: <b>${correct}</b> correct, <b>${wrong}</b> wrong`,
+    noUsersYet: "No users yet",
+    noUsername: "no username",
+    testsCountSuffix: (n) => `${n} test(s)`,
+    levelLabel: (d) => `Level ${d}`,
+    digitLabel: (d) => `${d} digits`,
+    operations: {
+      add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division", compare: "Comparison",
+      frac_compare: "Comparison", frac_simplify: "Simplifying", frac_add: "Addition",
+      frac_sub: "Subtraction", frac_mul: "Multiplication", frac_div: "Division",
+      frac_mixed: "Mixed number", frac_decimal: "Decimal",
+      percent_of: "Percentage of a number", percent_find_whole: "Find the whole from a percent",
+      percent_increase: "Price increase", percent_discount: "Discount",
+      percent_profit_loss: "Profit/loss", percent_successive: "Successive percent change",
+      algebra_equation: "Equation", algebra_inequality: "Inequality", algebra_expand: "Expanding brackets",
+      algebra_simplify: "Simplifying", algebra_exponent: "Exponents", algebra_root: "Roots",
+      algebra_system: "Systems of equations",
+      geo_perimeter: "Perimeter", geo_area: "Area", geo_volume: "Volume", geo_triangle: "Triangle",
+      geo_quad: "Quadrilateral", geo_circle: "Circle", geo_pythagoras: "Pythagorean theorem",
+      geo_angles: "Angles",
+    },
+    sections: {
+      arithmetic: { label: "Arithmetic", desc: "Addition, subtraction, multiplication, division, comparison" },
+      fractions: { label: "Fractions", desc: "Operations with fractions" },
+      percent: { label: "Percentages", desc: "Percent-related problems" },
+      algebra: { label: "Algebra", desc: "Equations, inequalities, working with expressions" },
+      geometry: { label: "Geometry", desc: "Perimeter, area, volume and other problems" },
+    },
+    sectionCardDesc: {
+      fractions: "Working with fractions", percent: "Working with percentages",
+      algebra: "Algebraic expressions", geometry: "Geometry problems",
+      default: "1–5 digit numbers",
+    },
+    timeOptions: { 30: "30 seconds", 60: "1 minute", 120: "2 minutes", 180: "3 minutes", 300: "5 minutes" },
+    instructions: {
+      frac_simplify: "Simplify the fraction:",
+      frac_mixed: "Convert to a mixed number:",
+      frac_decimal: "Convert to a decimal:",
+    },
+    profitLossWords: { profit: "profit", loss: "loss" },
+    sentences: {
+      percent_of: (q) => `What is <b>${q.b}%</b> of ${q.a}?`,
+      percent_find_whole: (q) => `<b>${q.b}%</b> of a number is ${q.a}. What is that number?`,
+      percent_increase: (q) => `A price of ${q.a} increased by <b>${q.b}%</b>. What is the new price?`,
+      percent_discount: (q) => `An item priced at ${q.a} got a <b>${q.b}%</b> discount. What is the discounted price?`,
+      percent_profit_loss: (q) => `An item costing ${q.a} was sold for ${q.b}. What percent profit or loss was made?`,
+      percent_successive: (q) => {
+        const dir1 = q.b >= 0 ? "increased" : "decreased";
+        const dir2 = q.c >= 0 ? "increased" : "decreased";
+        return `${q.a} first <b>${dir1}</b> by ${Math.abs(q.b)}%, then <b>${dir2}</b> by ${Math.abs(q.c)}%. What is the final value?`;
+      },
+      geo_perimeter: (q) => `Find the perimeter of a rectangle with sides <b>${q.a}</b> and <b>${q.b}</b>.`,
+      geo_area: (q) => `Find the area of a rectangle with sides <b>${q.a}</b> and <b>${q.b}</b>.`,
+      geo_volume: (q) => `Find the volume of a rectangular prism with dimensions <b>${q.a}</b>, <b>${q.b}</b> and <b>${q.c}</b>.`,
+      geo_triangle: (q) => `Find the area of a triangle with base <b>${q.a}</b> and height <b>${q.b}</b>.`,
+      geo_quad: (q) => `Find the area of a trapezoid with bases <b>${q.a}</b> and <b>${q.b}</b> and height <b>${q.c}</b>.`,
+      geo_circle: (q) => q.c === 1
+        ? `Find the circumference of a circle with radius <b>${q.a}</b> (π ≈ 3.14).`
+        : `Find the area of a circle with radius <b>${q.a}</b> (π ≈ 3.14).`,
+      geo_pythagoras: (q) => `Find the hypotenuse of a right triangle with legs <b>${q.a}</b> and <b>${q.b}</b>.`,
+      geo_angles: (q) => `Two angles of a triangle are <b>${q.a}°</b> and <b>${q.b}°</b>. Find the third angle.`,
+    },
+  },
+};
+
+function t(key, ...args) {
+  const dict = I18N[LANG] || I18N.uz;
+  const entry = dict[key] !== undefined ? dict[key] : I18N.uz[key];
+  if (typeof entry === "function") {
+    // Ba'zi joylarda t("key")(arg1, arg2) ko'rinishida chaqiriladi (funksiyani
+    // qaytarib, keyin darhol chaqiradi), ba'zilarida esa t("key", arg1) — ikkalasi
+    // ham ishlashi uchun: argument berilmagan bo'lsa funksiyaning o'zini qaytaramiz.
+    return args.length > 0 ? entry(...args) : entry;
+  }
+  return entry;
+}
+
+function opLabel(key) {
+  const dict = I18N[LANG] || I18N.uz;
+  return (dict.operations && dict.operations[key])
+    || (CONFIG && CONFIG.operations[key] && CONFIG.operations[key].label)
+    || key;
+}
+
+function sectionLabel(key) {
+  const dict = I18N[LANG] || I18N.uz;
+  return (dict.sections[key] && dict.sections[key].label) || key;
+}
+
+function sectionDescText(key) {
+  const dict = I18N[LANG] || I18N.uz;
+  return (dict.sections[key] && dict.sections[key].desc) || "";
+}
+
+function sectionCardDesc(key) {
+  const dict = I18N[LANG] || I18N.uz;
+  return dict.sectionCardDesc[key] || dict.sectionCardDesc.default;
+}
+
+function timeLabel(seconds) {
+  const dict = I18N[LANG] || I18N.uz;
+  return (dict.timeOptions && dict.timeOptions[seconds]) || `${seconds}s`;
+}
+
+function instructionFor(op) {
+  const dict = I18N[LANG] || I18N.uz;
+  return dict.instructions[op];
+}
+
+function translateChoiceLabel(op, raw) {
+  if (op === "percent_profit_loss" && typeof raw === "string") {
+    const words = (I18N[LANG] || I18N.uz).profitLossWords;
+    return raw.replace("foyda", words.profit).replace("zarar", words.loss);
+  }
+  return raw;
+}
+
+function loadStoredLanguage() {
+  try {
+    return localStorage.getItem(LANG_STORAGE_KEY);
+  } catch (e) {
+    return null;
+  }
+}
+
+function storeLanguage(lang) {
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch (e) {}
+}
+
+async function setLanguage(newLang) {
+  LANG = newLang;
+  storeLanguage(LANG);
+  document.documentElement.lang = LANG;
+  if (ME && ME.registered) {
+    try {
+      await api("/api/language", { method: "POST", body: { language: LANG } });
+    } catch (e) {}
+  }
+  render();
+}
+
+function showLanguageModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.id = "lang-modal";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>${t("chooseLanguageTitle")}</h3>
+      <div class="lang-options">
+        ${LANGS.map((code) => `
+          <button class="lang-option-btn${code === LANG ? " active" : ""}" data-lang="${code}">
+            <span class="flag">${LANG_META[code].flag}</span> ${LANG_META[code].name}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  modal.querySelectorAll(".lang-option-btn").forEach((btn) => {
+    btn.onclick = async () => {
+      const newLang = btn.dataset.lang;
+      modal.remove();
+      await setLanguage(newLang);
+    };
+  });
+}
 
 let CONFIG = null;
 let ME = null; // {telegram_id, registered, profile, is_admin}
@@ -63,7 +534,7 @@ const state = {
   test: null, // {attempt_id, total_questions, time_per_question, question, progress}
   timer: { deadline: 0, raf: null, total: 0 },
   pendingChoice: null, // tanlangan-lekin-hali-tasdiqlanmagan javob
-  lastFeedback: null, // {isCorrect, correctAnswer, chosen, timedOut}
+  lastFeedback: null, // {isCorrect, correctAnswer, chosen, timedOut, operation}
   viewAttemptId: null,
   viewUserId: null,
   navStack: [],
@@ -98,7 +569,7 @@ async function api(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
   if (!res.ok) {
-    let msg = "Xatolik yuz berdi";
+    let msg = t("genericError");
     try {
       const j = await res.json();
       msg = j.detail || msg;
@@ -113,13 +584,23 @@ async function init() {
   try {
     CONFIG = await api("/api/config");
     ME = await api("/api/me");
-    if (!ME.registered) {
-      state.screen = "register";
-    } else {
+
+    if (ME.registered && ME.profile && ME.profile.language && LANGS.includes(ME.profile.language)) {
+      LANG = ME.profile.language;
+      storeLanguage(LANG);
       state.screen = "main";
+    } else {
+      const stored = loadStoredLanguage();
+      if (stored && LANGS.includes(stored)) {
+        LANG = stored;
+        state.screen = ME.registered ? "main" : "register";
+      } else {
+        state.screen = "language";
+      }
     }
+    document.documentElement.lang = LANG;
   } catch (e) {
-    appEl.innerHTML = `<div class="empty-state">Xatolik: ${escapeHtml(e.message)}<br/>Iltimos, botni Telegram ichida oching.</div>`;
+    appEl.innerHTML = `<div class="empty-state">${escapeHtml(t("genericError"))}: ${escapeHtml(e.message)}<br/>${escapeHtml(t("openInTelegram"))}</div>`;
     return;
   }
   render();
@@ -145,6 +626,9 @@ function questionExprHtml(q) {
   if (q.display_text) {
     return escapeHtml(q.display_text).replace(/\n/g, "<br>");
   }
+  const dict = I18N[LANG] || I18N.uz;
+  const sentenceFn = dict.sentences[q.operation];
+  if (sentenceFn) return sentenceFn(q);
   switch (q.operation) {
     case "add": case "sub": case "mul": case "div": {
       const symbol = CONFIG.operations[q.operation].symbol;
@@ -160,43 +644,10 @@ function questionExprHtml(q) {
     }
     case "frac_simplify": case "frac_mixed": case "frac_decimal":
       return fracHtml(q.a, q.b);
-    case "percent_of":
-      return `${q.a} ning <b>${q.b}%</b> i nechiga teng?`;
-    case "percent_find_whole":
-      return `Biror sonning <b>${q.b}%</b> i ${q.a} ga teng. O'sha son nechiga teng?`;
-    case "percent_increase":
-      return `${q.a} so'm bo'lgan narx <b>${q.b}%</b> ga oshdi. Yangi narx nechiga teng?`;
-    case "percent_discount":
-      return `${q.a} so'm bo'lgan mahsulotga <b>${q.b}%</b> chegirma qilindi. Chegirmadagi narx nechiga teng?`;
-    case "percent_profit_loss":
-      return `Tannarxi ${q.a} so'm bo'lgan mahsulot ${q.b} so'mga sotildi. Foyda yoki zarar necha foiz bo'ldi?`;
-    case "percent_successive": {
-      const dir1 = q.b >= 0 ? "oshdi" : "kamaydi";
-      const dir2 = q.c >= 0 ? "oshdi" : "kamaydi";
-      return `${q.a} dastlab <b>${Math.abs(q.b)}%</b> ga ${dir1}, keyin <b>${Math.abs(q.c)}%</b> ga ${dir2}. Oxirgi qiymat nechiga teng?`;
-    }
     case "algebra_exponent":
       return `${q.a}${superscript(q.b)}`;
     case "algebra_root":
       return `${q.b === 3 ? "∛" : "√"}${q.a}`;
-    case "geo_perimeter":
-      return `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning perimetrini toping.`;
-    case "geo_area":
-      return `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning yuzasini toping.`;
-    case "geo_volume":
-      return `O'lchamlari <b>${q.a}</b>, <b>${q.b}</b> va <b>${q.c}</b> bo'lgan to'g'ri burchakli parallelepipedning hajmini toping.`;
-    case "geo_triangle":
-      return `Asosi <b>${q.a}</b> va balandligi <b>${q.b}</b> bo'lgan uchburchakning yuzasini toping.`;
-    case "geo_quad":
-      return `Asoslari <b>${q.a}</b> va <b>${q.b}</b>, balandligi <b>${q.c}</b> bo'lgan trapetsiyaning yuzasini toping.`;
-    case "geo_circle":
-      return q.c === 1
-        ? `Radiusi <b>${q.a}</b> bo'lgan aylananing uzunligini toping (π ≈ 3.14).`
-        : `Radiusi <b>${q.a}</b> bo'lgan doiraning yuzasini toping (π ≈ 3.14).`;
-    case "geo_pythagoras":
-      return `Katetlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri burchakli uchburchakning gipotenuzasini toping.`;
-    case "geo_angles":
-      return `Uchburchakning ikkita burchagi <b>${q.a}°</b> va <b>${q.b}°</b> ga teng. Uchinchi burchakni toping.`;
     default:
       return `${q.a} ? ${q.b}`;
   }
@@ -210,6 +661,7 @@ function questionSuffix(q) {
 // ---------- Render dispatch ----------
 function render() {
   switch (state.screen) {
+    case "language": return renderLanguageSelect();
     case "register": return renderRegister();
     case "main": return renderMain();
     case "section": return renderSection();
@@ -229,51 +681,84 @@ function header(title, subtitle, showBack) {
   return `
     <div class="header">
       ${showBack ? `<button class="back-btn" id="btn-back">←</button>` : ""}
-      <div>
+      <div style="flex:1;min-width:0;">
         <h1>${title}</h1>
         ${subtitle ? `<p class="subtitle">${subtitle}</p>` : ""}
       </div>
+      <button class="lang-btn" id="btn-lang">${LANG_META[LANG].flag}</button>
     </div>`;
 }
 
-function bindBack() {
-  const btn = document.getElementById("btn-back");
-  if (btn) btn.onclick = goBack;
+function bindHeaderControls() {
+  const back = document.getElementById("btn-back");
+  if (back) back.onclick = goBack;
+  const langBtn = document.getElementById("btn-lang");
+  if (langBtn) langBtn.onclick = showLanguageModal;
+}
+
+// ---------- Tilni tanlash (birinchi kirishda) ----------
+function renderLanguageSelect() {
+  appEl.innerHTML = `
+    <div class="header" style="padding-top:24px;">
+      <div>
+        <h1>Tilni tanlang / Выберите язык / Choose language</h1>
+      </div>
+    </div>
+    <div class="lang-select-grid">
+      ${LANGS.map((code) => `
+        <div class="lang-select-card" data-lang="${code}">
+          <div class="flag-big">${LANG_META[code].flag}</div>
+          <div class="lang-name">${LANG_META[code].name}</div>
+          <div class="chevron">›</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  document.querySelectorAll(".lang-select-card").forEach((el) => {
+    el.onclick = () => {
+      LANG = el.dataset.lang;
+      storeLanguage(LANG);
+      document.documentElement.lang = LANG;
+      state.screen = ME.registered ? "main" : "register";
+      render();
+    };
+  });
 }
 
 // ---------- Ro'yxatdan o'tish ----------
 function renderRegister() {
   appEl.innerHTML = `
-    ${header("Ro'yxatdan o'tish", "Testlarni boshlashdan oldin ma'lumotlaringizni kiriting")}
+    ${header(t("registerTitle"), t("registerSubtitle"))}
     <div class="form-group">
-      <label>Ism</label>
-      <input id="f_first" type="text" placeholder="Ismingiz" />
+      <label>${t("firstNameLabel")}</label>
+      <input id="f_first" type="text" placeholder="${t("firstNamePlaceholder")}" />
     </div>
     <div class="form-group">
-      <label>Familiya</label>
-      <input id="f_last" type="text" placeholder="Familiyangiz" />
+      <label>${t("lastNameLabel")}</label>
+      <input id="f_last" type="text" placeholder="${t("lastNamePlaceholder")}" />
     </div>
     <div class="form-group">
-      <label>Otasining ismi (Sharif)</label>
-      <input id="f_father" type="text" placeholder="Otangizning ismi" />
+      <label>${t("fatherNameLabel")}</label>
+      <input id="f_father" type="text" placeholder="${t("fatherNamePlaceholder")}" />
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Kun</label>
+        <label>${t("dayLabel")}</label>
         <select id="f_day">${optionsRange(1, 31)}</select>
       </div>
       <div class="form-group">
-        <label>Oy</label>
+        <label>${t("monthLabel")}</label>
         <select id="f_month">${optionsRange(1, 12)}</select>
       </div>
       <div class="form-group">
-        <label>Yil</label>
+        <label>${t("yearLabel")}</label>
         <select id="f_year">${optionsRange(2025, 1950, true)}</select>
       </div>
     </div>
     <div id="reg-error" style="color:var(--red);font-size:13px;margin-bottom:10px;"></div>
-    <button class="btn btn-primary" id="btn-register">Davom etish</button>
+    <button class="btn btn-primary" id="btn-register">${t("continueBtn")}</button>
   `;
+  bindHeaderControls();
   document.getElementById("btn-register").onclick = onRegisterSubmit;
 }
 
@@ -297,13 +782,13 @@ async function onRegisterSubmit() {
   const errEl = document.getElementById("reg-error");
 
   if (!first_name || !last_name || !father_name) {
-    errEl.textContent = "Iltimos, barcha maydonlarni to'ldiring.";
+    errEl.textContent = t("fillAllFields");
     return;
   }
   try {
     const res = await api("/api/register", {
       method: "POST",
-      body: { first_name, last_name, father_name, birth_day, birth_month, birth_year },
+      body: { first_name, last_name, father_name, birth_day, birth_month, birth_year, language: LANG },
     });
     ME = { ...ME, registered: true, profile: res.profile };
     state.navStack = [];
@@ -321,8 +806,8 @@ function renderMain() {
     <div class="menu-row" data-section="${s.key}">
       <div class="icon-badge" style="background:${s.color}">${s.icon}</div>
       <div>
-        <div class="title">${s.label}</div>
-        <div class="desc">${s.desc}</div>
+        <div class="title">${sectionLabel(s.key)}</div>
+        <div class="desc">${sectionDescText(s.key)}</div>
       </div>
       <div class="chevron">›</div>
     </div>
@@ -331,8 +816,8 @@ function renderMain() {
     <div class="menu-row" id="row-results">
       <div class="icon-badge" style="background:#14b8a6">📊</div>
       <div>
-        <div class="title">Natijalarim</div>
-        <div class="desc">Yechilgan testlar tarixi</div>
+        <div class="title">${t("myResultsTitle")}</div>
+        <div class="desc">${t("myResultsDesc")}</div>
       </div>
       <div class="chevron">›</div>
     </div>
@@ -342,17 +827,18 @@ function renderMain() {
       <div class="menu-row" id="row-admin">
         <div class="icon-badge" style="background:#0f172a">🛡</div>
         <div>
-          <div class="title">Admin panel</div>
-          <div class="desc">Barcha foydalanuvchilar natijalari</div>
+          <div class="title">${t("adminPanelTitle")}</div>
+          <div class="desc">${t("adminPanelDesc")}</div>
         </div>
         <div class="chevron">›</div>
       </div>
     `;
   }
   appEl.innerHTML = `
-    ${header(`Salom, ${escapeHtml(name)} 👋`, "Nima bilan shug'ullanamiz?", false)}
+    ${header(t("mainGreeting")(escapeHtml(name)), t("mainSubtitle"), false)}
     ${rows}
   `;
+  bindHeaderControls();
   document.querySelectorAll(".menu-row[data-section]").forEach((el) => {
     el.onclick = () => {
       state.selection = { section: el.dataset.section, operation: null, digits: null, timePerQuestion: null };
@@ -367,29 +853,22 @@ function renderMain() {
 // ---------- Bo'lim ichidagi amallar (Arifmetika / Kasrlar / ...) ----------
 function renderSection() {
   const sectionKey = state.selection.section;
-  const section = (CONFIG.sections || []).find((s) => s.key === sectionKey) || { label: "Bo'lim" };
-  const sectionDesc = {
-    fractions: "Kasrlar ustida",
-    percent: "Foizlar ustida",
-    algebra: "Algebraik ifodalar ustida",
-    geometry: "Geometrik masalalar ustida",
-  }[sectionKey] || "1–5 xonali sonlar ustida";
   const opKeys = Object.keys(CONFIG.operations).filter((k) => CONFIG.operations[k].section === sectionKey);
   const cards = opKeys.map((key) => {
     const op = CONFIG.operations[key];
     return `
       <div class="section-card" data-op="${key}" style="border-color:${op.color}22">
         <div class="icon-badge" style="background:${op.color}">${OP_EMOJI[key] || op.symbol}</div>
-        <div class="title">${op.label}</div>
-        <div class="desc">${sectionDesc}</div>
+        <div class="title">${opLabel(key)}</div>
+        <div class="desc">${sectionCardDesc(sectionKey)}</div>
       </div>`;
   }).join("");
 
   appEl.innerHTML = `
-    ${header(section.label, "Amal turini tanlang", true)}
+    ${header(sectionLabel(sectionKey), t("chooseOperationSubtitle"), true)}
     <div class="card-grid">${cards}</div>
   `;
-  bindBack();
+  bindHeaderControls();
   document.querySelectorAll(".section-card").forEach((el) => {
     el.onclick = () => {
       state.selection.operation = el.dataset.op;
@@ -404,13 +883,13 @@ function renderDigits() {
   const useLevelWording = op.section !== "arithmetic";
   const buttons = [];
   for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
-    buttons.push(`<button class="choice-btn" data-d="${d}">${useLevelWording ? `${d}-daraja` : `${d} xonali`}</button>`);
+    buttons.push(`<button class="choice-btn" data-d="${d}">${useLevelWording ? t("levelLabel")(d) : t("digitLabel")(d)}</button>`);
   }
   appEl.innerHTML = `
-    ${header(op.label, useLevelWording ? "Murakkablik darajasini tanlang" : "Sonlar xonasini tanlang", true)}
+    ${header(opLabel(state.selection.operation), useLevelWording ? t("chooseLevelSubtitle") : t("chooseDigitsSubtitle"), true)}
     <div class="choice-grid">${buttons.join("")}</div>
   `;
-  bindBack();
+  bindHeaderControls();
   document.querySelectorAll(".choice-btn").forEach((el) => {
     el.onclick = () => {
       state.selection.digits = parseInt(el.dataset.d, 10);
@@ -422,14 +901,16 @@ function renderDigits() {
 // ---------- Vaqt tanlash ----------
 function renderTime() {
   const op = CONFIG.operations[state.selection.operation];
+  const useLevelWording = op.section !== "arithmetic";
+  const levelText = useLevelWording ? t("levelLabel")(state.selection.digits) : t("digitLabel")(state.selection.digits);
   const buttons = CONFIG.time_options
-    .map((t) => `<button class="choice-btn" data-s="${t.seconds}">${t.label}</button>`)
+    .map((tOpt) => `<button class="choice-btn" data-s="${tOpt.seconds}">${timeLabel(tOpt.seconds)}</button>`)
     .join("");
   appEl.innerHTML = `
-    ${header(op.label, `${state.selection.digits} — har bir savol uchun vaqtni tanlang`, true)}
+    ${header(opLabel(state.selection.operation), t("chooseTimeSubtitle")(levelText), true)}
     <div class="choice-grid">${buttons}</div>
   `;
-  bindBack();
+  bindHeaderControls();
   document.querySelectorAll(".choice-btn").forEach((el) => {
     el.onclick = async () => {
       state.selection.timePerQuestion = parseInt(el.dataset.s, 10);
@@ -463,20 +944,19 @@ async function startTest() {
 
 // ---------- Test ekrani ----------
 function renderTest() {
-  const t = state.test;
-  const q = t.question;
-  const pct = t.total_questions ? (t.progress.answered / t.total_questions) * 100 : 0;
-  const correctPct = t.total_questions ? (t.progress.correct / t.total_questions) * 100 : 0;
-  const wrongPct = t.total_questions ? (t.progress.wrong / t.total_questions) * 100 : 0;
-  const instruction = QUESTION_INSTRUCTIONS[q.operation];
+  const t_ = state.test;
+  const q = t_.question;
+  const correctPct = t_.total_questions ? (t_.progress.correct / t_.total_questions) * 100 : 0;
+  const wrongPct = t_.total_questions ? (t_.progress.wrong / t_.total_questions) * 100 : 0;
+  const instruction = instructionFor(q.operation);
   const bigChoices = BIG_CHOICE_OPS.has(q.operation);
   const wordProblem = WORD_PROBLEM_OPS.has(q.operation) || !!q.display_text;
 
   appEl.innerHTML = `
     <div class="test-topbar">
       <div class="progress-line">
-        <span>${t.progress.answered} / ${t.total_questions} savol</span>
-        <span><span class="stat-correct">✔ ${t.progress.correct}</span> &nbsp; <span class="stat-wrong">✘ ${t.progress.wrong}</span></span>
+        <span>${t("progressLine")(t_.progress.answered, t_.total_questions)}</span>
+        <span><span class="stat-correct">✔ ${t_.progress.correct}</span> &nbsp; <span class="stat-wrong">✘ ${t_.progress.wrong}</span></span>
       </div>
       <div class="progress-bar-track">
         <div class="progress-bar-fill-correct" style="width:${correctPct}%"></div>
@@ -493,9 +973,9 @@ function renderTest() {
       <div>${questionExprHtml(q)}${questionSuffix(q)}</div>
     </div>
     <div class="answer-grid" id="answer-grid">
-      ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(c)}</button>`).join("")}
+      ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(translateChoiceLabel(q.operation, c))}</button>`).join("")}
     </div>
-    <button class="btn btn-danger-outline" id="btn-finish-test" style="margin-top:18px;">🏁 Testni tugatish</button>
+    <button class="btn btn-danger-outline" id="btn-finish-test" style="margin-top:18px;">${t("finishTestBtn")}</button>
   `;
 
   document.querySelectorAll(".answer-btn").forEach((el) => {
@@ -505,17 +985,17 @@ function renderTest() {
 }
 
 function showFinishConfirmModal() {
-  const t = state.test;
+  const t_ = state.test;
   const modal = document.createElement("div");
   modal.className = "modal-backdrop";
   modal.id = "finish-modal";
   modal.innerHTML = `
     <div class="modal-sheet">
-      <h3>Testni yakunlaysizmi?</h3>
-      <p>Hozirgacha ${t.progress.answered} / ${t.total_questions} savolga javob berdingiz. Qolgan savollar hisoblanmaydi.</p>
+      <h3>${t("finishModalTitle")}</h3>
+      <p>${t("finishModalBody")(t_.progress.answered, t_.total_questions)}</p>
       <div class="btn-row">
-        <button class="btn btn-outline" id="btn-finish-cancel">Davom etish</button>
-        <button class="btn btn-danger-outline" id="btn-finish-confirm">🏁 Ha, tugatish</button>
+        <button class="btn btn-outline" id="btn-finish-cancel">${t("finishModalCancel")}</button>
+        <button class="btn btn-danger-outline" id="btn-finish-confirm">${t("finishModalConfirm")}</button>
       </div>
     </div>
   `;
@@ -543,13 +1023,15 @@ async function finishTestEarly() {
 
 function renderFeedbackBanner() {
   const fb = state.lastFeedback;
+  const correctDisplay = dash(translateChoiceLabel(fb.operation, fb.correctAnswer));
+  const chosenDisplay = dash(translateChoiceLabel(fb.operation, fb.chosen));
   if (fb.timedOut) {
-    return `<div class="feedback-banner wrong">⏰ Vaqt tugadi — javob berolmadingiz. To'g'ri javob: ${dash(fb.correctAnswer)}</div>`;
+    return `<div class="feedback-banner wrong">${t("timedOutFeedback")(correctDisplay)}</div>`;
   }
   if (fb.isCorrect) {
-    return `<div class="feedback-banner correct">✅ To'g'ri!</div>`;
+    return `<div class="feedback-banner correct">${t("correctFeedback")}</div>`;
   }
-  return `<div class="feedback-banner wrong">❌ Xato. Siz tanladingiz: ${dash(fb.chosen)}. To'g'ri javob: ${dash(fb.correctAnswer)}</div>`;
+  return `<div class="feedback-banner wrong">${t("wrongFeedback")(chosenDisplay, correctDisplay)}</div>`;
 }
 
 function onChooseAnswer(value) {
@@ -558,16 +1040,17 @@ function onChooseAnswer(value) {
 }
 
 function showConfirmModal() {
+  const op = state.test.question.operation;
   const modal = document.createElement("div");
   modal.className = "modal-backdrop";
   modal.id = "confirm-modal";
   modal.innerHTML = `
     <div class="modal-sheet">
-      <h3>Javobingiz: ${dash(state.pendingChoice)}</h3>
-      <p>Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?</p>
+      <h3>${t("confirmModalTitle")(dash(translateChoiceLabel(op, state.pendingChoice)))}</h3>
+      <p>${t("confirmModalBody")}</p>
       <div class="btn-row">
-        <button class="btn btn-outline" id="btn-rethink">🔄 Qayta o'ylash</button>
-        <button class="btn btn-success" id="btn-confirm">✅ Tasdiqlash</button>
+        <button class="btn btn-outline" id="btn-rethink">${t("rethinkBtn")}</button>
+        <button class="btn btn-success" id="btn-confirm">${t("confirmBtn")}</button>
       </div>
     </div>
   `;
@@ -589,10 +1072,10 @@ async function confirmAnswer(timedOut) {
   answerLocked = true;
   stopTimer();
 
-  const t = state.test;
-  const q = t.question;
+  const t_ = state.test;
+  const q = t_.question;
   const chosen = timedOut ? null : state.pendingChoice;
-  const timeTaken = t.time_per_question * 1000 - Math.max(0, state.timer.deadline - Date.now());
+  const timeTaken = t_.time_per_question * 1000 - Math.max(0, state.timer.deadline - Date.now());
 
   // javob tugmalarini vizual belgilash
   document.querySelectorAll(".answer-btn").forEach((el) => {
@@ -622,9 +1105,10 @@ async function confirmAnswer(timedOut) {
       correctAnswer: res.correct_answer,
       chosen,
       timedOut,
+      operation: q.operation,
     };
 
-    t.progress = res.progress;
+    t_.progress = res.progress;
 
     setTimeout(() => {
       answerLocked = false;
@@ -700,27 +1184,28 @@ function formatSeconds(total) {
 
 // ---------- Test yakuni ----------
 function renderTestResult() {
-  const t = state.test;
-  const total = t.total_questions;
-  const answered = t.progress.answered;
-  const correct = t.progress.correct;
-  const wrong = t.progress.wrong;
+  const t_ = state.test;
+  const total = t_.total_questions;
+  const answered = t_.progress.answered;
+  const correct = t_.progress.correct;
+  const wrong = t_.progress.wrong;
   const early = answered < total;
   const good = answered > 0 && correct / answered >= 0.7;
   const summaryLine = early
-    ? `${total} tadan <b>${answered}</b> tasiga javob berdingiz — shundan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`
-    : `${total} tadan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`;
+    ? t("summaryEarly")(total, answered, correct, wrong)
+    : t("summaryFull")(total, correct, wrong);
   appEl.innerHTML = `
-    ${header("Test yakunlandi! 🎉")}
+    ${header(t("testFinishedTitle"))}
     <div class="feedback-banner ${good ? "correct" : "wrong"}" style="font-size:18px;padding:22px;">
       ${summaryLine}
     </div>
-    <button class="btn btn-primary" id="btn-detail">Batafsil ko'rish</button>
+    <button class="btn btn-primary" id="btn-detail">${t("detailBtn")}</button>
     <div style="height:10px"></div>
-    <button class="btn btn-outline" id="btn-home">Bosh menyu</button>
+    <button class="btn btn-outline" id="btn-home">${t("homeBtn")}</button>
   `;
+  bindHeaderControls();
   document.getElementById("btn-detail").onclick = () => {
-    state.viewAttemptId = t.attempt_id;
+    state.viewAttemptId = t_.attempt_id;
     state.navStack = [];
     pushScreen("result_detail");
   };
@@ -733,20 +1218,20 @@ function renderTestResult() {
 
 // ---------- Natijalar ro'yxati (o'zim / admin) ----------
 async function renderResultsList(isAdminView, userId) {
-  appEl.innerHTML = `${header(isAdminView ? "Foydalanuvchi testlari" : "Natijalarim", null, true)}<div class="empty-state">Yuklanmoqda...</div>`;
-  bindBack();
+  appEl.innerHTML = `${header(isAdminView ? t("adminPanelTitle") : t("myResultsTitle"), null, true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
   try {
     const res = isAdminView
       ? await api(`/api/admin/users/${userId}/attempts`)
       : await api("/api/results");
     const attempts = res.attempts;
     const title = isAdminView
-      ? `${res.user.last_name} ${res.user.first_name} testlari`
-      : "Natijalarim";
+      ? t("userTestsTitle")(`${res.user.last_name} ${res.user.first_name}`)
+      : t("myResultsTitle");
 
     if (!attempts.length) {
-      appEl.innerHTML = `${header(title, null, true)}<div class="empty-state">Hozircha testlar yo'q</div>`;
-      bindBack();
+      appEl.innerHTML = `${header(title, null, true)}<div class="empty-state">${t("noTestsYet")}</div>`;
+      bindHeaderControls();
       return;
     }
 
@@ -759,7 +1244,7 @@ async function renderResultsList(isAdminView, userId) {
         <div class="result-row" data-id="${a.id}">
           <div class="icon-badge" style="background:${op.color || "#6366f1"};width:40px;height:40px;font-size:18px;">${OP_EMOJI[a.operation] || "❓"}</div>
           <div class="meta">
-            <div class="title">${op.label || a.operation}</div>
+            <div class="title">${opLabel(a.operation)}</div>
             <div class="date">${date}</div>
           </div>
           <div class="score ${scoreClass}">${a.correct_count}/${a.total_questions}</div>
@@ -767,7 +1252,7 @@ async function renderResultsList(isAdminView, userId) {
     }).join("");
 
     appEl.innerHTML = `${header(title, null, true)}<div>${rows}</div>`;
-    bindBack();
+    bindHeaderControls();
     document.querySelectorAll(".result-row").forEach((el) => {
       el.onclick = () => {
         state.viewAttemptId = parseInt(el.dataset.id, 10);
@@ -775,19 +1260,18 @@ async function renderResultsList(isAdminView, userId) {
       };
     });
   } catch (e) {
-    appEl.innerHTML = `${header("Xatolik", null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
-    bindBack();
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
   }
 }
 
 // ---------- Natija tafsiloti ----------
 async function renderResultDetail() {
-  appEl.innerHTML = `${header("Batafsil natija", null, true)}<div class="empty-state">Yuklanmoqda...</div>`;
-  bindBack();
+  appEl.innerHTML = `${header(t("detailBtn"), null, true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
   try {
     const res = await api(`/api/results/${state.viewAttemptId}`);
     const a = res.attempt;
-    const op = CONFIG.operations[a.operation] || {};
     const ownerLine = ME.is_admin && res.owner
       ? `<p class="subtitle">${res.owner.last_name} ${res.owner.first_name} ${res.owner.father_name}</p>`
       : "";
@@ -795,17 +1279,19 @@ async function renderResultDetail() {
     const rows = res.questions.map((q) => {
       let statusClass = "wrong";
       let line;
+      const correctDisplay = dash(translateChoiceLabel(q.operation, q.correct_answer));
+      const selectedDisplay = dash(translateChoiceLabel(q.operation, q.selected_answer));
       if (q.status === "pending") {
         statusClass = "";
-        line = `<span class="ans-line">Javob berilmagan</span>`;
+        line = `<span class="ans-line">${t("noAnswer")}</span>`;
       } else if (q.status === "timeout") {
-        line = `<span class="ans-line">⏰ Vaqt tugadi — <span class="correct-val">to'g'ri javob: ${dash(q.correct_answer)}</span></span>`;
+        line = `<span class="ans-line">${t("timeoutLine")(`<span class="correct-val">${correctDisplay}</span>`)}</span>`;
       } else if (q.is_correct) {
         statusClass = "correct";
-        line = `<span class="ans-line">Javobingiz: <span class="chosen-correct">${dash(q.selected_answer)}</span> ✔</span>`;
+        line = `<span class="ans-line">${t("yourAnswerCorrect")(`<span class="chosen-correct">${selectedDisplay}</span>`)}</span>`;
       } else {
         statusClass = "wrong";
-        line = `<span class="ans-line">Javobingiz: <span class="chosen-wrong">${dash(q.selected_answer)}</span> — to'g'risi: <span class="correct-val">${dash(q.correct_answer)}</span></span>`;
+        line = `<span class="ans-line">${t("yourAnswerWrong")(`<span class="chosen-wrong">${selectedDisplay}</span>`, `<span class="correct-val">${correctDisplay}</span>`)}</span>`;
       }
       return `
         <div class="detail-q-row ${statusClass}">
@@ -815,39 +1301,39 @@ async function renderResultDetail() {
     }).join("");
 
     appEl.innerHTML = `
-      ${header(op.label || a.operation, null, true)}
+      ${header(opLabel(a.operation), null, true)}
       ${ownerLine}
       <div class="feedback-banner correct" style="margin-bottom:16px;">
-        ${a.total_questions} tadan <b>${a.correct_count}</b> to'g'ri, <b>${a.wrong_count}</b> noto'g'ri
+        ${t("resultSummary")(a.total_questions, a.correct_count, a.wrong_count)}
       </div>
       ${rows}
     `;
-    bindBack();
+    bindHeaderControls();
   } catch (e) {
-    appEl.innerHTML = `${header("Xatolik", null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
-    bindBack();
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
   }
 }
 
 // ---------- Admin: foydalanuvchilar ----------
 async function renderAdminUsers() {
-  appEl.innerHTML = `${header("Admin panel", "Barcha foydalanuvchilar", true)}<div class="empty-state">Yuklanmoqda...</div>`;
-  bindBack();
+  appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
   try {
     const res = await api("/api/admin/users");
     if (!res.users.length) {
-      appEl.innerHTML = `${header("Admin panel", "Barcha foydalanuvchilar", true)}<div class="empty-state">Hozircha foydalanuvchilar yo'q</div>`;
-      bindBack();
+      appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}<div class="empty-state">${t("noUsersYet")}</div>`;
+      bindHeaderControls();
       return;
     }
     const rows = res.users.map((u) => `
       <div class="admin-user-row" data-id="${u.telegram_id}">
         <div class="name">${u.last_name} ${u.first_name} ${u.father_name}${u.is_admin ? " 🛡" : ""}</div>
-        <div class="sub">${u.username ? "@" + u.username : "username yo'q"} · ${u.attempts_count} ta test</div>
+        <div class="sub">${u.username ? "@" + u.username : t("noUsername")} · ${t("testsCountSuffix")(u.attempts_count)}</div>
         <div class="stats"><span class="c">✔ ${u.total_correct}</span><span class="w">✘ ${u.total_wrong}</span></div>
       </div>`).join("");
-    appEl.innerHTML = `${header("Admin panel", "Barcha foydalanuvchilar", true)}<div>${rows}</div>`;
-    bindBack();
+    appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}<div>${rows}</div>`;
+    bindHeaderControls();
     document.querySelectorAll(".admin-user-row").forEach((el) => {
       el.onclick = () => {
         state.viewUserId = parseInt(el.dataset.id, 10);
@@ -855,8 +1341,8 @@ async function renderAdminUsers() {
       };
     });
   } catch (e) {
-    appEl.innerHTML = `${header("Xatolik", null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
-    bindBack();
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
   }
 }
 

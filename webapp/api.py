@@ -1,7 +1,10 @@
 """REST API endpointlari (Flask blueprint)."""
 from flask import Blueprint, jsonify, request
 
-from config import MAX_DIGITS, MIN_DIGITS, OPERATIONS, QUESTIONS_PER_TEST, SECTIONS, TIME_OPTIONS
+from config import (
+    MAX_DIGITS, MIN_DIGITS, OPERATIONS, QUESTIONS_PER_TEST, SECTIONS,
+    SUPPORTED_LANGUAGES, TIME_OPTIONS,
+)
 from db import crud
 from logic.question_generator import generate_test
 from webapp.auth import AuthError, get_current_telegram_user
@@ -76,6 +79,10 @@ def register():
     if not (1 <= birth_day <= 31):
         return err(400, "Tug'ilgan kun noto'g'ri")
 
+    language = body.get("language")
+    if language not in SUPPORTED_LANGUAGES:
+        language = None
+
     user = crud.create_or_update_user(
         telegram_id=tg_user["id"],
         first_name=first_name,
@@ -85,6 +92,7 @@ def register():
         birth_month=birth_month,
         birth_day=birth_day,
         username=tg_user.get("username"),
+        language=language,
     )
     logger.info(
         "REGISTER user=%s (%s %s %s) tug'ilgan sana=%04d-%02d-%02d",
@@ -92,6 +100,25 @@ def register():
         birth_year, birth_month, birth_day,
     )
     return jsonify({"ok": True, "profile": user})
+
+
+@api_bp.post("/language")
+def set_language():
+    """Ro'yxatdan o'tgan foydalanuvchi Mini App tilini xohlagan vaqtda
+    o'zgartirishi uchun (yuqoridagi bayroqcha tugmasi orqali)."""
+    tg_user = current_user()
+    body = request.get_json(silent=True) or {}
+    language = body.get("language")
+    if language not in SUPPORTED_LANGUAGES:
+        return err(400, "Noto'g'ri til")
+
+    user = crud.get_user(tg_user["id"])
+    if not user:
+        return err(400, "Avval ro'yxatdan o'ting")
+
+    crud.set_user_language(tg_user["id"], language)
+    logger.info("LANGUAGE_CHANGE user=%s til=%s", tg_user["id"], language)
+    return jsonify({"ok": True, "language": language})
 
 
 # ---------- Test topshirish ----------

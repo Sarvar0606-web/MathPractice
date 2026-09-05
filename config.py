@@ -18,6 +18,10 @@ ADMIN_IDS = {
 
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").rstrip("/")
 
+# Mini App qo'llab-quvvatlaydigan tillar.
+SUPPORTED_LANGUAGES = ["uz", "ru", "en"]
+DEFAULT_LANGUAGE = "uz"
+
 DEV_SKIP_AUTH = os.getenv("DEV_SKIP_AUTH", "0") == "1"
 
 HOST = os.getenv("HOST", "0.0.0.0")

@@ -79,9 +79,15 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
 ## Foydalanish oqimi (Mini App ichida)
 
 1. Botga `/start` yuboring → "Mini App'ni ochish" tugmasi chiqadi.
-2. Birinchi marta kirganda: Ism, Familiya, Otasining ismi va tug'ilgan sana
+2. Mini App birinchi marta ochilganda til tanlash ekrani chiqadi: 🇺🇿 O'zbekcha,
+   🇷🇺 Русский, 🇬🇧 English. Tanlangan til foydalanuvchi profiliga saqlanadi
+   (ro'yxatdan o'tgandan keyin), shuning uchun keyingi safar Mini App
+   avtomatik shu tilda ochiladi. Istalgan ekranning yuqori o'ng burchagidagi
+   bayroqcha tugmasi orqali tilni xohlagan vaqtda o'zgartirish mumkin —
+   o'zgarish darhol interfeys va savol matnlariga ta'sir qiladi.
+3. Birinchi marta kirganda: Ism, Familiya, Otasining ismi va tug'ilgan sana
    so'raladi.
-3. Bosh menyudan bo'lim tanlanadi:
+4. Bosh menyudan bo'lim tanlanadi:
    - **Arifmetika** → qo'shish/ayirish/ko'paytirish/bo'lish/solishtirish →
      sonlar xonasini (1–5) → vaqtni tanlaysiz. "Solishtirish"da javob
      variantlari `<`, `>`, `=` belgilaridan iborat.
@@ -105,6 +111,11 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
      perimetrini toping.").
    Barcha bo'limlarda ham 20 tadan savol, 4 variantli javob va tasdiqlash
    dialogi bir xil ishlaydi.
+5. **Til**: interfeys matnlari, mavzu/bo'lim nomlari va so'z masalalari
+   (foizlar, geometriya) tanlangan tilga mos tarjima qilinadi. Matematik
+   ifodalar (arifmetika, kasrlar, tenglamalar) allaqachon til-neytral
+   bo'lgani uchun o'zgarmaydi. Bot xabarlari (`/start`) hozircha faqat
+   o'zbek tilida.
 4. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
    tanlanganda "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?" so'raladi.
    Tasdiqlangach javob to'g'ri (yashil) yoki xato (qizil, to'g'ri javob

@@ -25,28 +25,47 @@ def create_or_update_user(
     birth_month: int,
     birth_day: int,
     username: Optional[str] = None,
+    language: Optional[str] = None,
 ) -> dict:
     is_admin = 1 if telegram_id in ADMIN_IDS else 0
     with db_cursor() as cur:
         existing = get_user(telegram_id)
         if existing:
-            cur.execute(
-                """UPDATE users SET first_name=?, last_name=?, father_name=?,
-                   birth_year=?, birth_month=?, birth_day=?, username=?, is_admin=?
-                   WHERE telegram_id=?""",
-                (first_name, last_name, father_name, birth_year, birth_month,
-                 birth_day, username, is_admin, telegram_id),
-            )
+            if language:
+                cur.execute(
+                    """UPDATE users SET first_name=?, last_name=?, father_name=?,
+                       birth_year=?, birth_month=?, birth_day=?, username=?, is_admin=?,
+                       language=?
+                       WHERE telegram_id=?""",
+                    (first_name, last_name, father_name, birth_year, birth_month,
+                     birth_day, username, is_admin, language, telegram_id),
+                )
+            else:
+                cur.execute(
+                    """UPDATE users SET first_name=?, last_name=?, father_name=?,
+                       birth_year=?, birth_month=?, birth_day=?, username=?, is_admin=?
+                       WHERE telegram_id=?""",
+                    (first_name, last_name, father_name, birth_year, birth_month,
+                     birth_day, username, is_admin, telegram_id),
+                )
         else:
             cur.execute(
                 """INSERT INTO users
                    (telegram_id, first_name, last_name, father_name,
-                    birth_year, birth_month, birth_day, username, is_admin)
-                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                    birth_year, birth_month, birth_day, username, is_admin, language)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
                 (telegram_id, first_name, last_name, father_name, birth_year,
-                 birth_month, birth_day, username, is_admin),
+                 birth_month, birth_day, username, is_admin, language or "uz"),
             )
     return get_user(telegram_id)
+
+
+def set_user_language(telegram_id: int, language: str) -> None:
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE users SET language=? WHERE telegram_id=?",
+            (language, telegram_id),
+        )
 
 
 def is_admin(telegram_id: int) -> bool:

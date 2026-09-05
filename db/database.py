@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     birth_day       INTEGER NOT NULL,
     username        TEXT,
     is_admin        INTEGER NOT NULL DEFAULT 0,
+    language        TEXT NOT NULL DEFAULT 'uz',
     registered_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -135,5 +136,6 @@ def init_db():
     conn.executescript(SCHEMA)
     _migrate_legacy_questions_table(conn)
     _ensure_column(conn, "questions", "display_text", "TEXT")
+    _ensure_column(conn, "users", "language", "TEXT NOT NULL DEFAULT 'uz'")
     conn.commit()
     conn.close()
