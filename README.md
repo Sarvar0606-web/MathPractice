@@ -88,13 +88,17 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
 3. Birinchi marta kirganda: Ism, Familiya, Otasining ismi va tug'ilgan sana
    so'raladi.
 4. Bosh menyudan bo'lim tanlanadi:
-   - **Arifmetika** → qo'shish/ayirish/ko'paytirish/bo'lish/solishtirish →
-     sonlar xonasini (1–5) → vaqtni tanlaysiz. "Solishtirish"da javob
-     variantlari `<`, `>`, `=` belgilaridan iborat.
-   - **Kasrlar** → solishtirish/qisqartirish/qo'shish/ayirish/ko'paytirish/
-     bo'lish/aralash kasrga aylantirish/o'nli kasrga aylantirish → murakkablik
-     darajasini (1–5) → vaqtni tanlaysiz. Javoblar kasr ko'rinishida
-     (masalan `3/4`, `2 1/3`, `0.75`) beriladi.
+   - **Arifmetika** → qo'shish/ayirish/ko'paytirish/bo'lish/solishtirish/
+     amal tartibi/qoldiqli bo'lish/manfiy sonlar → sonlar xonasini (1–5) →
+     vaqtni tanlaysiz. "Solishtirish"da javob variantlari `<`, `>`, `=`
+     belgilaridan iborat. "Amal tartibi" va "Manfiy sonlar" bir nechta
+     amalli ifodalar ko'rinishida (masalan `(a+b) × (c-d)`), "Qoldiqli
+     bo'lish" esa javobni "bo'linma qoldiq qism" shaklida (masalan
+     `7 qoldiq 3`) so'raydi.
+   - **Kasrlar** → oddiy kasr/solishtirish/qisqartirish/qo'shish/ayirish/
+     ko'paytirish/bo'lish/aralash kasrga aylantirish/o'nli kasrga
+     aylantirish → murakkablik darajasini (1–5) → vaqtni tanlaysiz.
+     Javoblar kasr ko'rinishida (masalan `3/4`, `2 1/3`, `0.75`) beriladi.
    - **Foizlar** → sonning foizini topish/foiz bo'yicha sonni topish/narx
      oshishi/chegirma/foyda-zarar/ketma-ket foiz o'zgarishi → murakkablik
      darajasini (1–5) → vaqtni tanlaysiz. Savollar so'z masalasi (matnli)
@@ -104,11 +108,22 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
      vaqtni tanlaysiz. Tenglama darajasi oshgani sayin ko'rinishi ham
      murakkablashadi (masalan 1-daraja: `x + 5 = 12`, 5-daraja:
      `3(2x - 5) - 4(x + 2) = 17`).
+   - **Funksiyalar** → chiziqli funksiya/kvadrat funksiya/grafik (y kesish
+     nuqtasi)/funksiya qiymatini topish/nol nuqtalar → murakkablik
+     darajasini (1–5) → vaqtni tanlaysiz. Savollar so'z masalasi
+     shaklida beriladi (masalan "y = 2x - 5 funksiyaning x = 3 dagi
+     qiymatini toping.").
    - **Geometriya** → perimetr/yuza/hajm/uchburchak/to'rtburchak/aylana/
      Pifagor teoremasi/burchaklar → murakkablik darajasini (1–5) → vaqtni
      tanlaysiz. Savollar geometrik so'z masalasi shaklida beriladi
      (masalan "Tomonlari 5 va 8 bo'lgan to'g'ri to'rtburchakning
      perimetrini toping.").
+   - **Ehtimollik va statistika** → o'rtacha qiymat/mediana/moda/ehtimollik/
+     kombinatorika → murakkablik darajasini (1–5) → vaqtni tanlaysiz.
+     O'rtacha qiymat/mediana/moda savollari 4–6 tadan sonlar ro'yxati
+     bilan so'z masalasi shaklida beriladi, ehtimollik javobi kasr
+     ko'rinishida (masalan `3/10`), kombinatorika esa faktorial (n!)
+     asosidagi joylashtirishlar sonini so'raydi.
    Barcha bo'limlarda ham 20 tadan savol, 4 variantli javob va tasdiqlash
    dialogi bir xil ishlaydi.
 5. **Til**: interfeys matnlari, mavzu/bo'lim nomlari va so'z masalalari

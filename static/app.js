@@ -21,11 +21,41 @@ const OP_EMOJI = {
   algebra_system: "🔗",
   geo_perimeter: "📏", geo_area: "🟩", geo_volume: "📦", geo_triangle: "🔺",
   geo_quad: "🔷", geo_circle: "⭕", geo_pythagoras: "📐", geo_angles: "∠",
+  arith_order: "🧮", arith_remainder: "➗", arith_negative: "➖", frac_basic: "🍰",
+  func_linear: "📈", func_quadratic: "🌐", func_graph: "🗺️", func_value: "🔣",
+  func_zeros: "0️⃣",
+  stat_mean: "📊", stat_median: "🎚️", stat_mode: "🏆", stat_probability: "🎲",
+  stat_combinatorics: "🔢",
 };
 
 const SUPERSCRIPT_DIGITS = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
 function superscript(n) {
   return String(n).split("").map((d) => SUPERSCRIPT_DIGITS[d] !== undefined ? SUPERSCRIPT_DIGITS[d] : d).join("");
+}
+
+// ---------- Funksiyalar uchun til-neytral polinom formatlash ----------
+function formatPolyTerm(value, suffix) {
+  if (suffix === "") return String(Math.abs(value));
+  const mag = Math.abs(value);
+  return mag === 1 ? suffix : `${mag}${suffix}`;
+}
+
+function formatQuadraticExpr(a, b, c) {
+  const terms = [];
+  if (a !== 0) terms.push({ v: a, suf: "x²" });
+  if (b !== 0) terms.push({ v: b, suf: "x" });
+  if (c !== 0 || terms.length === 0) terms.push({ v: c, suf: "" });
+  let out = "";
+  terms.forEach((term, i) => {
+    const body = formatPolyTerm(term.v, term.suf);
+    if (i === 0) out += term.v < 0 ? `-${body}` : body;
+    else out += term.v < 0 ? ` - ${body}` : ` + ${body}`;
+  });
+  return out;
+}
+
+function formatLinearExpr(k, b) {
+  return formatQuadraticExpr(0, k, b);
 }
 
 // Bu amallarning javob variantlari bitta belgi/qisqa satr (masalan "<", ">", "=")
@@ -39,6 +69,9 @@ const WORD_PROBLEM_OPS = new Set([
   "percent_discount", "percent_profit_loss", "percent_successive",
   "geo_perimeter", "geo_area", "geo_volume", "geo_triangle",
   "geo_quad", "geo_circle", "geo_pythagoras", "geo_angles",
+  "frac_basic",
+  "func_linear", "func_quadratic", "func_graph", "func_value", "func_zeros",
+  "stat_mean", "stat_median", "stat_mode", "stat_probability", "stat_combinatorics",
 ]);
 
 // "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi,
@@ -125,9 +158,10 @@ const I18N = {
     digitLabel: (d) => `${d} xonali`,
     operations: {
       add: "Qo'shish", sub: "Ayirish", mul: "Ko'paytirish", div: "Bo'lish", compare: "Solishtirish",
+      arith_order: "Amal tartibi", arith_remainder: "Qoldiqli bo'lish", arith_negative: "Manfiy sonlar",
       frac_compare: "Solishtirish", frac_simplify: "Qisqartirish", frac_add: "Qo'shish",
       frac_sub: "Ayirish", frac_mul: "Ko'paytirish", frac_div: "Bo'lish",
-      frac_mixed: "Aralash kasr", frac_decimal: "O'nli kasr",
+      frac_mixed: "Aralash kasr", frac_decimal: "O'nli kasr", frac_basic: "Oddiy kasr",
       percent_of: "Sonning foizini topish", percent_find_whole: "Foiz bo'yicha sonni topish",
       percent_increase: "Narx oshishi", percent_discount: "Chegirma",
       percent_profit_loss: "Foyda/zarar", percent_successive: "Ketma-ket foiz o'zgarishi",
@@ -137,6 +171,10 @@ const I18N = {
       geo_perimeter: "Perimetr", geo_area: "Yuza", geo_volume: "Hajm", geo_triangle: "Uchburchak",
       geo_quad: "To'rtburchak", geo_circle: "Aylana", geo_pythagoras: "Pifagor teoremasi",
       geo_angles: "Burchaklar",
+      func_linear: "Chiziqli funksiya", func_quadratic: "Kvadrat funksiya", func_graph: "Grafik",
+      func_value: "Funksiya qiymatini topish", func_zeros: "Nol nuqtalar",
+      stat_mean: "O'rtacha qiymat", stat_median: "Mediana", stat_mode: "Moda",
+      stat_probability: "Ehtimollik", stat_combinatorics: "Kombinatorika",
     },
     sections: {
       arithmetic: { label: "Arifmetika", desc: "Qo'shish, ayirish, ko'paytirish, bo'lish, solishtirish" },
@@ -144,10 +182,13 @@ const I18N = {
       percent: { label: "Foizlar", desc: "Foizlar bilan bog'liq masalalar" },
       algebra: { label: "Algebra", desc: "Tenglama, tengsizlik, ifodalar bilan ishlash" },
       geometry: { label: "Geometriya", desc: "Perimetr, yuza, hajm va boshqa masalalar" },
+      functions: { label: "Funksiyalar", desc: "Chiziqli va kvadrat funksiyalar bilan ishlash" },
+      statistics: { label: "Ehtimollik va statistika", desc: "O'rtacha qiymat, mediana, ehtimollik va boshqalar" },
     },
     sectionCardDesc: {
       fractions: "Kasrlar ustida", percent: "Foizlar ustida",
       algebra: "Algebraik ifodalar ustida", geometry: "Geometrik masalalar ustida",
+      functions: "Funksiyalar ustida", statistics: "Ehtimollik va statistika ustida",
       default: "1–5 xonali sonlar ustida",
     },
     timeOptions: { 30: "30 soniya", 60: "1 daqiqa", 120: "2 daqiqa", 180: "3 daqiqa", 300: "5 daqiqa" },
@@ -157,7 +198,21 @@ const I18N = {
       frac_decimal: "O'nli kasrga aylantiring:",
     },
     profitLossWords: { profit: "foyda", loss: "zarar" },
+    remainderWord: "qoldiq",
     sentences: {
+      frac_basic: (q) => `Butun narsa <b>${q.b}</b> ta teng bo'lakka bo'lingan, shundan <b>${q.a}</b> tasi olingan. Bu qanday kasr bilan ifodalanadi?`,
+      func_linear: (q) => `y = ${formatLinearExpr(q.a, q.b)} funksiyasida x = ${q.c} bo'lganda, y ning qiymatini toping.`,
+      func_quadratic: (q) => `y = ${formatQuadraticExpr(q.a, q.b, q.c)} funksiyasida x = ${q.d} bo'lganda, y ning qiymatini toping.`,
+      func_graph: (q) => `y = ${formatLinearExpr(q.a, q.b)} chizig'ining grafigi Y o'qini qaysi nuqtada kesib o'tadi (y qiymati)?`,
+      func_value: (q) => (q.d === null || q.d === undefined)
+        ? `f(x) = ${formatLinearExpr(q.a, q.b)} bo'lsa, f(${q.c}) ni toping.`
+        : `f(x) = ${formatQuadraticExpr(q.a, q.b, q.c)} bo'lsa, f(${q.d}) ni toping.`,
+      func_zeros: (q) => `y = ${formatLinearExpr(q.a, q.b)} funksiyasining nol nuqtasini (grafigi X o'qini kesib o'tadigan x qiymatini) toping.`,
+      stat_mean: (q) => `Quyidagi sonlarning o'rtacha qiymatini toping: ${q.extra.join(", ")}.`,
+      stat_median: (q) => `Quyidagi sonlarning medianasini toping: ${q.extra.join(", ")}.`,
+      stat_mode: (q) => `Quyidagi sonlarning modasini (eng ko'p uchraydigan qiymatini) toping: ${q.extra.join(", ")}.`,
+      stat_probability: (q) => `Qutida <b>${q.b}</b> ta shar bor, shulardan <b>${q.a}</b> tasi qizil. Tasodifiy tanlangan sharning qizil bo'lish ehtimoli qancha?`,
+      stat_combinatorics: (q) => `<b>${q.a}</b> ta kishini qatorga necha xil usul bilan tizish mumkin?`,
       percent_of: (q) => `${q.a} ning <b>${q.b}%</b> i nechiga teng?`,
       percent_find_whole: (q) => `Biror sonning <b>${q.b}%</b> i ${q.a} ga teng. O'sha son nechiga teng?`,
       percent_increase: (q) => `${q.a} so'm bo'lgan narx <b>${q.b}%</b> ga oshdi. Yangi narx nechiga teng?`,
@@ -243,9 +298,10 @@ const I18N = {
     digitLabel: (d) => `${d}-значные`,
     operations: {
       add: "Сложение", sub: "Вычитание", mul: "Умножение", div: "Деление", compare: "Сравнение",
+      arith_order: "Порядок действий", arith_remainder: "Деление с остатком", arith_negative: "Отрицательные числа",
       frac_compare: "Сравнение", frac_simplify: "Сокращение", frac_add: "Сложение",
       frac_sub: "Вычитание", frac_mul: "Умножение", frac_div: "Деление",
-      frac_mixed: "Смешанная дробь", frac_decimal: "Десятичная дробь",
+      frac_mixed: "Смешанная дробь", frac_decimal: "Десятичная дробь", frac_basic: "Обычная дробь",
       percent_of: "Процент от числа", percent_find_whole: "Число по проценту",
       percent_increase: "Повышение цены", percent_discount: "Скидка",
       percent_profit_loss: "Прибыль/убыток", percent_successive: "Последовательное изменение процента",
@@ -255,6 +311,10 @@ const I18N = {
       geo_perimeter: "Периметр", geo_area: "Площадь", geo_volume: "Объём", geo_triangle: "Треугольник",
       geo_quad: "Четырёхугольник", geo_circle: "Окружность", geo_pythagoras: "Теорема Пифагора",
       geo_angles: "Углы",
+      func_linear: "Линейная функция", func_quadratic: "Квадратичная функция", func_graph: "График",
+      func_value: "Нахождение значения функции", func_zeros: "Нули функции",
+      stat_mean: "Среднее значение", stat_median: "Медиана", stat_mode: "Мода",
+      stat_probability: "Вероятность", stat_combinatorics: "Комбинаторика",
     },
     sections: {
       arithmetic: { label: "Арифметика", desc: "Сложение, вычитание, умножение, деление, сравнение" },
@@ -262,10 +322,13 @@ const I18N = {
       percent: { label: "Проценты", desc: "Задачи на проценты" },
       algebra: { label: "Алгебра", desc: "Уравнения, неравенства, работа с выражениями" },
       geometry: { label: "Геометрия", desc: "Периметр, площадь, объём и другие задачи" },
+      functions: { label: "Функции", desc: "Работа с линейными и квадратичными функциями" },
+      statistics: { label: "Вероятность и статистика", desc: "Среднее значение, медиана, вероятность и другое" },
     },
     sectionCardDesc: {
       fractions: "Действия с дробями", percent: "Задачи на проценты",
       algebra: "Алгебраические выражения", geometry: "Геометрические задачи",
+      functions: "Работа с функциями", statistics: "Вероятность и статистика",
       default: "Числа от 1 до 5 разрядов",
     },
     timeOptions: { 30: "30 секунд", 60: "1 минута", 120: "2 минуты", 180: "3 минуты", 300: "5 минут" },
@@ -275,7 +338,21 @@ const I18N = {
       frac_decimal: "Преобразуйте в десятичную дробь:",
     },
     profitLossWords: { profit: "прибыль", loss: "убыток" },
+    remainderWord: "остаток",
     sentences: {
+      frac_basic: (q) => `Целое разделено на <b>${q.b}</b> равных частей, из них взято <b>${q.a}</b>. Какой дробью это выражается?`,
+      func_linear: (q) => `При y = ${formatLinearExpr(q.a, q.b)}, найдите значение y при x = ${q.c}.`,
+      func_quadratic: (q) => `При y = ${formatQuadraticExpr(q.a, q.b, q.c)}, найдите значение y при x = ${q.d}.`,
+      func_graph: (q) => `В какой точке график линии y = ${formatLinearExpr(q.a, q.b)} пересекает ось Y (значение y)?`,
+      func_value: (q) => (q.d === null || q.d === undefined)
+        ? `Если f(x) = ${formatLinearExpr(q.a, q.b)}, найдите f(${q.c}).`
+        : `Если f(x) = ${formatQuadraticExpr(q.a, q.b, q.c)}, найдите f(${q.d}).`,
+      func_zeros: (q) => `Найдите нуль функции y = ${formatLinearExpr(q.a, q.b)} (значение x, при котором график пересекает ось X).`,
+      stat_mean: (q) => `Найдите среднее значение следующих чисел: ${q.extra.join(", ")}.`,
+      stat_median: (q) => `Найдите медиану следующих чисел: ${q.extra.join(", ")}.`,
+      stat_mode: (q) => `Найдите моду (наиболее часто встречающееся значение) следующих чисел: ${q.extra.join(", ")}.`,
+      stat_probability: (q) => `В коробке <b>${q.b}</b> шаров, из них <b>${q.a}</b> красных. Какова вероятность вытащить красный шар наугад?`,
+      stat_combinatorics: (q) => `Сколькими способами можно выстроить в ряд <b>${q.a}</b> человек?`,
       percent_of: (q) => `Чему равно <b>${q.b}%</b> от ${q.a}?`,
       percent_find_whole: (q) => `<b>${q.b}%</b> некоторого числа равны ${q.a}. Чему равно это число?`,
       percent_increase: (q) => `Цена ${q.a} сум выросла на <b>${q.b}%</b>. Чему равна новая цена?`,
@@ -361,9 +438,10 @@ const I18N = {
     digitLabel: (d) => `${d} digits`,
     operations: {
       add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division", compare: "Comparison",
+      arith_order: "Order of operations", arith_remainder: "Division with remainder", arith_negative: "Negative numbers",
       frac_compare: "Comparison", frac_simplify: "Simplifying", frac_add: "Addition",
       frac_sub: "Subtraction", frac_mul: "Multiplication", frac_div: "Division",
-      frac_mixed: "Mixed number", frac_decimal: "Decimal",
+      frac_mixed: "Mixed number", frac_decimal: "Decimal", frac_basic: "Basic fraction",
       percent_of: "Percentage of a number", percent_find_whole: "Find the whole from a percent",
       percent_increase: "Price increase", percent_discount: "Discount",
       percent_profit_loss: "Profit/loss", percent_successive: "Successive percent change",
@@ -373,6 +451,10 @@ const I18N = {
       geo_perimeter: "Perimeter", geo_area: "Area", geo_volume: "Volume", geo_triangle: "Triangle",
       geo_quad: "Quadrilateral", geo_circle: "Circle", geo_pythagoras: "Pythagorean theorem",
       geo_angles: "Angles",
+      func_linear: "Linear function", func_quadratic: "Quadratic function", func_graph: "Graph",
+      func_value: "Finding a function's value", func_zeros: "Zeros of a function",
+      stat_mean: "Mean", stat_median: "Median", stat_mode: "Mode",
+      stat_probability: "Probability", stat_combinatorics: "Combinatorics",
     },
     sections: {
       arithmetic: { label: "Arithmetic", desc: "Addition, subtraction, multiplication, division, comparison" },
@@ -380,10 +462,13 @@ const I18N = {
       percent: { label: "Percentages", desc: "Percent-related problems" },
       algebra: { label: "Algebra", desc: "Equations, inequalities, working with expressions" },
       geometry: { label: "Geometry", desc: "Perimeter, area, volume and other problems" },
+      functions: { label: "Functions", desc: "Working with linear and quadratic functions" },
+      statistics: { label: "Probability & Statistics", desc: "Mean, median, probability and more" },
     },
     sectionCardDesc: {
       fractions: "Working with fractions", percent: "Working with percentages",
       algebra: "Algebraic expressions", geometry: "Geometry problems",
+      functions: "Working with functions", statistics: "Probability and statistics",
       default: "1–5 digit numbers",
     },
     timeOptions: { 30: "30 seconds", 60: "1 minute", 120: "2 minutes", 180: "3 minutes", 300: "5 minutes" },
@@ -393,7 +478,21 @@ const I18N = {
       frac_decimal: "Convert to a decimal:",
     },
     profitLossWords: { profit: "profit", loss: "loss" },
+    remainderWord: "remainder",
     sentences: {
+      frac_basic: (q) => `A whole is divided into <b>${q.b}</b> equal parts, and <b>${q.a}</b> of them are taken. What fraction represents this?`,
+      func_linear: (q) => `For y = ${formatLinearExpr(q.a, q.b)}, find the value of y when x = ${q.c}.`,
+      func_quadratic: (q) => `For y = ${formatQuadraticExpr(q.a, q.b, q.c)}, find the value of y when x = ${q.d}.`,
+      func_graph: (q) => `At what point does the line y = ${formatLinearExpr(q.a, q.b)} cross the Y-axis (the y-value)?`,
+      func_value: (q) => (q.d === null || q.d === undefined)
+        ? `If f(x) = ${formatLinearExpr(q.a, q.b)}, find f(${q.c}).`
+        : `If f(x) = ${formatQuadraticExpr(q.a, q.b, q.c)}, find f(${q.d}).`,
+      func_zeros: (q) => `Find the zero of the function y = ${formatLinearExpr(q.a, q.b)} (the x-value where the graph crosses the X-axis).`,
+      stat_mean: (q) => `Find the mean of the following numbers: ${q.extra.join(", ")}.`,
+      stat_median: (q) => `Find the median of the following numbers: ${q.extra.join(", ")}.`,
+      stat_mode: (q) => `Find the mode (most frequent value) of the following numbers: ${q.extra.join(", ")}.`,
+      stat_probability: (q) => `A box has <b>${q.b}</b> balls, <b>${q.a}</b> of which are red. What is the probability of picking a red ball at random?`,
+      stat_combinatorics: (q) => `In how many ways can <b>${q.a}</b> people be arranged in a row?`,
       percent_of: (q) => `What is <b>${q.b}%</b> of ${q.a}?`,
       percent_find_whole: (q) => `<b>${q.b}%</b> of a number is ${q.a}. What is that number?`,
       percent_increase: (q) => `A price of ${q.a} increased by <b>${q.b}%</b>. What is the new price?`,
@@ -466,6 +565,10 @@ function translateChoiceLabel(op, raw) {
   if (op === "percent_profit_loss" && typeof raw === "string") {
     const words = (I18N[LANG] || I18N.uz).profitLossWords;
     return raw.replace("foyda", words.profit).replace("zarar", words.loss);
+  }
+  if (op === "arith_remainder" && typeof raw === "string") {
+    const word = (I18N[LANG] || I18N.uz).remainderWord;
+    return raw.replace("qoldiq", word);
   }
   return raw;
 }
@@ -630,7 +733,7 @@ function questionExprHtml(q) {
   const sentenceFn = dict.sentences[q.operation];
   if (sentenceFn) return sentenceFn(q);
   switch (q.operation) {
-    case "add": case "sub": case "mul": case "div": {
+    case "add": case "sub": case "mul": case "div": case "arith_remainder": {
       const symbol = CONFIG.operations[q.operation].symbol;
       return `${q.a} <span class="op-symbol">${symbol}</span> ${q.b}`;
     }

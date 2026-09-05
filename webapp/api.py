@@ -142,6 +142,7 @@ def _public_question(q: dict) -> dict:
         "operation": q["operation"],
         "choices": q["choices"],
         "display_text": q.get("display_text"),
+        "extra": q.get("extra"),
     }
 
 
@@ -353,6 +354,7 @@ def result_detail(attempt_id: int):
                 "operation": q["operation"],
                 "choices": q["choices"],
                 "display_text": q.get("display_text"),
+                "extra": q.get("extra"),
                 "correct_answer": q["correct_answer"],
                 "selected_answer": q["selected_answer"],
                 "is_correct": bool(q["is_correct"]) if q["is_correct"] is not None else None,

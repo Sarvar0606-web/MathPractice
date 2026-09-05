@@ -100,14 +100,17 @@ def create_attempt(user_id: int, operation: str, digits: int,
 def add_questions(attempt_id: int, questions: list[dict]) -> None:
     with db_cursor() as cur:
         for idx, q in enumerate(questions):
+            extra = q.get("extra")
             cur.execute(
                 """INSERT INTO questions
                    (attempt_id, order_index, operand_a, operand_b, operand_c,
-                    operand_d, operation, correct_answer, choices, display_text)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    operand_d, operation, correct_answer, choices, display_text,
+                    extra_data)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                 (attempt_id, idx, q["a"], q["b"], q.get("c"), q.get("d"),
                  q["operation"], q["answer"], json.dumps(q["choices"]),
-                 q.get("display_text")),
+                 q.get("display_text"),
+                 json.dumps(extra) if extra is not None else None),
             )
 
 
@@ -119,18 +122,19 @@ def get_attempt(attempt_id: int) -> Optional[dict]:
     return dict(row) if row else None
 
 
+def _parse_question_row(d: dict) -> dict:
+    d["choices"] = json.loads(d["choices"])
+    d["extra"] = json.loads(d["extra_data"]) if d.get("extra_data") else None
+    return d
+
+
 def get_attempt_questions(attempt_id: int) -> list[dict]:
     conn = get_db()
     rows = conn.execute(
         "SELECT * FROM questions WHERE attempt_id = ? ORDER BY order_index",
         (attempt_id,),
     ).fetchall()
-    result = []
-    for r in rows:
-        d = dict(r)
-        d["choices"] = json.loads(d["choices"])
-        result.append(d)
-    return result
+    return [_parse_question_row(dict(r)) for r in rows]
 
 
 def get_question(question_id: int) -> Optional[dict]:
@@ -140,9 +144,7 @@ def get_question(question_id: int) -> Optional[dict]:
     ).fetchone()
     if not row:
         return None
-    d = dict(row)
-    d["choices"] = json.loads(d["choices"])
-    return d
+    return _parse_question_row(dict(row))
 
 
 def get_next_pending_question(attempt_id: int) -> Optional[dict]:
@@ -154,9 +156,7 @@ def get_next_pending_question(attempt_id: int) -> Optional[dict]:
     ).fetchone()
     if not row:
         return None
-    d = dict(row)
-    d["choices"] = json.loads(d["choices"])
-    return d
+    return _parse_question_row(dict(row))
 
 
 def answer_question(question_id: int, selected_answer: Optional[int],

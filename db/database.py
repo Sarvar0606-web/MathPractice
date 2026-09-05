@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS questions (
     status          TEXT NOT NULL DEFAULT 'pending',
     time_taken_ms   INTEGER,
     answered_at     TEXT,
-    display_text    TEXT
+    display_text    TEXT,
+    extra_data      TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
@@ -136,6 +137,7 @@ def init_db():
     conn.executescript(SCHEMA)
     _migrate_legacy_questions_table(conn)
     _ensure_column(conn, "questions", "display_text", "TEXT")
+    _ensure_column(conn, "questions", "extra_data", "TEXT")
     _ensure_column(conn, "users", "language", "TEXT NOT NULL DEFAULT 'uz'")
     conn.commit()
     conn.close()

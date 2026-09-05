@@ -95,6 +95,20 @@ SECTIONS = [
         "color": "#10b981",
         "desc": "Perimetr, yuza, hajm va boshqa masalalar",
     },
+    {
+        "key": "functions",
+        "label": "Funksiyalar",
+        "icon": "📈",
+        "color": "#3b82f6",
+        "desc": "Chiziqli va kvadrat funksiyalar bilan ishlash",
+    },
+    {
+        "key": "statistics",
+        "label": "Ehtimollik va statistika",
+        "icon": "🎲",
+        "color": "#ec4899",
+        "desc": "O'rtacha qiymat, mediana, ehtimollik va boshqalar",
+    },
 ]
 
 OPERATIONS = {
@@ -103,6 +117,9 @@ OPERATIONS = {
     "mul": {"label": "Ko'paytirish", "symbol": "×", "color": "#3b82f6", "icon": "times", "section": "arithmetic"},
     "div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide", "section": "arithmetic"},
     "compare": {"label": "Solishtirish", "symbol": "<>", "color": "#8b5cf6", "icon": "compare", "section": "arithmetic"},
+    "arith_order": {"label": "Amal tartibi", "symbol": "()", "color": "#14b8a6", "icon": "order", "section": "arithmetic"},
+    "arith_remainder": {"label": "Qoldiqli bo'lish", "symbol": "÷", "color": "#a855f7", "icon": "remainder", "section": "arithmetic"},
+    "arith_negative": {"label": "Manfiy sonlar", "symbol": "±", "color": "#64748b", "icon": "negative", "section": "arithmetic"},
 
     "frac_compare": {"label": "Solishtirish", "symbol": "<>", "color": "#f43f5e", "icon": "compare", "section": "fractions"},
     "frac_simplify": {"label": "Qisqartirish", "symbol": "↓", "color": "#f97316", "icon": "simplify", "section": "fractions"},
@@ -112,6 +129,7 @@ OPERATIONS = {
     "frac_div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide", "section": "fractions"},
     "frac_mixed": {"label": "Aralash kasr", "symbol": "⇄", "color": "#8b5cf6", "icon": "mixed", "section": "fractions"},
     "frac_decimal": {"label": "O'nli kasr", "symbol": ".", "color": "#06b6d4", "icon": "decimal", "section": "fractions"},
+    "frac_basic": {"label": "Oddiy kasr", "symbol": "a/b", "color": "#22c55e", "icon": "basic", "section": "fractions"},
 
     "percent_of": {"label": "Sonning foizini topish", "symbol": "%", "color": "#f59e0b", "icon": "percent", "section": "percent"},
     "percent_find_whole": {"label": "Foiz bo'yicha sonni topish", "symbol": "%", "color": "#0ea5e9", "icon": "search", "section": "percent"},
@@ -136,4 +154,16 @@ OPERATIONS = {
     "geo_circle": {"label": "Aylana", "symbol": "○", "color": "#8b5cf6", "icon": "circle", "section": "geometry"},
     "geo_pythagoras": {"label": "Pifagor teoremasi", "symbol": "√", "color": "#ec4899", "icon": "pythagoras", "section": "geometry"},
     "geo_angles": {"label": "Burchaklar", "symbol": "∠", "color": "#22c55e", "icon": "angles", "section": "geometry"},
+
+    "func_linear": {"label": "Chiziqli funksiya", "symbol": "y=kx+b", "color": "#3b82f6", "icon": "linear", "section": "functions"},
+    "func_quadratic": {"label": "Kvadrat funksiya", "symbol": "y=ax²", "color": "#6366f1", "icon": "quadratic", "section": "functions"},
+    "func_graph": {"label": "Grafik", "symbol": "📈", "color": "#0ea5e9", "icon": "graph", "section": "functions"},
+    "func_value": {"label": "Funksiya qiymatini topish", "symbol": "f(x)", "color": "#22c55e", "icon": "value", "section": "functions"},
+    "func_zeros": {"label": "Nol nuqtalar", "symbol": "f(x)=0", "color": "#ef4444", "icon": "zeros", "section": "functions"},
+
+    "stat_mean": {"label": "O'rtacha qiymat", "symbol": "x̄", "color": "#f59e0b", "icon": "mean", "section": "statistics"},
+    "stat_median": {"label": "Mediana", "symbol": "Me", "color": "#8b5cf6", "icon": "median", "section": "statistics"},
+    "stat_mode": {"label": "Moda", "symbol": "Mo", "color": "#ec4899", "icon": "mode", "section": "statistics"},
+    "stat_probability": {"label": "Ehtimollik", "symbol": "P", "color": "#06b6d4", "icon": "probability", "section": "statistics"},
+    "stat_combinatorics": {"label": "Kombinatorika", "symbol": "n!", "color": "#f97316", "icon": "combinatorics", "section": "statistics"},
 }

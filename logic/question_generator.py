@@ -12,10 +12,13 @@ import math
 import random
 from fractions import Fraction
 
-ARITHMETIC_OPS = {"add", "sub", "mul", "div", "compare"}
+ARITHMETIC_OPS = {
+    "add", "sub", "mul", "div", "compare",
+    "arith_order", "arith_remainder", "arith_negative",
+}
 FRACTION_OPS = {
     "frac_compare", "frac_simplify", "frac_add", "frac_sub",
-    "frac_mul", "frac_div", "frac_mixed", "frac_decimal",
+    "frac_mul", "frac_div", "frac_mixed", "frac_decimal", "frac_basic",
 }
 PERCENT_OPS = {
     "percent_of", "percent_find_whole", "percent_increase",
@@ -28,6 +31,12 @@ ALGEBRA_OPS = {
 GEOMETRY_OPS = {
     "geo_perimeter", "geo_area", "geo_volume", "geo_triangle",
     "geo_quad", "geo_circle", "geo_pythagoras", "geo_angles",
+}
+FUNCTION_OPS = {
+    "func_linear", "func_quadratic", "func_graph", "func_value", "func_zeros",
+}
+STATISTICS_OPS = {
+    "stat_mean", "stat_median", "stat_mode", "stat_probability", "stat_combinatorics",
 }
 
 
@@ -133,6 +142,134 @@ def _generate_arithmetic_question(operation: str, digits: int) -> dict:
         "operation": operation,
         "answer": answer_str,
         "choices": choices,
+    }
+
+
+# ---------- Amal tartibi / qoldiqli bo'lish / manfiy sonlar ----------
+
+_ORDER_RANGE = {1: 10, 2: 12, 3: 15, 4: 20, 5: 25}
+
+
+def _arith_order(level: int) -> dict:
+    rng = _ORDER_RANGE.get(level, 15)
+    template = min(level, 5)
+    if template == 1:
+        a, b, c = random.randint(1, rng), random.randint(1, rng), random.randint(1, rng)
+        display_text = f"{a} + {b} × {c}"
+        answer = a + b * c
+    elif template == 2:
+        a, b = random.randint(2, rng), random.randint(2, rng)
+        c = random.randint(1, a * b - 1) if a * b > 1 else 1
+        display_text = f"{a} × {b} - {c}"
+        answer = a * b - c
+    elif template == 3:
+        a, b, c = random.randint(1, rng), random.randint(1, rng), random.randint(2, 9)
+        display_text = f"({a} + {b}) × {c}"
+        answer = (a + b) * c
+    elif template == 4:
+        a = random.randint(2, 9)
+        b = random.randint(2, rng)
+        c = random.randint(1, b - 1)
+        d = random.randint(1, rng)
+        display_text = f"{a} × ({b} - {c}) + {d}"
+        answer = a * (b - c) + d
+    else:
+        a, b = random.randint(1, rng), random.randint(1, rng)
+        c = random.randint(2, rng)
+        d = random.randint(1, c - 1)
+        display_text = f"({a} + {b}) × ({c} - {d})"
+        answer = (a + b) * (c - d)
+
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "arith_order", "answer": str(answer), "choices": choices,
+        "display_text": display_text,
+    }
+
+
+_REMAINDER_RANGE = {1: (2, 6), 2: (2, 8), 3: (3, 10), 4: (3, 12), 5: (4, 15)}
+
+
+def _remainder_distractors(quotient: int, remainder: int, divisor: int, count: int = 3) -> list[str]:
+    correct = f"{quotient} qoldiq {remainder}"
+    seen = {correct}
+    out: list[str] = []
+    candidates = [
+        (quotient + 1, remainder), (max(0, quotient - 1), remainder),
+        (quotient, (remainder + 1) % divisor), (quotient, max(1, remainder - 1)),
+        (quotient + 1, max(1, remainder - 1)), (max(0, quotient - 1), remainder),
+    ]
+    random.shuffle(candidates)
+    for q, r in candidates:
+        if r <= 0 or r >= divisor or len(out) >= count:
+            continue
+        s = f"{q} qoldiq {r}"
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+    filler = 1
+    while len(out) < count:
+        s = f"{quotient + filler} qoldiq {remainder}"
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+        filler += 1
+    return out[:count]
+
+
+def _arith_remainder(level: int) -> dict:
+    lo, hi = _REMAINDER_RANGE.get(level, (2, 10))
+    divisor = random.randint(lo, hi)
+    quotient = random.randint(2, 5 + level * 2)
+    remainder = random.randint(1, divisor - 1)
+    dividend = divisor * quotient + remainder
+    answer = f"{quotient} qoldiq {remainder}"
+    choices = _remainder_distractors(quotient, remainder, divisor, 3) + [answer]
+    random.shuffle(choices)
+    return {
+        "a": dividend, "b": divisor, "c": None, "d": None,
+        "operation": "arith_remainder", "answer": answer, "choices": choices,
+    }
+
+
+_NEG_RANGE = {1: 10, 2: 15, 3: 20, 4: 30, 5: 50}
+
+
+def _fmt_signed_operand(n: int) -> str:
+    return f"({n})" if n < 0 else str(n)
+
+
+def _arith_negative(level: int) -> dict:
+    rng = _NEG_RANGE.get(level, 20)
+    op = random.choice(["add", "sub", "mul", "div"])
+    if op == "div":
+        divisor = random.randint(1, max(2, rng // 2)) * random.choice([1, -1])
+        if divisor == 0:
+            divisor = 1
+        quotient = random.randint(1, max(2, rng // 2)) * random.choice([1, -1])
+        a = divisor * quotient
+        b = divisor
+        answer = quotient
+        symbol = "÷"
+    else:
+        a = random.randint(-rng, rng)
+        b = random.randint(-rng, rng)
+        if op == "add":
+            answer, symbol = a + b, "+"
+        elif op == "sub":
+            answer, symbol = a - b, "-"
+        else:
+            answer, symbol = a * b, "×"
+
+    display_text = f"{_fmt_signed_operand(a)} {symbol} {_fmt_signed_operand(b)}"
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "arith_negative", "answer": str(answer), "choices": choices,
+        "display_text": display_text,
     }
 
 
@@ -372,7 +509,53 @@ def _generate_fraction_question(operation: str, level: int) -> dict:
             "operation": operation, "answer": answer, "choices": choices,
         }
 
+    if operation == "frac_basic":
+        return _frac_basic(level)
+
     raise ValueError(f"Noma'lum kasr amali: {operation}")
+
+
+def _frac_basic_distractors(n: int, d: int, count: int = 3) -> list[str]:
+    """frac_basic uchun — n/d ni QISQARTIRMASDAN (o'qilgan holicha)
+    distraktorlar yaratadi."""
+    correct = f"{n}/{d}"
+    seen = {correct}
+    out: list[str] = []
+    candidates = [
+        (n + 1, d), (max(1, n - 1), d), (n, d + 1),
+        (n, max(n + 1, d - 1)), (d - n, d), (n + 1, d + 1),
+    ]
+    random.shuffle(candidates)
+    for nn, dd in candidates:
+        if dd < 2 or nn < 1 or nn >= dd or len(out) >= count:
+            continue
+        s = f"{nn}/{dd}"
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+    filler = 1
+    while len(out) < count:
+        dd = d + filler + 1
+        if n < dd:
+            s = f"{n}/{dd}"
+            if s not in seen:
+                seen.add(s)
+                out.append(s)
+        filler += 1
+    return out[:count]
+
+
+def _frac_basic(level: int) -> dict:
+    max_den = _FRACTION_MAX_DEN.get(level, 12)
+    d = random.randint(2, max_den)
+    n = random.randint(1, d - 1)
+    answer = f"{n}/{d}"
+    choices = _frac_basic_distractors(n, d, 3) + [answer]
+    random.shuffle(choices)
+    return {
+        "a": n, "b": d, "c": None, "d": None,
+        "operation": "frac_basic", "answer": answer, "choices": choices,
+    }
 
 
 # ============================================================
@@ -965,8 +1148,213 @@ def _generate_geometry_question(operation: str, level: int) -> dict:
 
 
 # ============================================================
+# FUNKSIYALAR
+# ============================================================
+
+_FUNC_COEF_RANGE = {1: 5, 2: 7, 3: 9, 4: 11, 5: 14}
+_FUNC_CONST_RANGE = {1: 10, 2: 15, 3: 20, 4: 25, 5: 30}
+_FUNC_X_RANGE = {1: 6, 2: 8, 3: 10, 4: 12, 5: 15}
+
+
+def _rand_nonzero(lo_abs: int, hi_abs: int) -> int:
+    v = random.randint(lo_abs, hi_abs)
+    return v if random.random() < 0.5 else -v
+
+
+def _func_linear(level: int) -> dict:
+    coef_max = _FUNC_COEF_RANGE.get(level, 9)
+    const_max = _FUNC_CONST_RANGE.get(level, 20)
+    x_max = _FUNC_X_RANGE.get(level, 10)
+    k = _rand_nonzero(1, coef_max)
+    b = random.randint(-const_max, const_max)
+    x = random.randint(-x_max, x_max)
+    y = k * x + b
+    choices = [str(v) for v in _general_int_distractors(y, 3)] + [str(y)]
+    random.shuffle(choices)
+    return {"a": k, "b": b, "c": x, "d": None, "operation": "func_linear",
+            "answer": str(y), "choices": choices}
+
+
+def _func_quadratic(level: int) -> dict:
+    coef_max = max(2, _FUNC_COEF_RANGE.get(level, 9) // 2)
+    const_max = _FUNC_CONST_RANGE.get(level, 20)
+    x_max = min(8, _FUNC_X_RANGE.get(level, 10))
+    a = _rand_nonzero(1, coef_max)
+    b = random.randint(-const_max, const_max)
+    c = random.randint(-const_max, const_max)
+    x = random.randint(-x_max, x_max)
+    y = a * x * x + b * x + c
+    choices = [str(v) for v in _general_int_distractors(y, 3)] + [str(y)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": c, "d": x, "operation": "func_quadratic",
+            "answer": str(y), "choices": choices}
+
+
+def _func_graph(level: int) -> dict:
+    coef_max = _FUNC_COEF_RANGE.get(level, 9)
+    const_max = _FUNC_CONST_RANGE.get(level, 20)
+    k = _rand_nonzero(1, coef_max)
+    b = random.randint(-const_max, const_max)
+    answer = b
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": k, "b": b, "c": None, "d": None, "operation": "func_graph",
+            "answer": str(answer), "choices": choices}
+
+
+def _func_value(level: int) -> dict:
+    q = _func_linear(level) if random.random() < 0.5 else _func_quadratic(level)
+    q["operation"] = "func_value"
+    return q
+
+
+def _func_zeros(level: int) -> dict:
+    coef_max = _FUNC_COEF_RANGE.get(level, 9)
+    x_max = _FUNC_X_RANGE.get(level, 10)
+    k = _rand_nonzero(1, coef_max)
+    x = random.randint(-x_max, x_max)
+    b = -k * x
+    answer = x
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": k, "b": b, "c": None, "d": None, "operation": "func_zeros",
+            "answer": str(answer), "choices": choices}
+
+
+def _generate_function_question(operation: str, level: int) -> dict:
+    if operation == "func_linear":
+        return _func_linear(level)
+    if operation == "func_quadratic":
+        return _func_quadratic(level)
+    if operation == "func_graph":
+        return _func_graph(level)
+    if operation == "func_value":
+        return _func_value(level)
+    if operation == "func_zeros":
+        return _func_zeros(level)
+    raise ValueError(f"Noma'lum funksiya amali: {operation}")
+
+
+# ============================================================
+# EHTIMOLLIK VA STATISTIKA
+# ============================================================
+
+_STAT_N = {1: 4, 2: 4, 3: 5, 4: 5, 5: 6}
+_STAT_RANGE = {1: 20, 2: 30, 3: 40, 4: 60, 5: 100}
+
+
+def _stat_mean(level: int) -> dict:
+    n = _STAT_N.get(level, 5)
+    rng = _STAT_RANGE.get(level, 40)
+    mean = random.randint(1, rng)
+    total_target = mean * n
+    values = [mean] * n
+    for _ in range(50):
+        candidate = [random.randint(1, rng) for _ in range(n - 1)]
+        last = total_target - sum(candidate)
+        if 1 <= last <= rng * 3:
+            values = candidate + [last]
+            break
+    random.shuffle(values)
+    answer = mean
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": None, "b": None, "c": None, "d": None, "operation": "stat_mean",
+            "answer": str(answer), "choices": choices, "extra": values}
+
+
+def _stat_median(level: int) -> dict:
+    n = _STAT_N.get(level, 5)
+    if n % 2 == 0:
+        n += 1  # mediana aniq bitta bo'lishi uchun toq son element
+    rng = _STAT_RANGE.get(level, 40)
+    if rng + 1 > n:
+        values = sorted(random.sample(range(1, rng + 1), n))
+    else:
+        values = sorted(random.choices(range(1, rng + 1), k=n))
+    median = values[n // 2]
+    shuffled = values[:]
+    random.shuffle(shuffled)
+    answer = median
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": None, "b": None, "c": None, "d": None, "operation": "stat_median",
+            "answer": str(answer), "choices": choices, "extra": shuffled}
+
+
+def _stat_mode(level: int) -> dict:
+    rng = max(6, _STAT_RANGE.get(level, 40) // 4)
+    mode_val = random.randint(1, rng)
+    n_extra = random.randint(4, 5 + level)
+    values = [mode_val, mode_val, mode_val]
+    others: set = set()
+    attempts = 0
+    while len(others) < n_extra and attempts < 100:
+        attempts += 1
+        v = random.randint(1, rng)
+        if v != mode_val:
+            others.add(v)
+    for v in others:
+        times = random.choice([1, 1, 2])
+        values.extend([v] * times)
+    random.shuffle(values)
+    answer = mode_val
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": None, "b": None, "c": None, "d": None, "operation": "stat_mode",
+            "answer": str(answer), "choices": choices, "extra": values}
+
+
+def _stat_probability(level: int) -> dict:
+    total = random.randint(5, 10 + level * 4)
+    favorable = random.randint(1, total - 1)
+    g = math.gcd(favorable, total)
+    num, den = favorable // g, total // g
+    answer = f"{num}/{den}"
+    choices = _frac_basic_distractors(num, den, 3) + [answer]
+    random.shuffle(choices)
+    return {"a": favorable, "b": total, "c": None, "d": None, "operation": "stat_probability",
+            "answer": answer, "choices": choices}
+
+
+_COMBINATORICS_N = {1: (3, 4), 2: (3, 5), 3: (4, 6), 4: (4, 7), 5: (5, 8)}
+
+
+def _stat_combinatorics(level: int) -> dict:
+    lo, hi = _COMBINATORICS_N.get(level, (3, 6))
+    n = random.randint(lo, hi)
+    answer = math.factorial(n)
+    choices = [str(v) for v in _general_int_distractors(answer, 3, spread=max(6, answer // 3))] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": n, "b": None, "c": None, "d": None, "operation": "stat_combinatorics",
+            "answer": str(answer), "choices": choices}
+
+
+def _generate_statistics_question(operation: str, level: int) -> dict:
+    if operation == "stat_mean":
+        return _stat_mean(level)
+    if operation == "stat_median":
+        return _stat_median(level)
+    if operation == "stat_mode":
+        return _stat_mode(level)
+    if operation == "stat_probability":
+        return _stat_probability(level)
+    if operation == "stat_combinatorics":
+        return _stat_combinatorics(level)
+    raise ValueError(f"Noma'lum statistika amali: {operation}")
+
+
+# ============================================================
 # UMUMIY DISPATCH
 # ============================================================
+
+_SPECIAL_ARITHMETIC_OPS = {"arith_order", "arith_remainder", "arith_negative"}
+_SPECIAL_ARITHMETIC_FUNCS = {
+    "arith_order": _arith_order,
+    "arith_remainder": _arith_remainder,
+    "arith_negative": _arith_negative,
+}
+
 
 def generate_question(operation: str, digits: int) -> dict:
     if operation in FRACTION_OPS:
@@ -977,6 +1365,12 @@ def generate_question(operation: str, digits: int) -> dict:
         return _generate_algebra_question(operation, digits)
     if operation in GEOMETRY_OPS:
         return _generate_geometry_question(operation, digits)
+    if operation in FUNCTION_OPS:
+        return _generate_function_question(operation, digits)
+    if operation in STATISTICS_OPS:
+        return _generate_statistics_question(operation, digits)
+    if operation in _SPECIAL_ARITHMETIC_OPS:
+        return _SPECIAL_ARITHMETIC_FUNCS[operation](digits)
     if operation in ARITHMETIC_OPS:
         return _generate_arithmetic_question(operation, digits)
     raise ValueError(f"Noma'lum amal: {operation}")
@@ -990,7 +1384,9 @@ def generate_test(operation: str, digits: int, count: int) -> list[dict]:
     while len(questions) < count and attempts < count * 30:
         attempts += 1
         q = generate_question(operation, digits)
-        key = (q["a"], q["b"], q["c"], q["d"], q.get("display_text"))
+        extra = q.get("extra")
+        key = (q["a"], q["b"], q["c"], q["d"], q.get("display_text"),
+               tuple(extra) if extra is not None else None)
         if key in seen:
             continue
         seen.add(key)
