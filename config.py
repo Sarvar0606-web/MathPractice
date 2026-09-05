@@ -1,0 +1,61 @@
+"""Loyihaning umumiy sozlamalari (.env fayldan o'qiladi)."""
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+
+_admin_ids_raw = os.getenv("ADMIN_IDS", "")
+ADMIN_IDS = {
+    int(x.strip())
+    for x in _admin_ids_raw.split(",")
+    if x.strip().isdigit()
+}
+
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").rstrip("/")
+
+DEV_SKIP_AUTH = os.getenv("DEV_SKIP_AUTH", "0") == "1"
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8080"))
+
+# Telegram webhook manzilidagi maxfiy qism (URL'ni taxmin qilib bo'lmasligi
+# uchun) va Telegram har bir so'rovda yuboradigan maxfiy tokenni tekshirish
+# uchun ham shu qiymat ishlatiladi. .env faylida albatta o'zingizga xos
+# tasodifiy matn bilan almashtiring.
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+
+DATA_DIR = BASE_DIR / "data"
+LOGS_DIR = BASE_DIR / "logs"
+DATA_DIR.mkdir(exist_ok=True)
+LOGS_DIR.mkdir(exist_ok=True)
+
+DB_PATH = DATA_DIR / "mathbot.db"
+LOG_PATH = LOGS_DIR / "mathbot.log"
+
+# Har bir testda nechta savol beriladi
+QUESTIONS_PER_TEST = 20
+
+# Ruxsat etilgan xonalar soni (1 xonalidan 5 xonaligacha)
+MIN_DIGITS = 1
+MAX_DIGITS = 5
+
+# Har bir savol uchun tanlanadigan vaqt variantlari (soniyalarda)
+TIME_OPTIONS = [
+    {"label": "30 soniya", "seconds": 30},
+    {"label": "1 daqiqa", "seconds": 60},
+    {"label": "2 daqiqa", "seconds": 120},
+    {"label": "3 daqiqa", "seconds": 180},
+    {"label": "5 daqiqa", "seconds": 300},
+]
+
+OPERATIONS = {
+    "add": {"label": "Qo'shish", "symbol": "+", "color": "#22c55e", "icon": "plus"},
+    "sub": {"label": "Ayirish", "symbol": "−", "color": "#f97316", "icon": "minus"},
+    "mul": {"label": "Ko'paytirish", "symbol": "×", "color": "#3b82f6", "icon": "times"},
+    "div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide"},
+}
