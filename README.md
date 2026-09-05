@@ -81,8 +81,16 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
 1. Botga `/start` yuboring → "Mini App'ni ochish" tugmasi chiqadi.
 2. Birinchi marta kirganda: Ism, Familiya, Otasining ismi va tug'ilgan sana
    so'raladi.
-3. **Arifmetika** → amal turini (qo'shish/ayirish/ko'paytirish/bo'lish) →
-   sonlar xonasini (1–5) → har bir savol uchun vaqtni tanlaysiz.
+3. Bosh menyudan bo'lim tanlanadi:
+   - **Arifmetika** → qo'shish/ayirish/ko'paytirish/bo'lish/solishtirish →
+     sonlar xonasini (1–5) → vaqtni tanlaysiz. "Solishtirish"da javob
+     variantlari `<`, `>`, `=` belgilaridan iborat.
+   - **Kasrlar** → solishtirish/qisqartirish/qo'shish/ayirish/ko'paytirish/
+     bo'lish/aralash kasrga aylantirish/o'nli kasrga aylantirish → murakkablik
+     darajasini (1–5) → vaqtni tanlaysiz. Javoblar kasr ko'rinishida
+     (masalan `3/4`, `2 1/3`, `0.75`) beriladi.
+   Har ikkala bo'limda ham 20 tadan savol, 4 variantli javob va tasdiqlash
+   dialogi bir xil ishlaydi.
 4. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
    tanlanganda "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?" so'raladi.
    Tasdiqlangach javob to'g'ri (yashil) yoki xato (qizil, to'g'ri javob

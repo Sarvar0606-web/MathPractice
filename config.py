@@ -53,9 +53,38 @@ TIME_OPTIONS = [
     {"label": "5 daqiqa", "seconds": 300},
 ]
 
+# Bosh menyudagi bo'limlar. Har bir amal (OPERATIONS) o'z bo'limiga
+# ("section") tegishli — shu orqali frontend menyusi guruhlanadi.
+SECTIONS = [
+    {
+        "key": "arithmetic",
+        "label": "Arifmetika",
+        "icon": "🧮",
+        "color": "#6366f1",
+        "desc": "Qo'shish, ayirish, ko'paytirish, bo'lish, solishtirish",
+    },
+    {
+        "key": "fractions",
+        "label": "Kasrlar",
+        "icon": "🍕",
+        "color": "#f43f5e",
+        "desc": "Kasrlar ustida amallar",
+    },
+]
+
 OPERATIONS = {
-    "add": {"label": "Qo'shish", "symbol": "+", "color": "#22c55e", "icon": "plus"},
-    "sub": {"label": "Ayirish", "symbol": "−", "color": "#f97316", "icon": "minus"},
-    "mul": {"label": "Ko'paytirish", "symbol": "×", "color": "#3b82f6", "icon": "times"},
-    "div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide"},
+    "add": {"label": "Qo'shish", "symbol": "+", "color": "#22c55e", "icon": "plus", "section": "arithmetic"},
+    "sub": {"label": "Ayirish", "symbol": "−", "color": "#f97316", "icon": "minus", "section": "arithmetic"},
+    "mul": {"label": "Ko'paytirish", "symbol": "×", "color": "#3b82f6", "icon": "times", "section": "arithmetic"},
+    "div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide", "section": "arithmetic"},
+    "compare": {"label": "Solishtirish", "symbol": "<>", "color": "#8b5cf6", "icon": "compare", "section": "arithmetic"},
+
+    "frac_compare": {"label": "Solishtirish", "symbol": "<>", "color": "#f43f5e", "icon": "compare", "section": "fractions"},
+    "frac_simplify": {"label": "Qisqartirish", "symbol": "↓", "color": "#f97316", "icon": "simplify", "section": "fractions"},
+    "frac_add": {"label": "Qo'shish", "symbol": "+", "color": "#22c55e", "icon": "plus", "section": "fractions"},
+    "frac_sub": {"label": "Ayirish", "symbol": "−", "color": "#eab308", "icon": "minus", "section": "fractions"},
+    "frac_mul": {"label": "Ko'paytirish", "symbol": "×", "color": "#3b82f6", "icon": "times", "section": "fractions"},
+    "frac_div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide", "section": "fractions"},
+    "frac_mixed": {"label": "Aralash kasr", "symbol": "⇄", "color": "#8b5cf6", "icon": "mixed", "section": "fractions"},
+    "frac_decimal": {"label": "O'nli kasr", "symbol": ".", "color": "#06b6d4", "icon": "decimal", "section": "fractions"},
 }

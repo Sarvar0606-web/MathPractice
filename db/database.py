@@ -38,12 +38,14 @@ CREATE TABLE IF NOT EXISTS questions (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     attempt_id      INTEGER NOT NULL REFERENCES attempts(id),
     order_index     INTEGER NOT NULL,
-    operand_a       INTEGER NOT NULL,
-    operand_b       INTEGER NOT NULL,
+    operand_a       INTEGER,
+    operand_b       INTEGER,
+    operand_c       INTEGER,
+    operand_d       INTEGER,
     operation       TEXT NOT NULL,
-    correct_answer  INTEGER NOT NULL,
+    correct_answer  TEXT NOT NULL,
     choices         TEXT NOT NULL,
-    selected_answer INTEGER,
+    selected_answer TEXT,
     is_correct      INTEGER,
     status          TEXT NOT NULL DEFAULT 'pending',
     time_taken_ms   INTEGER,
@@ -89,9 +91,37 @@ def db_cursor():
         cur.close()
 
 
+def _migrate_legacy_questions_table(conn: sqlite3.Connection) -> None:
+    """Eski (operand_c/d'siz, INTEGER javobli) 'questions' jadvalini yangi
+    sxemaga (kasrlar uchun operand_c/d, matnli javoblar) ko'chiradi.
+    Mavjud ma'lumotlar yo'qolmaydi. Agar jadval allaqachon yangi bo'lsa,
+    hech narsa qilmaydi (idempotent)."""
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(questions)")}
+    if not cols or "operand_c" in cols:
+        return  # jadval mavjud emas (yangi DB) yoki allaqachon migratsiya qilingan
+
+    conn.execute("DROP INDEX IF EXISTS idx_questions_attempt")
+    conn.execute("ALTER TABLE questions RENAME TO questions_old")
+    conn.executescript(SCHEMA)  # 'questions' jadvalini yangi ko'rinishda qayta yaratadi
+    conn.execute(
+        """INSERT INTO questions
+           (id, attempt_id, order_index, operand_a, operand_b, operand_c, operand_d,
+            operation, correct_answer, choices, selected_answer, is_correct,
+            status, time_taken_ms, answered_at)
+           SELECT id, attempt_id, order_index, operand_a, operand_b, NULL, NULL,
+                  operation, CAST(correct_answer AS TEXT), choices,
+                  CASE WHEN selected_answer IS NULL THEN NULL ELSE CAST(selected_answer AS TEXT) END,
+                  is_correct, status, time_taken_ms, answered_at
+           FROM questions_old"""
+    )
+    conn.execute("DROP TABLE questions_old")
+    conn.commit()
+
+
 def init_db():
     """Ilova ishga tushganda (request tashqarisida) sxema yaratiladi."""
     conn = _new_conn()
     conn.executescript(SCHEMA)
+    _migrate_legacy_questions_table(conn)
     conn.commit()
     conn.close()

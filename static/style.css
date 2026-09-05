@@ -278,6 +278,26 @@ html, body {
   letter-spacing: 1px;
 }
 .question-card .op-symbol { margin: 0 10px; }
+.question-instruction {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hint);
+  margin-bottom: 10px;
+  letter-spacing: 0;
+}
+
+/* ---------- Kasr ko'rinishi (numerator ustida / denominator ostida) ---------- */
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 8px;
+  line-height: 1.15;
+  font-size: 0.75em;
+}
+.frac .num { border-bottom: 3px solid currentColor; padding: 0 6px 3px; }
+.frac .den { padding: 3px 6px 0; }
 
 .answer-grid {
   display: grid;
@@ -297,6 +317,7 @@ html, body {
 }
 .answer-btn:active { transform: scale(0.96); }
 .answer-btn.selected { border-color: var(--accent); background: #eef0ff; }
+.answer-btn.compare-btn { font-size: 30px; padding: 22px 10px; }
 .answer-btn.correct { border-color: var(--green); background: var(--green-bg); color: #15803d; }
 .answer-btn.wrong { border-color: var(--red); background: var(--red-bg); color: #b91c1c; }
 .answer-btn[disabled] { cursor: default; }

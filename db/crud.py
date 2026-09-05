@@ -83,11 +83,11 @@ def add_questions(attempt_id: int, questions: list[dict]) -> None:
         for idx, q in enumerate(questions):
             cur.execute(
                 """INSERT INTO questions
-                   (attempt_id, order_index, operand_a, operand_b, operation,
-                    correct_answer, choices)
-                   VALUES (?,?,?,?,?,?,?)""",
-                (attempt_id, idx, q["a"], q["b"], q["operation"],
-                 q["answer"], json.dumps(q["choices"])),
+                   (attempt_id, order_index, operand_a, operand_b, operand_c,
+                    operand_d, operation, correct_answer, choices)
+                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                (attempt_id, idx, q["a"], q["b"], q.get("c"), q.get("d"),
+                 q["operation"], q["answer"], json.dumps(q["choices"])),
             )
 
 

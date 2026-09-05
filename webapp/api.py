@@ -1,7 +1,7 @@
 """REST API endpointlari (Flask blueprint)."""
 from flask import Blueprint, jsonify, request
 
-from config import MAX_DIGITS, MIN_DIGITS, OPERATIONS, QUESTIONS_PER_TEST, TIME_OPTIONS
+from config import MAX_DIGITS, MIN_DIGITS, OPERATIONS, QUESTIONS_PER_TEST, SECTIONS, TIME_OPTIONS
 from db import crud
 from logic.question_generator import generate_test
 from webapp.auth import AuthError, get_current_telegram_user
@@ -29,6 +29,7 @@ def handle_auth_error(e: AuthError):
 @api_bp.get("/config")
 def get_config():
     return jsonify({
+        "sections": SECTIONS,
         "operations": OPERATIONS,
         "time_options": TIME_OPTIONS,
         "min_digits": MIN_DIGITS,
@@ -109,6 +110,8 @@ def _public_question(q: dict) -> dict:
         "order_index": q["order_index"],
         "a": q["operand_a"],
         "b": q["operand_b"],
+        "c": q.get("operand_c"),
+        "d": q.get("operand_d"),
         "operation": q["operation"],
         "choices": q["choices"],
     }
@@ -192,10 +195,7 @@ def submit_answer():
         return err(400, "Noto'g'ri savol ID")
     selected_answer = body.get("selected_answer")
     if selected_answer is not None:
-        try:
-            selected_answer = int(selected_answer)
-        except (TypeError, ValueError):
-            return err(400, "Noto'g'ri javob")
+        selected_answer = str(selected_answer)
     time_taken_ms = int(body.get("time_taken_ms") or 0)
     timed_out = bool(body.get("timed_out") or False)
 
@@ -291,6 +291,8 @@ def result_detail(attempt_id: int):
                 "order_index": q["order_index"],
                 "a": q["operand_a"],
                 "b": q["operand_b"],
+                "c": q.get("operand_c"),
+                "d": q.get("operand_d"),
                 "operation": q["operation"],
                 "choices": q["choices"],
                 "correct_answer": q["correct_answer"],

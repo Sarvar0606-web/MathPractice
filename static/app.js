@@ -10,18 +10,36 @@ const INIT_DATA = tg ? tg.initData : "";
 
 const appEl = document.getElementById("app");
 
-const OP_EMOJI = { add: "➕", sub: "➖", mul: "✖️", div: "➗" };
+const OP_EMOJI = {
+  add: "➕", sub: "➖", mul: "✖️", div: "➗", compare: "⚖️",
+  frac_compare: "⚖️", frac_simplify: "↓", frac_add: "➕", frac_sub: "➖",
+  frac_mul: "✖️", frac_div: "➗", frac_mixed: "🔄", frac_decimal: "🔢",
+};
+
+// Bu amallarning javob variantlari bitta belgi/qisqa satr (masalan "<", ">", "=")
+// bo'lgani uchun javob tugmalarida kattaroq shrift ishlatiladi.
+const BIG_CHOICE_OPS = new Set(["compare", "frac_compare"]);
+
+// "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi
+// yoki javob solishtirish belgisi bo'ladi)
+const NO_SUFFIX_OPS = new Set(["compare", "frac_compare", "frac_simplify", "frac_mixed", "frac_decimal"]);
+
+const QUESTION_INSTRUCTIONS = {
+  frac_simplify: "Kasrni qisqartiring:",
+  frac_mixed: "Aralash songa aylantiring:",
+  frac_decimal: "O'nli kasrga aylantiring:",
+};
 
 let CONFIG = null;
 let ME = null; // {telegram_id, registered, profile, is_admin}
 
 const state = {
   screen: "loading",
-  selection: { operation: null, digits: null, timePerQuestion: null },
+  selection: { section: null, operation: null, digits: null, timePerQuestion: null },
   test: null, // {attempt_id, total_questions, time_per_question, question, progress}
   timer: { deadline: 0, raf: null, total: 0 },
   pendingChoice: null, // tanlangan-lekin-hali-tasdiqlanmagan javob
-  lastFeedback: null, // {isCorrect, correctAnswer, chosen}
+  lastFeedback: null, // {isCorrect, correctAnswer, chosen, timedOut}
   viewAttemptId: null,
   viewUserId: null,
   navStack: [],
@@ -89,12 +107,47 @@ function escapeHtml(s) {
   }[c]));
 }
 
+function dash(v) {
+  return v === null || v === undefined ? "—" : escapeHtml(String(v));
+}
+
+// ---------- Kasr ko'rinishi (numerator ustida, denominator ostida) ----------
+function fracHtml(n, d) {
+  return `<span class="frac"><span class="num">${dash(n)}</span><span class="den">${dash(d)}</span></span>`;
+}
+
+// ---------- Savol ifodasi (test ekrani va natija tafsiloti uchun umumiy) ----------
+function questionExprHtml(q) {
+  switch (q.operation) {
+    case "add": case "sub": case "mul": case "div": {
+      const symbol = CONFIG.operations[q.operation].symbol;
+      return `${q.a} <span class="op-symbol">${symbol}</span> ${q.b}`;
+    }
+    case "compare":
+      return `${q.a} <span class="op-symbol">⚖</span> ${q.b}`;
+    case "frac_compare":
+      return `${fracHtml(q.a, q.b)} <span class="op-symbol">⚖</span> ${fracHtml(q.c, q.d)}`;
+    case "frac_add": case "frac_sub": case "frac_mul": case "frac_div": {
+      const symbol = CONFIG.operations[q.operation].symbol;
+      return `${fracHtml(q.a, q.b)} <span class="op-symbol">${symbol}</span> ${fracHtml(q.c, q.d)}`;
+    }
+    case "frac_simplify": case "frac_mixed": case "frac_decimal":
+      return fracHtml(q.a, q.b);
+    default:
+      return `${q.a} ? ${q.b}`;
+  }
+}
+
+function questionSuffix(q) {
+  return NO_SUFFIX_OPS.has(q.operation) ? "" : " = ?";
+}
+
 // ---------- Render dispatch ----------
 function render() {
   switch (state.screen) {
     case "register": return renderRegister();
     case "main": return renderMain();
-    case "arithmetic": return renderArithmetic();
+    case "section": return renderSection();
     case "digits": return renderDigits();
     case "time": return renderTime();
     case "test": return renderTest();
@@ -199,15 +252,17 @@ async function onRegisterSubmit() {
 // ---------- Asosiy menyu ----------
 function renderMain() {
   const name = ME.profile ? `${ME.profile.first_name}` : "";
-  let rows = `
-    <div class="menu-row" id="row-arith">
-      <div class="icon-badge" style="background:#6366f1">🧮</div>
+  let rows = CONFIG.sections.map((s) => `
+    <div class="menu-row" data-section="${s.key}">
+      <div class="icon-badge" style="background:${s.color}">${s.icon}</div>
       <div>
-        <div class="title">Arifmetika</div>
-        <div class="desc">Qo'shish, ayirish, ko'paytirish, bo'lish testlari</div>
+        <div class="title">${s.label}</div>
+        <div class="desc">${s.desc}</div>
       </div>
       <div class="chevron">›</div>
     </div>
+  `).join("");
+  rows += `
     <div class="menu-row" id="row-results">
       <div class="icon-badge" style="background:#14b8a6">📊</div>
       <div>
@@ -233,27 +288,35 @@ function renderMain() {
     ${header(`Salom, ${escapeHtml(name)} 👋`, "Nima bilan shug'ullanamiz?", false)}
     ${rows}
   `;
-  document.getElementById("row-arith").onclick = () => pushScreen("arithmetic");
+  document.querySelectorAll(".menu-row[data-section]").forEach((el) => {
+    el.onclick = () => {
+      state.selection = { section: el.dataset.section, operation: null, digits: null, timePerQuestion: null };
+      pushScreen("section");
+    };
+  });
   document.getElementById("row-results").onclick = () => pushScreen("my_results");
   const adminRow = document.getElementById("row-admin");
   if (adminRow) adminRow.onclick = () => pushScreen("admin_users");
 }
 
-// ---------- Arifmetika bo'limlari ----------
-function renderArithmetic() {
-  const ops = CONFIG.operations;
-  const cards = Object.keys(ops).map((key) => {
-    const op = ops[key];
+// ---------- Bo'lim ichidagi amallar (Arifmetika / Kasrlar / ...) ----------
+function renderSection() {
+  const sectionKey = state.selection.section;
+  const section = (CONFIG.sections || []).find((s) => s.key === sectionKey) || { label: "Bo'lim" };
+  const isFraction = sectionKey === "fractions";
+  const opKeys = Object.keys(CONFIG.operations).filter((k) => CONFIG.operations[k].section === sectionKey);
+  const cards = opKeys.map((key) => {
+    const op = CONFIG.operations[key];
     return `
       <div class="section-card" data-op="${key}" style="border-color:${op.color}22">
         <div class="icon-badge" style="background:${op.color}">${OP_EMOJI[key] || op.symbol}</div>
         <div class="title">${op.label}</div>
-        <div class="desc">1–5 xonali sonlar ustida</div>
+        <div class="desc">${isFraction ? "Kasrlar ustida" : "1–5 xonali sonlar ustida"}</div>
       </div>`;
   }).join("");
 
   appEl.innerHTML = `
-    ${header("Arifmetika", "Amal turini tanlang", true)}
+    ${header(section.label, "Amal turini tanlang", true)}
     <div class="card-grid">${cards}</div>
   `;
   bindBack();
@@ -265,15 +328,16 @@ function renderArithmetic() {
   });
 }
 
-// ---------- Xona tanlash ----------
+// ---------- Xona / daraja tanlash ----------
 function renderDigits() {
   const op = CONFIG.operations[state.selection.operation];
+  const isFraction = op.section === "fractions";
   const buttons = [];
   for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
-    buttons.push(`<button class="choice-btn" data-d="${d}">${d} xonali</button>`);
+    buttons.push(`<button class="choice-btn" data-d="${d}">${isFraction ? `${d}-daraja` : `${d} xonali`}</button>`);
   }
   appEl.innerHTML = `
-    ${header(op.label, "Sonlar xonasini tanlang", true)}
+    ${header(op.label, isFraction ? "Murakkablik darajasini tanlang" : "Sonlar xonasini tanlang", true)}
     <div class="choice-grid">${buttons.join("")}</div>
   `;
   bindBack();
@@ -292,7 +356,7 @@ function renderTime() {
     .map((t) => `<button class="choice-btn" data-s="${t.seconds}">${t.label}</button>`)
     .join("");
   appEl.innerHTML = `
-    ${header(op.label, `${state.selection.digits} xonali — har bir savol uchun vaqtni tanlang`, true)}
+    ${header(op.label, `${state.selection.digits} — har bir savol uchun vaqtni tanlang`, true)}
     <div class="choice-grid">${buttons}</div>
   `;
   bindBack();
@@ -328,17 +392,14 @@ async function startTest() {
 }
 
 // ---------- Test ekrani ----------
-function opExpr(q) {
-  const symbol = CONFIG.operations[q.operation].symbol;
-  return `${q.a} <span class="op-symbol">${symbol}</span> ${q.b}`;
-}
-
 function renderTest() {
   const t = state.test;
   const q = t.question;
   const pct = t.total_questions ? (t.progress.answered / t.total_questions) * 100 : 0;
   const correctPct = t.total_questions ? (t.progress.correct / t.total_questions) * 100 : 0;
   const wrongPct = t.total_questions ? (t.progress.wrong / t.total_questions) * 100 : 0;
+  const instruction = QUESTION_INSTRUCTIONS[q.operation];
+  const bigChoices = BIG_CHOICE_OPS.has(q.operation);
 
   appEl.innerHTML = `
     <div class="test-topbar">
@@ -356,26 +417,29 @@ function renderTest() {
       </div>
     </div>
     ${state.lastFeedback ? renderFeedbackBanner() : ""}
-    <div class="question-card">${opExpr(q)} = ?</div>
+    <div class="question-card">
+      ${instruction ? `<div class="question-instruction">${instruction}</div>` : ""}
+      <div>${questionExprHtml(q)}${questionSuffix(q)}</div>
+    </div>
     <div class="answer-grid" id="answer-grid">
-      ${q.choices.map((c, i) => `<button class="answer-btn" data-c="${c}" data-i="${i}">${c}</button>`).join("")}
+      ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(c)}</button>`).join("")}
     </div>
   `;
 
   document.querySelectorAll(".answer-btn").forEach((el) => {
-    el.onclick = () => onChooseAnswer(parseInt(el.dataset.c, 10));
+    el.onclick = () => onChooseAnswer(el.dataset.c);
   });
 }
 
 function renderFeedbackBanner() {
   const fb = state.lastFeedback;
   if (fb.timedOut) {
-    return `<div class="feedback-banner wrong">⏰ Vaqt tugadi — javob berolmadingiz. To'g'ri javob: ${fb.correctAnswer}</div>`;
+    return `<div class="feedback-banner wrong">⏰ Vaqt tugadi — javob berolmadingiz. To'g'ri javob: ${dash(fb.correctAnswer)}</div>`;
   }
   if (fb.isCorrect) {
     return `<div class="feedback-banner correct">✅ To'g'ri!</div>`;
   }
-  return `<div class="feedback-banner wrong">❌ Xato. Siz tanladingiz: ${fb.chosen}. To'g'ri javob: ${fb.correctAnswer}</div>`;
+  return `<div class="feedback-banner wrong">❌ Xato. Siz tanladingiz: ${dash(fb.chosen)}. To'g'ri javob: ${dash(fb.correctAnswer)}</div>`;
 }
 
 function onChooseAnswer(value) {
@@ -389,7 +453,7 @@ function showConfirmModal() {
   modal.id = "confirm-modal";
   modal.innerHTML = `
     <div class="modal-sheet">
-      <h3>Javobingiz: ${state.pendingChoice}</h3>
+      <h3>Javobingiz: ${dash(state.pendingChoice)}</h3>
       <p>Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?</p>
       <div class="btn-row">
         <button class="btn btn-outline" id="btn-rethink">🔄 Qayta o'ylash</button>
@@ -422,9 +486,8 @@ async function confirmAnswer(timedOut) {
 
   // javob tugmalarini vizual belgilash
   document.querySelectorAll(".answer-btn").forEach((el) => {
-    const val = parseInt(el.dataset.c, 10);
     el.disabled = true;
-    if (val === chosen) el.classList.add("selected");
+    if (el.dataset.c === chosen) el.classList.add("selected");
   });
 
   try {
@@ -440,9 +503,8 @@ async function confirmAnswer(timedOut) {
 
     // to'g'ri/xato ranglarni ko'rsatish
     document.querySelectorAll(".answer-btn").forEach((el) => {
-      const val = parseInt(el.dataset.c, 10);
-      if (val === res.correct_answer) el.classList.add("correct");
-      else if (val === chosen) el.classList.add("wrong");
+      if (el.dataset.c === String(res.correct_answer)) el.classList.add("correct");
+      else if (el.dataset.c === chosen) el.classList.add("wrong");
     });
 
     state.lastFeedback = {
@@ -576,13 +638,13 @@ async function renderResultsList(isAdminView, userId) {
     const rows = attempts.map((a) => {
       const ratio = a.total_questions ? a.correct_count / a.total_questions : 0;
       const scoreClass = ratio >= 0.7 ? "good" : ratio >= 0.4 ? "mid" : "bad";
-      const op = CONFIG.operations[a.operation];
+      const op = CONFIG.operations[a.operation] || {};
       const date = (a.finished_at || a.started_at || "").replace("T", " ").slice(0, 16);
       return `
         <div class="result-row" data-id="${a.id}">
-          <div class="icon-badge" style="background:${op.color};width:40px;height:40px;font-size:18px;">${OP_EMOJI[a.operation]}</div>
+          <div class="icon-badge" style="background:${op.color || "#6366f1"};width:40px;height:40px;font-size:18px;">${OP_EMOJI[a.operation] || "❓"}</div>
           <div class="meta">
-            <div class="title">${op.label} — ${a.digits} xonali</div>
+            <div class="title">${op.label || a.operation}</div>
             <div class="date">${date}</div>
           </div>
           <div class="score ${scoreClass}">${a.correct_count}/${a.total_questions}</div>
@@ -610,36 +672,35 @@ async function renderResultDetail() {
   try {
     const res = await api(`/api/results/${state.viewAttemptId}`);
     const a = res.attempt;
-    const op = CONFIG.operations[a.operation];
+    const op = CONFIG.operations[a.operation] || {};
     const ownerLine = ME.is_admin && res.owner
       ? `<p class="subtitle">${res.owner.last_name} ${res.owner.first_name} ${res.owner.father_name}</p>`
       : "";
 
     const rows = res.questions.map((q) => {
-      const symbol = CONFIG.operations[q.operation].symbol;
       let statusClass = "wrong";
       let line;
       if (q.status === "pending") {
         statusClass = "";
         line = `<span class="ans-line">Javob berilmagan</span>`;
       } else if (q.status === "timeout") {
-        line = `<span class="ans-line">⏰ Vaqt tugadi — <span class="correct-val">to'g'ri javob: ${q.correct_answer}</span></span>`;
+        line = `<span class="ans-line">⏰ Vaqt tugadi — <span class="correct-val">to'g'ri javob: ${dash(q.correct_answer)}</span></span>`;
       } else if (q.is_correct) {
         statusClass = "correct";
-        line = `<span class="ans-line">Javobingiz: <span class="chosen-correct">${q.selected_answer}</span> ✔</span>`;
+        line = `<span class="ans-line">Javobingiz: <span class="chosen-correct">${dash(q.selected_answer)}</span> ✔</span>`;
       } else {
         statusClass = "wrong";
-        line = `<span class="ans-line">Javobingiz: <span class="chosen-wrong">${q.selected_answer}</span> — to'g'risi: <span class="correct-val">${q.correct_answer}</span></span>`;
+        line = `<span class="ans-line">Javobingiz: <span class="chosen-wrong">${dash(q.selected_answer)}</span> — to'g'risi: <span class="correct-val">${dash(q.correct_answer)}</span></span>`;
       }
       return `
         <div class="detail-q-row ${statusClass}">
-          <div class="expr">${q.order_index + 1}) ${q.a} ${symbol} ${q.b} = ?</div>
+          <div class="expr">${q.order_index + 1}) ${questionExprHtml(q)}${questionSuffix(q)}</div>
           ${line}
         </div>`;
     }).join("");
 
     appEl.innerHTML = `
-      ${header(`${op.label} — ${a.digits} xonali`, null, true)}
+      ${header(op.label || a.operation, null, true)}
       ${ownerLine}
       <div class="feedback-banner correct" style="margin-bottom:16px;">
         ${a.total_questions} tadan <b>${a.correct_count}</b> to'g'ri, <b>${a.wrong_count}</b> noto'g'ri
