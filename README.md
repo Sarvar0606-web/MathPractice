@@ -93,7 +93,17 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
      oshishi/chegirma/foyda-zarar/ketma-ket foiz o'zgarishi → murakkablik
      darajasini (1–5) → vaqtni tanlaysiz. Savollar so'z masalasi (matnli)
      shaklida beriladi.
-   Har uchala bo'limda ham 20 tadan savol, 4 variantli javob va tasdiqlash
+   - **Algebra** → tenglama/tengsizlik/qavs ochish/soddalashtirish/
+     darajalar/ildizlar/sistemalar → murakkablik darajasini (1–5) →
+     vaqtni tanlaysiz. Tenglama darajasi oshgani sayin ko'rinishi ham
+     murakkablashadi (masalan 1-daraja: `x + 5 = 12`, 5-daraja:
+     `3(2x - 5) - 4(x + 2) = 17`).
+   - **Geometriya** → perimetr/yuza/hajm/uchburchak/to'rtburchak/aylana/
+     Pifagor teoremasi/burchaklar → murakkablik darajasini (1–5) → vaqtni
+     tanlaysiz. Savollar geometrik so'z masalasi shaklida beriladi
+     (masalan "Tomonlari 5 va 8 bo'lgan to'g'ri to'rtburchakning
+     perimetrini toping.").
+   Barcha bo'limlarda ham 20 tadan savol, 4 variantli javob va tasdiqlash
    dialogi bir xil ishlaydi.
 4. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
    tanlanganda "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?" so'raladi.
@@ -133,7 +143,7 @@ mathbot/
 
 ## Qo'shimcha bo'lim qo'shish
 
-Yangi test turi (masalan "Geometriya") qo'shish uchun:
+Yangi test turi qo'shish uchun:
 1. `logic/` ichida yangi generator yozing.
 2. `config.py`dagi `OPERATIONS`ga o'xshash yangi konfiguratsiya tuzing yoki
    yangi bo'lim uchun alohida config qo'shing.

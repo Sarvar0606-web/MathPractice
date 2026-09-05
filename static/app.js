@@ -16,7 +16,17 @@ const OP_EMOJI = {
   frac_mul: "✖️", frac_div: "➗", frac_mixed: "🔄", frac_decimal: "🔢",
   percent_of: "💯", percent_find_whole: "🔎", percent_increase: "📈",
   percent_discount: "🏷️", percent_profit_loss: "⚖️", percent_successive: "🔁",
+  algebra_equation: "🟰", algebra_inequality: "🔀", algebra_expand: "🧩",
+  algebra_simplify: "✨", algebra_exponent: "🔟", algebra_root: "√",
+  algebra_system: "🔗",
+  geo_perimeter: "📏", geo_area: "🟩", geo_volume: "📦", geo_triangle: "🔺",
+  geo_quad: "🔷", geo_circle: "⭕", geo_pythagoras: "📐", geo_angles: "∠",
 };
+
+const SUPERSCRIPT_DIGITS = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+function superscript(n) {
+  return String(n).split("").map((d) => SUPERSCRIPT_DIGITS[d] !== undefined ? SUPERSCRIPT_DIGITS[d] : d).join("");
+}
 
 // Bu amallarning javob variantlari bitta belgi/qisqa satr (masalan "<", ">", "=")
 // bo'lgani uchun javob tugmalarida kattaroq shrift ishlatiladi.
@@ -27,6 +37,8 @@ const BIG_CHOICE_OPS = new Set(["compare", "frac_compare"]);
 const WORD_PROBLEM_OPS = new Set([
   "percent_of", "percent_find_whole", "percent_increase",
   "percent_discount", "percent_profit_loss", "percent_successive",
+  "geo_perimeter", "geo_area", "geo_volume", "geo_triangle",
+  "geo_quad", "geo_circle", "geo_pythagoras", "geo_angles",
 ]);
 
 // "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi,
@@ -130,6 +142,9 @@ function fracHtml(n, d) {
 
 // ---------- Savol ifodasi (test ekrani va natija tafsiloti uchun umumiy) ----------
 function questionExprHtml(q) {
+  if (q.display_text) {
+    return escapeHtml(q.display_text).replace(/\n/g, "<br>");
+  }
   switch (q.operation) {
     case "add": case "sub": case "mul": case "div": {
       const symbol = CONFIG.operations[q.operation].symbol;
@@ -160,12 +175,35 @@ function questionExprHtml(q) {
       const dir2 = q.c >= 0 ? "oshdi" : "kamaydi";
       return `${q.a} dastlab <b>${Math.abs(q.b)}%</b> ga ${dir1}, keyin <b>${Math.abs(q.c)}%</b> ga ${dir2}. Oxirgi qiymat nechiga teng?`;
     }
+    case "algebra_exponent":
+      return `${q.a}${superscript(q.b)}`;
+    case "algebra_root":
+      return `${q.b === 3 ? "∛" : "√"}${q.a}`;
+    case "geo_perimeter":
+      return `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning perimetrini toping.`;
+    case "geo_area":
+      return `Tomonlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri to'rtburchakning yuzasini toping.`;
+    case "geo_volume":
+      return `O'lchamlari <b>${q.a}</b>, <b>${q.b}</b> va <b>${q.c}</b> bo'lgan to'g'ri burchakli parallelepipedning hajmini toping.`;
+    case "geo_triangle":
+      return `Asosi <b>${q.a}</b> va balandligi <b>${q.b}</b> bo'lgan uchburchakning yuzasini toping.`;
+    case "geo_quad":
+      return `Asoslari <b>${q.a}</b> va <b>${q.b}</b>, balandligi <b>${q.c}</b> bo'lgan trapetsiyaning yuzasini toping.`;
+    case "geo_circle":
+      return q.c === 1
+        ? `Radiusi <b>${q.a}</b> bo'lgan aylananing uzunligini toping (π ≈ 3.14).`
+        : `Radiusi <b>${q.a}</b> bo'lgan doiraning yuzasini toping (π ≈ 3.14).`;
+    case "geo_pythagoras":
+      return `Katetlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri burchakli uchburchakning gipotenuzasini toping.`;
+    case "geo_angles":
+      return `Uchburchakning ikkita burchagi <b>${q.a}°</b> va <b>${q.b}°</b> ga teng. Uchinchi burchakni toping.`;
     default:
       return `${q.a} ? ${q.b}`;
   }
 }
 
 function questionSuffix(q) {
+  if (q.display_text) return "";
   return NO_SUFFIX_OPS.has(q.operation) ? "" : " = ?";
 }
 
@@ -333,6 +371,8 @@ function renderSection() {
   const sectionDesc = {
     fractions: "Kasrlar ustida",
     percent: "Foizlar ustida",
+    algebra: "Algebraik ifodalar ustida",
+    geometry: "Geometrik masalalar ustida",
   }[sectionKey] || "1–5 xonali sonlar ustida";
   const opKeys = Object.keys(CONFIG.operations).filter((k) => CONFIG.operations[k].section === sectionKey);
   const cards = opKeys.map((key) => {
@@ -430,7 +470,7 @@ function renderTest() {
   const wrongPct = t.total_questions ? (t.progress.wrong / t.total_questions) * 100 : 0;
   const instruction = QUESTION_INSTRUCTIONS[q.operation];
   const bigChoices = BIG_CHOICE_OPS.has(q.operation);
-  const wordProblem = WORD_PROBLEM_OPS.has(q.operation);
+  const wordProblem = WORD_PROBLEM_OPS.has(q.operation) || !!q.display_text;
 
   appEl.innerHTML = `
     <div class="test-topbar">

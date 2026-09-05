@@ -77,6 +77,20 @@ SECTIONS = [
         "color": "#f59e0b",
         "desc": "Foizlar bilan bog'liq masalalar",
     },
+    {
+        "key": "algebra",
+        "label": "Algebra",
+        "icon": "🧮",
+        "color": "#0ea5e9",
+        "desc": "Tenglama, tengsizlik, ifodalar bilan ishlash",
+    },
+    {
+        "key": "geometry",
+        "label": "Geometriya",
+        "icon": "📐",
+        "color": "#10b981",
+        "desc": "Perimetr, yuza, hajm va boshqa masalalar",
+    },
 ]
 
 OPERATIONS = {
@@ -101,4 +115,21 @@ OPERATIONS = {
     "percent_discount": {"label": "Chegirma", "symbol": "↓", "color": "#ef4444", "icon": "discount", "section": "percent"},
     "percent_profit_loss": {"label": "Foyda/zarar", "symbol": "±", "color": "#8b5cf6", "icon": "scale", "section": "percent"},
     "percent_successive": {"label": "Ketma-ket foiz o'zgarishi", "symbol": "⇄", "color": "#ec4899", "icon": "repeat", "section": "percent"},
+
+    "algebra_equation": {"label": "Tenglama", "symbol": "x=", "color": "#0ea5e9", "icon": "equation", "section": "algebra"},
+    "algebra_inequality": {"label": "Tengsizlik", "symbol": "><", "color": "#6366f1", "icon": "inequality", "section": "algebra"},
+    "algebra_expand": {"label": "Qavs ochish", "symbol": "()", "color": "#f97316", "icon": "expand", "section": "algebra"},
+    "algebra_simplify": {"label": "Soddalashtirish", "symbol": "=", "color": "#22c55e", "icon": "simplify", "section": "algebra"},
+    "algebra_exponent": {"label": "Darajalar", "symbol": "^", "color": "#ec4899", "icon": "power", "section": "algebra"},
+    "algebra_root": {"label": "Ildizlar", "symbol": "√", "color": "#8b5cf6", "icon": "root", "section": "algebra"},
+    "algebra_system": {"label": "Sistemalar", "symbol": "x,y", "color": "#eab308", "icon": "system", "section": "algebra"},
+
+    "geo_perimeter": {"label": "Perimetr", "symbol": "P", "color": "#10b981", "icon": "perimeter", "section": "geometry"},
+    "geo_area": {"label": "Yuza", "symbol": "S", "color": "#06b6d4", "icon": "area", "section": "geometry"},
+    "geo_volume": {"label": "Hajm", "symbol": "V", "color": "#3b82f6", "icon": "volume", "section": "geometry"},
+    "geo_triangle": {"label": "Uchburchak", "symbol": "△", "color": "#f59e0b", "icon": "triangle", "section": "geometry"},
+    "geo_quad": {"label": "To'rtburchak", "symbol": "▱", "color": "#f97316", "icon": "quad", "section": "geometry"},
+    "geo_circle": {"label": "Aylana", "symbol": "○", "color": "#8b5cf6", "icon": "circle", "section": "geometry"},
+    "geo_pythagoras": {"label": "Pifagor teoremasi", "symbol": "√", "color": "#ec4899", "icon": "pythagoras", "section": "geometry"},
+    "geo_angles": {"label": "Burchaklar", "symbol": "∠", "color": "#22c55e", "icon": "angles", "section": "geometry"},
 }

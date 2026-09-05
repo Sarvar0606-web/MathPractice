@@ -21,6 +21,14 @@ PERCENT_OPS = {
     "percent_of", "percent_find_whole", "percent_increase",
     "percent_discount", "percent_profit_loss", "percent_successive",
 }
+ALGEBRA_OPS = {
+    "algebra_equation", "algebra_inequality", "algebra_expand",
+    "algebra_simplify", "algebra_exponent", "algebra_root", "algebra_system",
+}
+GEOMETRY_OPS = {
+    "geo_perimeter", "geo_area", "geo_volume", "geo_triangle",
+    "geo_quad", "geo_circle", "geo_pythagoras", "geo_angles",
+}
 
 
 # ============================================================
@@ -476,6 +484,487 @@ def _generate_percent_question(operation: str, level: int) -> dict:
 
 
 # ============================================================
+# ALGEBRA
+# ============================================================
+
+_SUPERSCRIPT_DIGITS = {
+    "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+    "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+}
+
+
+def _superscript(n: int) -> str:
+    return "".join(_SUPERSCRIPT_DIGITS[d] for d in str(n))
+
+
+def _format_linear(coef: int, const: int, var: str = "x") -> str:
+    """Chiziqli ifodani kanonik ko'rinishda formatlaydi: masalan
+    (3, -5) -> '3x - 5', (1, 2) -> 'x + 2', (-1, 0) -> '-x', (0, 7) -> '7'."""
+    if coef == 0:
+        return str(const)
+    if coef == 1:
+        term = var
+    elif coef == -1:
+        term = f"-{var}"
+    else:
+        term = f"{coef}{var}"
+    if const == 0:
+        return term
+    if const > 0:
+        return f"{term} + {const}"
+    return f"{term} - {abs(const)}"
+
+
+def _format_terms(terms: list) -> str:
+    """[(qiymat, x_hadmi?)] ro'yxatini 'a x + b - c x + d' shaklida
+    formatlaydi (birinchi had belgisiz/manfiy bo'lsa '-', keyingilari
+    '+ '/'- ' bilan)."""
+    parts = []
+    for i, (val, is_var) in enumerate(terms):
+        mag = abs(val)
+        body = ("x" if mag == 1 else f"{mag}x") if is_var else str(mag)
+        if i == 0:
+            parts.append(f"-{body}" if val < 0 else body)
+        else:
+            parts.append(("- " if val < 0 else "+ ") + body)
+    return " ".join(parts)
+
+
+def _general_int_distractors(correct: int, count: int = 3, spread: int = None) -> list[int]:
+    """Manfiy bo'lishi mumkin bo'lgan butun sonlar uchun distraktorlar
+    (arifmetikadagi _make_int_distractors'dan farqli, natijani 0 bilan
+    cheklamaydi)."""
+    if spread is None:
+        spread = max(3, abs(correct) // 4 + 4)
+    distractors: set = set()
+    attempts = 0
+    while len(distractors) < count and attempts < 200:
+        attempts += 1
+        delta = random.randint(-spread, spread)
+        if delta == 0:
+            continue
+        candidate = correct + delta
+        if candidate == correct or candidate in distractors:
+            continue
+        distractors.add(candidate)
+    filler = 1
+    while len(distractors) < count:
+        for cand in (correct + filler, correct - filler):
+            if cand != correct and cand not in distractors:
+                distractors.add(cand)
+            if len(distractors) >= count:
+                break
+        filler += 1
+    return list(distractors)[:count]
+
+
+def _linear_distractors(coef: int, const: int, count: int = 3) -> list[str]:
+    correct_str = _format_linear(coef, const)
+    seen = {correct_str}
+    out: list[str] = []
+    candidates = []
+    for delta in (-2, -1, 1, 2):
+        candidates.append((coef + delta, const))
+        candidates.append((coef, const + delta))
+    for dc in (-1, 1):
+        for dk in (-1, 1):
+            candidates.append((coef + dc, const + dk))
+    random.shuffle(candidates)
+    for co, cn in candidates:
+        if len(out) >= count:
+            break
+        s = _format_linear(co, cn)
+        if s in seen:
+            continue
+        seen.add(s)
+        out.append(s)
+    filler = 1
+    while len(out) < count:
+        s = _format_linear(coef, const + filler)
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+        filler += 1
+    return out[:count]
+
+
+_ALGEBRA_RANGE = {1: 8, 2: 10, 3: 14, 4: 18, 5: 25}
+
+
+def _algebra_equation(level: int) -> dict:
+    rng = _ALGEBRA_RANGE.get(level, 12)
+    if level == 1:
+        x = random.randint(-rng, rng)
+        b = random.randint(1, rng)
+        c = x + b
+        display_text = f"{_format_linear(1, b)} = {c}"
+    elif level == 2:
+        a = random.randint(2, 9)
+        x = random.choice([v for v in range(-rng, rng + 1) if v != 0])
+        c = a * x
+        display_text = f"{_format_linear(a, 0)} = {c}"
+    elif level == 3:
+        a = random.randint(2, 9)
+        x = random.randint(-rng, rng)
+        b = random.randint(1, rng)
+        c = a * x + b
+        display_text = f"{_format_linear(a, b)} = {c}"
+    elif level == 4:
+        a = random.randint(2, 9)
+        b = random.choice([v for v in range(-9, 10) if v != 0])
+        d = random.choice([v for v in range(-20, 21) if v != 0])
+        x = random.randint(-rng, rng)
+        c = a * (x + b) + d
+        d_part = f"+ {d}" if d > 0 else f"- {abs(d)}"
+        display_text = f"{a}({_format_linear(1, b)}) {d_part} = {c}"
+    else:
+        a = m = n = e = f = 2
+        for _ in range(50):
+            a = random.randint(2, 5)
+            m = random.randint(2, 4)
+            n = random.choice([v for v in range(-9, 10) if v != 0])
+            e = random.randint(2, 6)
+            f = random.choice([v for v in range(-9, 10) if v != 0])
+            if a * m - e != 0:
+                break
+        x = random.randint(-rng, rng)
+        c = a * (m * x + n) - e * (x + f)
+        display_text = f"{a}({_format_linear(m, n)}) - {e}({_format_linear(1, f)}) = {c}"
+
+    answer = x
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "algebra_equation", "answer": str(answer), "choices": choices,
+        "display_text": display_text,
+    }
+
+
+_INEQ_OPS = [(">", "<"), ("<", ">"), ("≥", "≤"), ("≤", "≥")]
+
+
+def _algebra_inequality(level: int) -> dict:
+    rng = _ALGEBRA_RANGE.get(level, 12)
+    a = random.randint(1, min(9, 2 + level))
+    b = random.randint(-rng, rng)
+    k = random.randint(-rng, rng)
+    op, flipped = random.choice(_INEQ_OPS)
+    c = a * k + b
+    display_text = f"{_format_linear(a, b)} {op} {c}"
+    answer = f"x {op} {k}"
+
+    seen = {answer}
+    choices = [answer]
+    for dk in _general_int_distractors(k, 2):
+        s = f"x {op} {dk}"
+        if s not in seen:
+            seen.add(s)
+            choices.append(s)
+    flip_variant = f"x {flipped} {k}"
+    if flip_variant not in seen:
+        seen.add(flip_variant)
+        choices.append(flip_variant)
+    filler = 3
+    while len(choices) < 4:
+        s = f"x {op} {k + filler}"
+        if s not in seen:
+            seen.add(s)
+            choices.append(s)
+        filler += 1
+    choices = choices[:4]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "algebra_inequality", "answer": answer, "choices": choices,
+        "display_text": display_text,
+    }
+
+
+def _algebra_expand(level: int) -> dict:
+    a = random.randint(2, 4 + level)
+    b = random.choice([v for v in range(-6 - level, 7 + level) if v != 0])
+    c = random.choice([v for v in range(-9 - level, 10 + level) if v != 0])
+    inner = _format_linear(b, c)
+    display_text = f"{a}({inner})"
+    coef, const = a * b, a * c
+    answer = _format_linear(coef, const)
+    choices = _linear_distractors(coef, const, 3) + [answer]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "algebra_expand", "answer": answer, "choices": choices,
+        "display_text": display_text,
+    }
+
+
+def _algebra_simplify(level: int) -> dict:
+    rng = 5 + level * 2
+    coef1 = random.choice([v for v in range(-rng, rng + 1) if v != 0])
+    coef2 = random.choice([v for v in range(-rng, rng + 1) if v != 0])
+    const1 = random.choice([v for v in range(-rng * 2, rng * 2 + 1) if v != 0])
+    const2 = random.choice([v for v in range(-rng * 2, rng * 2 + 1) if v != 0])
+    terms = [(coef1, True), (coef2, True), (const1, False), (const2, False)]
+    random.shuffle(terms)
+    display_text = _format_terms(terms)
+    sum_coef, sum_const = coef1 + coef2, const1 + const2
+    answer = _format_linear(sum_coef, sum_const)
+    choices = _linear_distractors(sum_coef, sum_const, 3) + [answer]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "algebra_simplify", "answer": answer, "choices": choices,
+        "display_text": display_text,
+    }
+
+
+_EXP_BASE_RANGE = {1: (2, 6), 2: (2, 8), 3: (2, 10), 4: (2, 12), 5: (2, 15)}
+_EXP_POWER_RANGE = {1: (2, 2), 2: (2, 2), 3: (2, 3), 4: (2, 3), 5: (2, 4)}
+
+
+def _algebra_exponent(level: int) -> dict:
+    base_lo, base_hi = _EXP_BASE_RANGE.get(level, (2, 10))
+    pow_lo, pow_hi = _EXP_POWER_RANGE.get(level, (2, 3))
+    base = random.randint(base_lo, base_hi)
+    exp = random.randint(pow_lo, pow_hi)
+    answer = base ** exp
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": base, "b": exp, "c": None, "d": None,
+        "operation": "algebra_exponent", "answer": str(answer), "choices": choices,
+    }
+
+
+_ROOT_SQUARE_RANGE = {1: (2, 8), 2: (2, 12), 3: (2, 16), 4: (2, 20), 5: (2, 25)}
+_ROOT_CUBE_RANGE = {1: (2, 4), 2: (2, 5), 3: (2, 6), 4: (2, 8), 5: (2, 10)}
+
+
+def _algebra_root(level: int) -> dict:
+    use_cube = level >= 3 and random.random() < 0.4
+    if use_cube:
+        lo, hi = _ROOT_CUBE_RANGE.get(level, (2, 6))
+        root = random.randint(lo, hi)
+        radicand, degree = root ** 3, 3
+    else:
+        lo, hi = _ROOT_SQUARE_RANGE.get(level, (2, 15))
+        root = random.randint(lo, hi)
+        radicand, degree = root ** 2, 2
+    answer = root
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": radicand, "b": degree, "c": None, "d": None,
+        "operation": "algebra_root", "answer": str(answer), "choices": choices,
+    }
+
+
+def _algebra_system(level: int) -> dict:
+    rng = _ALGEBRA_RANGE.get(level, 12)
+    x = random.randint(-rng, rng)
+    y = random.randint(-rng, rng)
+    s, d = x + y, x - y
+    display_text = f"x + y = {s}\nx - y = {d}"
+    answer = x
+    choices = [str(v) for v in _general_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {
+        "a": None, "b": None, "c": None, "d": None,
+        "operation": "algebra_system", "answer": str(answer), "choices": choices,
+        "display_text": display_text,
+    }
+
+
+def _generate_algebra_question(operation: str, level: int) -> dict:
+    if operation == "algebra_equation":
+        return _algebra_equation(level)
+    if operation == "algebra_inequality":
+        return _algebra_inequality(level)
+    if operation == "algebra_expand":
+        return _algebra_expand(level)
+    if operation == "algebra_simplify":
+        return _algebra_simplify(level)
+    if operation == "algebra_exponent":
+        return _algebra_exponent(level)
+    if operation == "algebra_root":
+        return _algebra_root(level)
+    if operation == "algebra_system":
+        return _algebra_system(level)
+    raise ValueError(f"Noma'lum algebra amali: {operation}")
+
+
+# ============================================================
+# GEOMETRIYA
+# ============================================================
+
+_GEO_RANGE = {1: 10, 2: 15, 3: 20, 4: 30, 5: 50}
+_PI = 3.14
+
+
+def _geo_perimeter(level: int) -> dict:
+    rng = _GEO_RANGE.get(level, 20)
+    a = random.randint(2, rng)
+    b = random.randint(2, rng)
+    answer = 2 * (a + b)
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": None, "d": None, "operation": "geo_perimeter",
+            "answer": str(answer), "choices": choices}
+
+
+def _geo_area(level: int) -> dict:
+    rng = _GEO_RANGE.get(level, 20)
+    a = random.randint(2, rng)
+    b = random.randint(2, rng)
+    answer = a * b
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": None, "d": None, "operation": "geo_area",
+            "answer": str(answer), "choices": choices}
+
+
+def _geo_volume(level: int) -> dict:
+    rng = max(3, _GEO_RANGE.get(level, 20) // 2)
+    a = random.randint(2, rng)
+    b = random.randint(2, rng)
+    c = random.randint(2, rng)
+    answer = a * b * c
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": c, "d": None, "operation": "geo_volume",
+            "answer": str(answer), "choices": choices}
+
+
+def _geo_triangle(level: int) -> dict:
+    rng = _GEO_RANGE.get(level, 20)
+    while True:
+        a = random.randint(2, rng)
+        b = random.randint(2, rng)
+        if (a * b) % 2 == 0:
+            break
+    answer = a * b // 2
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": None, "d": None, "operation": "geo_triangle",
+            "answer": str(answer), "choices": choices}
+
+
+def _geo_quad(level: int) -> dict:
+    rng = _GEO_RANGE.get(level, 20)
+    while True:
+        a = random.randint(2, rng)
+        b = random.randint(2, rng)
+        if (a + b) % 2 == 0:
+            break
+    c = random.randint(2, rng)
+    answer = (a + b) // 2 * c
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": c, "d": None, "operation": "geo_quad",
+            "answer": str(answer), "choices": choices}
+
+
+def _fmt_pi_result(value: float) -> str:
+    rounded = round(value, 2)
+    if rounded == int(rounded):
+        return str(int(rounded))
+    s = f"{rounded:.2f}".rstrip("0").rstrip(".")
+    return s
+
+
+def _pi_distractors(correct: float, count: int = 3) -> list[str]:
+    correct_str = _fmt_pi_result(correct)
+    seen = {correct_str}
+    out: list[str] = []
+    deltas = [0.5, -0.5, 1, -1, 2, -2, 0.25, -0.25]
+    random.shuffle(deltas)
+    for delta in deltas:
+        if len(out) >= count:
+            break
+        val = correct + delta
+        if val <= 0:
+            continue
+        s = _fmt_pi_result(val)
+        if s in seen:
+            continue
+        seen.add(s)
+        out.append(s)
+    filler = 3
+    while len(out) < count:
+        val = correct + filler
+        s = _fmt_pi_result(val)
+        if s not in seen:
+            seen.add(s)
+            out.append(s)
+        filler += 1
+    return out[:count]
+
+
+def _geo_circle(level: int) -> dict:
+    rng = _GEO_RANGE.get(level, 20)
+    radius = random.randint(2, max(3, rng // 2))
+    kind = random.choice([1, 2])  # 1 = uzunlik (aylana), 2 = yuza
+    value = 2 * _PI * radius if kind == 1 else _PI * radius * radius
+    answer = _fmt_pi_result(value)
+    choices = _pi_distractors(value, 3) + [answer]
+    random.shuffle(choices)
+    return {"a": radius, "b": None, "c": kind, "d": None, "operation": "geo_circle",
+            "answer": answer, "choices": choices}
+
+
+_PYTH_TRIPLES = [
+    (3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17),
+    (7, 24, 25), (9, 12, 15), (20, 21, 29),
+]
+
+
+def _geo_pythagoras(level: int) -> dict:
+    leg1, leg2, hyp = random.choice(_PYTH_TRIPLES)
+    max_mult = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}.get(level, 2)
+    mult = random.randint(1, max_mult)
+    a, b, answer = leg1 * mult, leg2 * mult, hyp * mult
+    choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": None, "d": None, "operation": "geo_pythagoras",
+            "answer": str(answer), "choices": choices}
+
+
+def _geo_angles(level: int) -> dict:
+    while True:
+        a = random.randint(10, 20 + level * 15)
+        b = random.randint(10, 20 + level * 15)
+        if a + b < 175:
+            break
+    answer = 180 - a - b
+    distractor_vals = _make_int_distractors(answer, 3)
+    answer_str = f"{answer}°"
+    choices = [f"{v}°" for v in distractor_vals] + [answer_str]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": None, "d": None, "operation": "geo_angles",
+            "answer": answer_str, "choices": choices}
+
+
+def _generate_geometry_question(operation: str, level: int) -> dict:
+    if operation == "geo_perimeter":
+        return _geo_perimeter(level)
+    if operation == "geo_area":
+        return _geo_area(level)
+    if operation == "geo_volume":
+        return _geo_volume(level)
+    if operation == "geo_triangle":
+        return _geo_triangle(level)
+    if operation == "geo_quad":
+        return _geo_quad(level)
+    if operation == "geo_circle":
+        return _geo_circle(level)
+    if operation == "geo_pythagoras":
+        return _geo_pythagoras(level)
+    if operation == "geo_angles":
+        return _geo_angles(level)
+    raise ValueError(f"Noma'lum geometriya amali: {operation}")
+
+
+# ============================================================
 # UMUMIY DISPATCH
 # ============================================================
 
@@ -484,6 +973,10 @@ def generate_question(operation: str, digits: int) -> dict:
         return _generate_fraction_question(operation, digits)
     if operation in PERCENT_OPS:
         return _generate_percent_question(operation, digits)
+    if operation in ALGEBRA_OPS:
+        return _generate_algebra_question(operation, digits)
+    if operation in GEOMETRY_OPS:
+        return _generate_geometry_question(operation, digits)
     if operation in ARITHMETIC_OPS:
         return _generate_arithmetic_question(operation, digits)
     raise ValueError(f"Noma'lum amal: {operation}")
@@ -497,7 +990,7 @@ def generate_test(operation: str, digits: int, count: int) -> list[dict]:
     while len(questions) < count and attempts < count * 30:
         attempts += 1
         q = generate_question(operation, digits)
-        key = (q["a"], q["b"], q["c"], q["d"])
+        key = (q["a"], q["b"], q["c"], q["d"], q.get("display_text"))
         if key in seen:
             continue
         seen.add(key)

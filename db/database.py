@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS questions (
     is_correct      INTEGER,
     status          TEXT NOT NULL DEFAULT 'pending',
     time_taken_ms   INTEGER,
-    answered_at     TEXT
+    answered_at     TEXT,
+    display_text    TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
@@ -118,10 +119,21 @@ def _migrate_legacy_questions_table(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, coltype: str) -> None:
+    """Agar `table` jadvalida `column` ustuni bo'lmasa, uni qo'shadi
+    (idempotent — allaqachon mavjud bo'lsa hech narsa qilmaydi)."""
+    cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if not cols or column in cols:
+        return
+    conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}")
+    conn.commit()
+
+
 def init_db():
     """Ilova ishga tushganda (request tashqarisida) sxema yaratiladi."""
     conn = _new_conn()
     conn.executescript(SCHEMA)
     _migrate_legacy_questions_table(conn)
+    _ensure_column(conn, "questions", "display_text", "TEXT")
     conn.commit()
     conn.close()
