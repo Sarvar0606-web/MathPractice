@@ -70,6 +70,13 @@ SECTIONS = [
         "color": "#f43f5e",
         "desc": "Kasrlar ustida amallar",
     },
+    {
+        "key": "percent",
+        "label": "Foizlar",
+        "icon": "💯",
+        "color": "#f59e0b",
+        "desc": "Foizlar bilan bog'liq masalalar",
+    },
 ]
 
 OPERATIONS = {
@@ -87,4 +94,11 @@ OPERATIONS = {
     "frac_div": {"label": "Bo'lish", "symbol": "÷", "color": "#ec4899", "icon": "divide", "section": "fractions"},
     "frac_mixed": {"label": "Aralash kasr", "symbol": "⇄", "color": "#8b5cf6", "icon": "mixed", "section": "fractions"},
     "frac_decimal": {"label": "O'nli kasr", "symbol": ".", "color": "#06b6d4", "icon": "decimal", "section": "fractions"},
+
+    "percent_of": {"label": "Sonning foizini topish", "symbol": "%", "color": "#f59e0b", "icon": "percent", "section": "percent"},
+    "percent_find_whole": {"label": "Foiz bo'yicha sonni topish", "symbol": "%", "color": "#0ea5e9", "icon": "search", "section": "percent"},
+    "percent_increase": {"label": "Narx oshishi", "symbol": "↑", "color": "#22c55e", "icon": "increase", "section": "percent"},
+    "percent_discount": {"label": "Chegirma", "symbol": "↓", "color": "#ef4444", "icon": "discount", "section": "percent"},
+    "percent_profit_loss": {"label": "Foyda/zarar", "symbol": "±", "color": "#8b5cf6", "icon": "scale", "section": "percent"},
+    "percent_successive": {"label": "Ketma-ket foiz o'zgarishi", "symbol": "⇄", "color": "#ec4899", "icon": "repeat", "section": "percent"},
 }

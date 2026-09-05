@@ -278,6 +278,13 @@ html, body {
   letter-spacing: 1px;
 }
 .question-card .op-symbol { margin: 0 10px; }
+.question-card.word-problem {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: left;
+  letter-spacing: normal;
+  line-height: 1.55;
+}
 .question-instruction {
   font-size: 14px;
   font-weight: 600;

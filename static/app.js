@@ -14,15 +14,27 @@ const OP_EMOJI = {
   add: "➕", sub: "➖", mul: "✖️", div: "➗", compare: "⚖️",
   frac_compare: "⚖️", frac_simplify: "↓", frac_add: "➕", frac_sub: "➖",
   frac_mul: "✖️", frac_div: "➗", frac_mixed: "🔄", frac_decimal: "🔢",
+  percent_of: "💯", percent_find_whole: "🔎", percent_increase: "📈",
+  percent_discount: "🏷️", percent_profit_loss: "⚖️", percent_successive: "🔁",
 };
 
 // Bu amallarning javob variantlari bitta belgi/qisqa satr (masalan "<", ">", "=")
 // bo'lgani uchun javob tugmalarida kattaroq shrift ishlatiladi.
 const BIG_CHOICE_OPS = new Set(["compare", "frac_compare"]);
 
-// "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi
-// yoki javob solishtirish belgisi bo'ladi)
-const NO_SUFFIX_OPS = new Set(["compare", "frac_compare", "frac_simplify", "frac_mixed", "frac_decimal"]);
+// Bular to'liq gap (masala) shaklida so'raladi — matn kichikroq va chapga
+// tekislangan holda ko'rsatiladi.
+const WORD_PROBLEM_OPS = new Set([
+  "percent_of", "percent_find_whole", "percent_increase",
+  "percent_discount", "percent_profit_loss", "percent_successive",
+]);
+
+// "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi,
+// javob solishtirish belgisi bo'ladi, yoki savol allaqachon "?" bilan tugaydi)
+const NO_SUFFIX_OPS = new Set([
+  "compare", "frac_compare", "frac_simplify", "frac_mixed", "frac_decimal",
+  ...WORD_PROBLEM_OPS,
+]);
 
 const QUESTION_INSTRUCTIONS = {
   frac_simplify: "Kasrni qisqartiring:",
@@ -133,6 +145,21 @@ function questionExprHtml(q) {
     }
     case "frac_simplify": case "frac_mixed": case "frac_decimal":
       return fracHtml(q.a, q.b);
+    case "percent_of":
+      return `${q.a} ning <b>${q.b}%</b> i nechiga teng?`;
+    case "percent_find_whole":
+      return `Biror sonning <b>${q.b}%</b> i ${q.a} ga teng. O'sha son nechiga teng?`;
+    case "percent_increase":
+      return `${q.a} so'm bo'lgan narx <b>${q.b}%</b> ga oshdi. Yangi narx nechiga teng?`;
+    case "percent_discount":
+      return `${q.a} so'm bo'lgan mahsulotga <b>${q.b}%</b> chegirma qilindi. Chegirmadagi narx nechiga teng?`;
+    case "percent_profit_loss":
+      return `Tannarxi ${q.a} so'm bo'lgan mahsulot ${q.b} so'mga sotildi. Foyda yoki zarar necha foiz bo'ldi?`;
+    case "percent_successive": {
+      const dir1 = q.b >= 0 ? "oshdi" : "kamaydi";
+      const dir2 = q.c >= 0 ? "oshdi" : "kamaydi";
+      return `${q.a} dastlab <b>${Math.abs(q.b)}%</b> ga ${dir1}, keyin <b>${Math.abs(q.c)}%</b> ga ${dir2}. Oxirgi qiymat nechiga teng?`;
+    }
     default:
       return `${q.a} ? ${q.b}`;
   }
@@ -303,7 +330,10 @@ function renderMain() {
 function renderSection() {
   const sectionKey = state.selection.section;
   const section = (CONFIG.sections || []).find((s) => s.key === sectionKey) || { label: "Bo'lim" };
-  const isFraction = sectionKey === "fractions";
+  const sectionDesc = {
+    fractions: "Kasrlar ustida",
+    percent: "Foizlar ustida",
+  }[sectionKey] || "1–5 xonali sonlar ustida";
   const opKeys = Object.keys(CONFIG.operations).filter((k) => CONFIG.operations[k].section === sectionKey);
   const cards = opKeys.map((key) => {
     const op = CONFIG.operations[key];
@@ -311,7 +341,7 @@ function renderSection() {
       <div class="section-card" data-op="${key}" style="border-color:${op.color}22">
         <div class="icon-badge" style="background:${op.color}">${OP_EMOJI[key] || op.symbol}</div>
         <div class="title">${op.label}</div>
-        <div class="desc">${isFraction ? "Kasrlar ustida" : "1–5 xonali sonlar ustida"}</div>
+        <div class="desc">${sectionDesc}</div>
       </div>`;
   }).join("");
 
@@ -331,13 +361,13 @@ function renderSection() {
 // ---------- Xona / daraja tanlash ----------
 function renderDigits() {
   const op = CONFIG.operations[state.selection.operation];
-  const isFraction = op.section === "fractions";
+  const useLevelWording = op.section !== "arithmetic";
   const buttons = [];
   for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
-    buttons.push(`<button class="choice-btn" data-d="${d}">${isFraction ? `${d}-daraja` : `${d} xonali`}</button>`);
+    buttons.push(`<button class="choice-btn" data-d="${d}">${useLevelWording ? `${d}-daraja` : `${d} xonali`}</button>`);
   }
   appEl.innerHTML = `
-    ${header(op.label, isFraction ? "Murakkablik darajasini tanlang" : "Sonlar xonasini tanlang", true)}
+    ${header(op.label, useLevelWording ? "Murakkablik darajasini tanlang" : "Sonlar xonasini tanlang", true)}
     <div class="choice-grid">${buttons.join("")}</div>
   `;
   bindBack();
@@ -400,6 +430,7 @@ function renderTest() {
   const wrongPct = t.total_questions ? (t.progress.wrong / t.total_questions) * 100 : 0;
   const instruction = QUESTION_INSTRUCTIONS[q.operation];
   const bigChoices = BIG_CHOICE_OPS.has(q.operation);
+  const wordProblem = WORD_PROBLEM_OPS.has(q.operation);
 
   appEl.innerHTML = `
     <div class="test-topbar">
@@ -417,18 +448,57 @@ function renderTest() {
       </div>
     </div>
     ${state.lastFeedback ? renderFeedbackBanner() : ""}
-    <div class="question-card">
+    <div class="question-card${wordProblem ? " word-problem" : ""}">
       ${instruction ? `<div class="question-instruction">${instruction}</div>` : ""}
       <div>${questionExprHtml(q)}${questionSuffix(q)}</div>
     </div>
     <div class="answer-grid" id="answer-grid">
       ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(c)}</button>`).join("")}
     </div>
+    <button class="btn btn-danger-outline" id="btn-finish-test" style="margin-top:18px;">🏁 Testni tugatish</button>
   `;
 
   document.querySelectorAll(".answer-btn").forEach((el) => {
     el.onclick = () => onChooseAnswer(el.dataset.c);
   });
+  document.getElementById("btn-finish-test").onclick = showFinishConfirmModal;
+}
+
+function showFinishConfirmModal() {
+  const t = state.test;
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.id = "finish-modal";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>Testni yakunlaysizmi?</h3>
+      <p>Hozirgacha ${t.progress.answered} / ${t.total_questions} savolga javob berdingiz. Qolgan savollar hisoblanmaydi.</p>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-finish-cancel">Davom etish</button>
+        <button class="btn btn-danger-outline" id="btn-finish-confirm">🏁 Ha, tugatish</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById("btn-finish-cancel").onclick = () => modal.remove();
+  document.getElementById("btn-finish-confirm").onclick = async () => {
+    modal.remove();
+    await finishTestEarly();
+  };
+}
+
+async function finishTestEarly() {
+  stopTimer();
+  try {
+    const res = await api(`/api/tests/${state.test.attempt_id}/finish`, { method: "POST" });
+    state.test.progress = res.progress;
+    state.test.finished = true;
+    state.lastFeedback = null;
+    state.screen = "test_result";
+    render();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 
 function renderFeedbackBanner() {
@@ -592,13 +662,18 @@ function formatSeconds(total) {
 function renderTestResult() {
   const t = state.test;
   const total = t.total_questions;
+  const answered = t.progress.answered;
   const correct = t.progress.correct;
   const wrong = t.progress.wrong;
-  const good = correct / total >= 0.7;
+  const early = answered < total;
+  const good = answered > 0 && correct / answered >= 0.7;
+  const summaryLine = early
+    ? `${total} tadan <b>${answered}</b> tasiga javob berdingiz — shundan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`
+    : `${total} tadan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri`;
   appEl.innerHTML = `
     ${header("Test yakunlandi! 🎉")}
     <div class="feedback-banner ${good ? "correct" : "wrong"}" style="font-size:18px;padding:22px;">
-      ${total} tadan <b>${correct}</b> ta to'g'ri, <b>${wrong}</b> ta noto'g'ri
+      ${summaryLine}
     </div>
     <button class="btn btn-primary" id="btn-detail">Batafsil ko'rish</button>
     <div style="height:10px"></div>

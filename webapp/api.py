@@ -246,6 +246,35 @@ def submit_answer():
     })
 
 
+@api_bp.post("/tests/<int:attempt_id>/finish")
+def finish_test_early(attempt_id: int):
+    """Foydalanuvchi hali barcha savollarga javob bermay turib testni
+    to'xtatmoqchi bo'lsa chaqiriladi. Javobsiz qolgan savollar shunchaki
+    'pending' holatida qoladi (hisobga olinmaydi)."""
+    tg_user = current_user()
+    attempt = crud.get_attempt(attempt_id)
+    if not attempt or attempt["user_id"] != tg_user["id"]:
+        return err(404, "Test topilmadi")
+
+    if attempt["status"] == "finished":
+        counts = {"correct": attempt["correct_count"], "wrong": attempt["wrong_count"]}
+    else:
+        counts = crud.finish_attempt(attempt_id)
+        logger.info(
+            "TEST_FINISH_EARLY user=%s attempt=%s to'g'ri=%s xato=%s",
+            tg_user["id"], attempt_id, counts["correct"], counts["wrong"],
+        )
+
+    return jsonify({
+        "ok": True,
+        "progress": {
+            "answered": counts["correct"] + counts["wrong"],
+            "correct": counts["correct"],
+            "wrong": counts["wrong"],
+        },
+    })
+
+
 # ---------- Natijalar ----------
 
 def _attempt_summary(a: dict) -> dict:

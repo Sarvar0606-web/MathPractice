@@ -89,12 +89,18 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
      bo'lish/aralash kasrga aylantirish/o'nli kasrga aylantirish → murakkablik
      darajasini (1–5) → vaqtni tanlaysiz. Javoblar kasr ko'rinishida
      (masalan `3/4`, `2 1/3`, `0.75`) beriladi.
-   Har ikkala bo'limda ham 20 tadan savol, 4 variantli javob va tasdiqlash
+   - **Foizlar** → sonning foizini topish/foiz bo'yicha sonni topish/narx
+     oshishi/chegirma/foyda-zarar/ketma-ket foiz o'zgarishi → murakkablik
+     darajasini (1–5) → vaqtni tanlaysiz. Savollar so'z masalasi (matnli)
+     shaklida beriladi.
+   Har uchala bo'limda ham 20 tadan savol, 4 variantli javob va tasdiqlash
    dialogi bir xil ishlaydi.
 4. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
    tanlanganda "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?" so'raladi.
    Tasdiqlangach javob to'g'ri (yashil) yoki xato (qizil, to'g'ri javob
    ko'rsatiladi) ekanligi chiqadi. Vaqt tugasa, javob "xato" hisoblanadi.
+   Istalgan vaqtda pastdagi **"Testni tugatish"** tugmasi bilan testni erta
+   yakunlash mumkin — javob berilmagan savollar hisoblanmaydi.
 5. Test tugagach umumiy natija va batafsil (har bir savol bo'yicha) ko'rinish
    mavjud.
 6. **Natijalarim** — barcha o'tilgan testlar tarixi.

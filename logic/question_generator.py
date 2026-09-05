@@ -17,6 +17,10 @@ FRACTION_OPS = {
     "frac_compare", "frac_simplify", "frac_add", "frac_sub",
     "frac_mul", "frac_div", "frac_mixed", "frac_decimal",
 }
+PERCENT_OPS = {
+    "percent_of", "percent_find_whole", "percent_increase",
+    "percent_discount", "percent_profit_loss", "percent_successive",
+}
 
 
 # ============================================================
@@ -364,12 +368,122 @@ def _generate_fraction_question(operation: str, level: int) -> dict:
 
 
 # ============================================================
+# FOIZLAR
+# ============================================================
+
+# "digits" (1-5) foizlarda ham "murakkablik darajasi" sifatida ishlatiladi —
+# daraja qancha katta bo'lsa, sonlar shuncha katta bo'ladi.
+_PERCENTS = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90]
+_PERCENT_BASE_MAX_MULT = {1: 10, 2: 20, 3: 40, 4: 80, 5: 150}
+_PERCENT_ROUND_STEP = {1: 10, 2: 10, 3: 50, 4: 50, 5: 100}
+_PERCENT_ROUND_MAX_MULT = {1: 20, 2: 40, 3: 40, 4: 60, 5: 80}
+
+
+def _rand_percent() -> int:
+    return random.choice(_PERCENTS)
+
+
+def _base_for_percent(p: int, level: int) -> int:
+    """p% ni butun songa aylantirish uchun kerakli ko'paytmaga ega son."""
+    g = math.gcd(p, 100)
+    unit = 100 // g
+    max_mult = _PERCENT_BASE_MAX_MULT.get(level, 40)
+    mult = random.randint(1, max_mult)
+    base = unit * mult
+    return base if base > 0 else unit
+
+
+def _rand_round_base(level: int) -> int:
+    step = _PERCENT_ROUND_STEP.get(level, 10)
+    max_mult = _PERCENT_ROUND_MAX_MULT.get(level, 40)
+    return step * random.randint(1, max_mult)
+
+
+def _generate_percent_question(operation: str, level: int) -> dict:
+    if operation == "percent_of":
+        p = _rand_percent()
+        n = _base_for_percent(p, level)
+        answer = p * n // 100
+        choices = [str(x) for x in _make_int_distractors(answer, 3)] + [str(answer)]
+        random.shuffle(choices)
+        return {"a": n, "b": p, "c": None, "d": None, "operation": operation,
+                "answer": str(answer), "choices": choices}
+
+    if operation == "percent_find_whole":
+        p = _rand_percent()
+        x = _base_for_percent(p, level)
+        value = p * x // 100
+        answer = x
+        choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+        random.shuffle(choices)
+        return {"a": value, "b": p, "c": None, "d": None, "operation": operation,
+                "answer": str(answer), "choices": choices}
+
+    if operation == "percent_increase":
+        p = _rand_percent()
+        n = _base_for_percent(p, level)
+        answer = n + (p * n // 100)
+        choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+        random.shuffle(choices)
+        return {"a": n, "b": p, "c": None, "d": None, "operation": operation,
+                "answer": str(answer), "choices": choices}
+
+    if operation == "percent_discount":
+        p = _rand_percent()
+        n = _base_for_percent(p, level)
+        answer = n - (p * n // 100)
+        choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+        random.shuffle(choices)
+        return {"a": n, "b": p, "c": None, "d": None, "operation": operation,
+                "answer": str(answer), "choices": choices}
+
+    if operation == "percent_profit_loss":
+        p = _rand_percent()
+        cost = _base_for_percent(p, level)
+        is_profit = random.random() < 0.5
+        sell = cost + (p * cost // 100) if is_profit else cost - (p * cost // 100)
+        label = "foyda" if is_profit else "zarar"
+        opposite = "zarar" if is_profit else "foyda"
+        answer = f"{p}% {label}"
+        distractor_pcts = _make_int_distractors(p, 2)
+        choices = {answer, f"{p}% {opposite}"}
+        for dp in distractor_pcts:
+            choices.add(f"{max(1, dp)}% {label}")
+        filler = 1
+        while len(choices) < 4:
+            choices.add(f"{p + filler}% {label}")
+            filler += 1
+        choices = list(choices)[:4]
+        if answer not in choices:
+            choices[-1] = answer
+        random.shuffle(choices)
+        return {"a": cost, "b": sell, "c": None, "d": None, "operation": operation,
+                "answer": answer, "choices": choices}
+
+    if operation == "percent_successive":
+        n = _rand_round_base(level)
+        p1 = _rand_percent() * random.choice([1, -1])
+        p2 = _rand_percent() * random.choice([1, -1])
+        step1 = round(n * (100 + p1) / 100)
+        step2 = round(step1 * (100 + p2) / 100)
+        answer = step2
+        choices = [str(v) for v in _make_int_distractors(answer, 3)] + [str(answer)]
+        random.shuffle(choices)
+        return {"a": n, "b": p1, "c": p2, "d": None, "operation": operation,
+                "answer": str(answer), "choices": choices}
+
+    raise ValueError(f"Noma'lum foiz amali: {operation}")
+
+
+# ============================================================
 # UMUMIY DISPATCH
 # ============================================================
 
 def generate_question(operation: str, digits: int) -> dict:
     if operation in FRACTION_OPS:
         return _generate_fraction_question(operation, digits)
+    if operation in PERCENT_OPS:
+        return _generate_percent_question(operation, digits)
     if operation in ARITHMETIC_OPS:
         return _generate_arithmetic_question(operation, digits)
     raise ValueError(f"Noma'lum amal: {operation}")
