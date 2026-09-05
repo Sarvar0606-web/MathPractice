@@ -1,39 +1,47 @@
 """Telegram'dan kelgan webhook yangilanishlarini (update) qayta ishlash."""
 from config import WEBAPP_URL
+from bot.i18n import bot_text
 from bot.telegram_api import send_message, webapp_keyboard
 from db import crud
 from webapp.logger import logger
 
 
-def _handle_start(chat_id: int, user: dict):
-    logger.info("BOT_START user=%s username=%s", user.get("id"), user.get("username"))
+def _user_language(telegram_id: int) -> str:
+    user = crud.get_user(telegram_id)
+    return (user or {}).get("language") or "uz"
+
+
+def _handle_start(chat_id: int, user: dict, payload: str):
+    telegram_id = user.get("id")
+    logger.info("BOT_START user=%s username=%s payload=%s", telegram_id, user.get("username"), payload)
+
+    is_new_referral = False
+    if payload.startswith("ref_"):
+        referrer_code = payload[len("ref_"):].strip()
+        existing = crud.get_user(telegram_id)
+        if referrer_code and not existing:
+            crud.record_pending_referral(telegram_id, referrer_code)
+            is_new_referral = True
+
+    lang = _user_language(telegram_id)
 
     if not WEBAPP_URL or not WEBAPP_URL.startswith("https://"):
-        send_message(
-            chat_id,
-            "⚠️ Mini App manzili (WEBAPP_URL) sozlanmagan yoki HTTPS emas.\n"
-            "Iltimos, .env faylida WEBAPP_URL ni to'g'ri HTTPS manzilga sozlang.",
-        )
+        send_message(chat_id, bot_text(lang, "no_webapp"))
         return
 
-    is_admin = crud.is_admin(user.get("id"))
-    text = (
-        "Assalomu alaykum! 👋\n\n"
-        "Bu bot orqali matematik testlarni Mini App ichida yechishingiz mumkin.\n"
-        "Boshlash uchun quyidagi tugmani bosing 👇"
-    )
+    is_admin = crud.is_admin(telegram_id)
+    text = bot_text(lang, "greeting")
+    if is_new_referral:
+        text += bot_text(lang, "referral_welcome")
     if is_admin:
-        text += "\n\n🛡 Siz admin sifatida barcha foydalanuvchilar natijalarini ko'ra olasiz."
+        text += bot_text(lang, "admin_suffix")
 
-    send_message(chat_id, text, reply_markup=webapp_keyboard(WEBAPP_URL))
+    send_message(chat_id, text, reply_markup=webapp_keyboard(WEBAPP_URL, bot_text(lang, "open_app_btn")))
 
 
-def _handle_help(chat_id: int):
-    send_message(
-        chat_id,
-        "/start — Mini App'ni ochish uchun tugmani olish\n"
-        "Barcha testlar va natijalar Mini App ichida ko'rsatiladi.",
-    )
+def _handle_help(chat_id: int, user: dict):
+    lang = _user_language(user.get("id"))
+    send_message(chat_id, bot_text(lang, "help"))
 
 
 def handle_update(update: dict):
@@ -50,6 +58,8 @@ def handle_update(update: dict):
         return
 
     if text.startswith("/start"):
-        _handle_start(chat_id, user)
+        parts = text.split(maxsplit=1)
+        payload = parts[1].strip() if len(parts) > 1 else ""
+        _handle_start(chat_id, user, payload)
     elif text.startswith("/help"):
-        _handle_help(chat_id)
+        _handle_help(chat_id, user)

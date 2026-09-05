@@ -1,9 +1,11 @@
 """REST API endpointlari (Flask blueprint)."""
-from flask import Blueprint, jsonify, request
+import io
+
+from flask import Blueprint, jsonify, request, send_file
 
 from config import (
-    MAX_DIGITS, MIN_DIGITS, OPERATIONS, QUESTIONS_PER_TEST, SECTIONS,
-    SUPPORTED_LANGUAGES, TIME_OPTIONS,
+    BOT_USERNAME, MAX_DIGITS, MIN_DIGITS, OPERATIONS,
+    QUESTIONS_PER_TEST, SECTIONS, SUPPORTED_LANGUAGES, TIME_OPTIONS,
 )
 from db import crud
 from logic.question_generator import generate_test
@@ -83,6 +85,13 @@ def register():
     if language not in SUPPORTED_LANGUAGES:
         language = None
 
+    referred_by_id = None
+    referrer_code = crud.consume_pending_referral(tg_user["id"])
+    if referrer_code:
+        referrer = crud.get_user_by_referral_code(referrer_code)
+        if referrer and referrer["telegram_id"] != tg_user["id"]:
+            referred_by_id = referrer["telegram_id"]
+
     user = crud.create_or_update_user(
         telegram_id=tg_user["id"],
         first_name=first_name,
@@ -93,6 +102,7 @@ def register():
         birth_day=birth_day,
         username=tg_user.get("username"),
         language=language,
+        referred_by_id=referred_by_id,
     )
     logger.info(
         "REGISTER user=%s (%s %s %s) tug'ilgan sana=%04d-%02d-%02d",
@@ -121,6 +131,84 @@ def set_language():
     return jsonify({"ok": True, "language": language})
 
 
+# ---------- Profil statistikasi: seriya, yutuqlar, mavzular, referral ----------
+
+@api_bp.get("/stats")
+def profile_stats():
+    tg_user = current_user()
+    user = crud.get_user(tg_user["id"])
+    if not user:
+        return err(400, "Avval ro'yxatdan o'ting")
+
+    topics_raw = crud.topic_stats(tg_user["id"])
+    by_section: dict = {}
+    for row in topics_raw:
+        section = OPERATIONS.get(row["operation"], {}).get("section", "other")
+        agg = by_section.setdefault(section, {"total": 0, "correct": 0})
+        agg["total"] += row["total"]
+        agg["correct"] += row["correct"] or 0
+    topic_stats = [
+        {
+            "section": section,
+            "total": agg["total"],
+            "correct": agg["correct"],
+            "accuracy": round(100 * agg["correct"] / agg["total"]) if agg["total"] else 0,
+        }
+        for section, agg in by_section.items()
+    ]
+
+    rank_info = crud.user_rank(tg_user["id"])
+    referral_code = user.get("referral_code") or ""
+    referral_link = f"https://t.me/{BOT_USERNAME}?start=ref_{referral_code}" if BOT_USERNAME else None
+
+    return jsonify({
+        "streak": {"current": user.get("current_streak") or 0, "longest": user.get("longest_streak") or 0},
+        "achievements": crud.all_achievements_status(tg_user["id"]),
+        "topic_stats": topic_stats,
+        "rank": rank_info,
+        "referral": {
+            "code": referral_code,
+            "link": referral_link,
+            "count": crud.count_referrals(tg_user["id"]),
+        },
+    })
+
+
+@api_bp.get("/leaderboard")
+def get_leaderboard():
+    tg_user = current_user()
+    top = crud.leaderboard(10)
+    return jsonify({
+        "top": [
+            {"first_name": r["first_name"], "last_name": r["last_name"], "points": r["points"]}
+            for r in top
+        ],
+        "my_rank": crud.user_rank(tg_user["id"]),
+    })
+
+
+@api_bp.get("/recommend")
+def recommend_level():
+    tg_user = current_user()
+    operation = request.args.get("operation")
+    if operation not in OPERATIONS:
+        return err(400, "Noto'g'ri amal turi")
+
+    last = crud.last_attempt_for_operation(tg_user["id"], operation)
+    if not last or not last["total_questions"]:
+        return jsonify({"suggested_level": None})
+
+    ratio = last["correct_count"] / last["total_questions"]
+    level = last["digits"]
+    if ratio >= 0.85 and level < MAX_DIGITS:
+        suggested = level + 1
+    elif ratio < 0.5 and level > MIN_DIGITS:
+        suggested = level - 1
+    else:
+        suggested = level
+    return jsonify({"suggested_level": suggested, "last_level": level, "last_accuracy": round(ratio * 100)})
+
+
 # ---------- Test topshirish ----------
 
 def _require_registered(telegram_id: int):
@@ -128,6 +216,19 @@ def _require_registered(telegram_id: int):
     if not user:
         return None
     return user
+
+
+def _on_test_finished(telegram_id: int, counts: dict, total_questions: int) -> dict:
+    """Test yakunlanganda (to'liq yoki erta) seriya va yutuqlarni yangilaydi.
+    Javobga qo'shiladigan {"streak":..., "new_achievements":[...]} qaytaradi."""
+    streak = crud.update_streak_on_finish(telegram_id)
+    attempts_count = crud.user_stats(telegram_id)["attempts_count"]
+    perfect = total_questions > 0 and counts["correct"] == total_questions
+    new_achievements = crud.award_achievements(
+        telegram_id, current_streak=streak["current"],
+        perfect_score=perfect, attempts_count=attempts_count,
+    )
+    return {"streak": streak, "new_achievements": new_achievements}
 
 
 def _public_question(q: dict) -> dict:
@@ -255,12 +356,14 @@ def submit_answer():
     next_q = crud.get_next_pending_question(attempt["id"])
     counts = crud.update_attempt_counts(attempt["id"])
     finished = next_q is None
+    finish_info = {"streak": None, "new_achievements": []}
     if finished:
         crud.finish_attempt(attempt["id"])
         logger.info(
             "TEST_FINISH user=%s attempt=%s to'g'ri=%s xato=%s",
             tg_user["id"], attempt["id"], counts["correct"], counts["wrong"],
         )
+        finish_info = _on_test_finished(tg_user["id"], counts, attempt["total_questions"])
 
     return jsonify({
         "is_correct": is_correct,
@@ -272,6 +375,8 @@ def submit_answer():
             "wrong": counts["wrong"],
         },
         "finished": finished,
+        "streak": finish_info["streak"],
+        "new_achievements": finish_info["new_achievements"],
     })
 
 
@@ -285,6 +390,7 @@ def finish_test_early(attempt_id: int):
     if not attempt or attempt["user_id"] != tg_user["id"]:
         return err(404, "Test topilmadi")
 
+    finish_info = {"streak": None, "new_achievements": []}
     if attempt["status"] == "finished":
         counts = {"correct": attempt["correct_count"], "wrong": attempt["wrong_count"]}
     else:
@@ -293,6 +399,7 @@ def finish_test_early(attempt_id: int):
             "TEST_FINISH_EARLY user=%s attempt=%s to'g'ri=%s xato=%s",
             tg_user["id"], attempt_id, counts["correct"], counts["wrong"],
         )
+        finish_info = _on_test_finished(tg_user["id"], counts, attempt["total_questions"])
 
     return jsonify({
         "ok": True,
@@ -301,6 +408,8 @@ def finish_test_early(attempt_id: int):
             "correct": counts["correct"],
             "wrong": counts["wrong"],
         },
+        "streak": finish_info["streak"],
+        "new_achievements": finish_info["new_achievements"],
     })
 
 
@@ -389,3 +498,42 @@ def admin_user_attempts(user_id: int):
         return err(404, "Foydalanuvchi topilmadi")
     attempts = crud.list_user_attempts(user_id)
     return jsonify({"user": user, "attempts": [_attempt_summary(a) for a in attempts]})
+
+
+@api_bp.get("/admin/export")
+def admin_export():
+    tg_user = current_user()
+    if not _require_admin(tg_user):
+        return err(403, "Faqat admin uchun")
+
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Foydalanuvchilar"
+    headers = [
+        "Telegram ID", "Familiya", "Ism", "Otasining ismi", "Username",
+        "Ro'yxatdan o'tgan sana", "Testlar soni", "To'g'ri javoblar",
+        "Xato javoblar", "Joriy seriya", "Eng uzun seriya", "Til",
+    ]
+    ws.append(headers)
+    for u in crud.all_users_with_stats():
+        ws.append([
+            u["telegram_id"], u["last_name"], u["first_name"], u["father_name"],
+            u["username"] or "", u["registered_at"], u["attempts_count"],
+            u["total_correct"], u["total_wrong"], u["current_streak"] or 0,
+            u["longest_streak"] or 0, u.get("language") or "uz",
+        ])
+    for i, _ in enumerate(headers, start=1):
+        ws.column_dimensions[chr(64 + i) if i <= 26 else "A"].width = 18
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    logger.info("ADMIN_EXPORT admin=%s", tg_user["id"])
+    return send_file(
+        buf,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="mathbot_foydalanuvchilar.xlsx",
+    )

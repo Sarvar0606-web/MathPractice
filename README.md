@@ -1,11 +1,13 @@
 # MathBot — Matematik testlar Telegram Mini App
 
 Telegram bot + Mini App: foydalanuvchi ro'yxatdan o'tadi (F.I.O. va tug'ilgan
-sana), so'ng "Arifmetika" bo'limida qo'shish / ayirish / ko'paytirish /
-bo'lish bo'yicha (1–5 xonali sonlar, har biri 20 tadan savol, 4 variantli
-javob, har savol uchun tanlangan vaqt bilan) testlar yechadi. Natijalar
-saqlanadi, foydalanuvchi o'z natijalarini, admin esa barcha foydalanuvchilar
-natijalarini batafsil ko'ra oladi.
+sana), so'ng Arifmetika, Kasrlar, Foizlar, Algebra, Funksiyalar, Geometriya,
+Ehtimollik va statistika hamda Mantiqiy masalalar bo'limlarida (1–5
+murakkablik darajasi, har biri 20 tadan savol, 4 variantli javob, har savol
+uchun tanlangan vaqt bilan) testlar yechadi. Interfeys o'zbek, rus va ingliz
+tillarida ishlaydi. Natijalar saqlanadi; foydalanuvchi o'z natijalari,
+kunlik seriyasi, yutuqlari va reytingdagi o'rnini, admin esa barcha
+foydalanuvchilar natijalarini batafsil (va Excel formatida) ko'ra oladi.
 
 ## Texnologiyalar
 
@@ -19,8 +21,9 @@ natijalarini batafsil ko'ra oladi.
 - **Log**: `logs/mathbot.log` fayliga yoziladi (konsolga ham chiqadi)
 
 Ushbu stack ataylab shunday tanlangan: `Flask` + `requests` + `python-dotenv`
-— hammasi sof Python yoki keng qo'llab-quvvatlanadigan paketlar, hech qanday
-Rust/C++ kompilyatsiyasi kerak emas (Windows'da eski `aiohttp`/`pydantic-core`
++ `openpyxl` (admin panelning Excel eksporti uchun) — hammasi sof Python
+yoki keng qo'llab-quvvatlanadigan paketlar, hech qanday Rust/C++
+kompilyatsiyasi kerak emas (Windows'da eski `aiohttp`/`pydantic-core`
 bilan bo'lgan muammolar shu sabab butunlay yo'qoladi).
 
 ## Loyihani noldan ishga tushirish (lokal, PowerShell)
@@ -40,6 +43,9 @@ notepad .env
 - `WEBAPP_URL` — hozircha bo'sh/namuna qoldirsa ham bo'ladi, deploy qilingach
   to'ldiriladi.
 - `WEBHOOK_SECRET` — o'zingiz o'ylab topgan tasodifiy matn.
+- `BOT_USERNAME` — (ixtiyoriy) botning username'i (@ belgisiz). To'ldirilsa,
+  "Do'stni taklif qilish" bo'limida to'liq ulashiladigan havola (`t.me/...`)
+  chiqadi; bo'sh qoldirilsa faqat referral kodi ko'rsatiladi.
 - `DEV_SKIP_AUTH=1` — faqat lokal, brauzerda sinash uchun (Telegram initData
   tekshiruvini o'chirib turadi). Productionda albatta `0`.
 
@@ -75,6 +81,21 @@ Qisqacha oqim:
 Kelajakda kodni yangilashda: kompyuteringizda o'zgartirasiz → GitHub
 Desktop orqali commit + push → PythonAnywhere konsolida `git pull` →
 Web-app sahifasida **Reload** tugmasini bosasiz.
+
+### Nofaol foydalanuvchilarga eslatma (ixtiyoriy, tavsiya etiladi)
+
+2+ kundan beri test yechmagan foydalanuvchilarga bot avtomatik eslatma
+xabari yuborishi uchun `send_reminders.py` skripti mavjud. PythonAnywhere'ning
+**Tasks** bo'limida (bepul akkauntda kuniga 1 ta vazifa mavjud) quyidagicha
+sozlang:
+
+```
+python3.12 /home/USERNAME/MathBot/send_reminders.py
+```
+
+Vaqtni xohlagancha tanlashingiz mumkin (masalan har kuni ertalab). Skript
+ishga tushganda o'zi mustaqil ishlaydi — Flask serverini alohida talab
+qilmaydi.
 
 ## Foydalanish oqimi (Mini App ichida)
 
@@ -124,26 +145,60 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
      bilan so'z masalasi shaklida beriladi, ehtimollik javobi kasr
      ko'rinishida (masalan `3/10`), kombinatorika esa faktorial (n!)
      asosidagi joylashtirishlar sonini so'raydi.
+   - **Mantiqiy masalalar** → ketma-ketlik/ortiqchasini topish/yosh
+     masalalari/taqqoslash → murakkablik darajasini (1–5) → vaqtni
+     tanlaysiz. Ketma-ketlikda keyingi son (masalan `2, 5, 8, 11, ?`),
+     ortiqchasini topishda 4 sondan qaysi biri boshqalarga mos
+     kelmasligi (masalan multiple/juft-toq/kvadrat sonlar bo'yicha),
+     yosh masalalarida ikkita "bola"ning yoshlari orasidagi bog'liqlik,
+     taqqoslashda esa `A > B`, `B > C` kabi bir nechta shart asosida eng
+     katta/kichigini topish so'raladi.
    Barcha bo'limlarda ham 20 tadan savol, 4 variantli javob va tasdiqlash
    dialogi bir xil ishlaydi.
 5. **Til**: interfeys matnlari, mavzu/bo'lim nomlari va so'z masalalari
-   (foizlar, geometriya) tanlangan tilga mos tarjima qilinadi. Matematik
-   ifodalar (arifmetika, kasrlar, tenglamalar) allaqachon til-neytral
-   bo'lgani uchun o'zgarmaydi. Bot xabarlari (`/start`) hozircha faqat
-   o'zbek tilida.
-4. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
+   (foizlar, geometriya, funksiyalar, statistika, mantiqiy masalalar)
+   tanlangan tilga mos tarjima qilinadi. Matematik ifodalar (arifmetika,
+   kasrlar, tenglamalar) allaqachon til-neytral bo'lgani uchun o'zgarmaydi.
+   Bot xabarlari (`/start`, `/help`, eslatmalar) ham endi foydalanuvchining
+   saqlangan tiliga mos (uz/ru/en) yuboriladi — faqat foydalanuvchi hali
+   ro'yxatdan o'tmagan bo'lsa, standart o'zbek tilida ko'rsatiladi.
+6. 20 ta savol ketma-ket chiqadi, har birida 4 ta variant bor. Variant
    tanlanganda "Tasdiqlaysizmi yoki qayta o'ylab ko'rasizmi?" so'raladi.
    Tasdiqlangach javob to'g'ri (yashil) yoki xato (qizil, to'g'ri javob
-   ko'rsatiladi) ekanligi chiqadi. Vaqt tugasa, javob "xato" hisoblanadi.
-   Istalgan vaqtda pastdagi **"Testni tugatish"** tugmasi bilan testni erta
-   yakunlash mumkin — javob berilmagan savollar hisoblanmaydi.
-5. Test tugagach umumiy natija va batafsil (har bir savol bo'yicha) ko'rinish
-   mavjud.
-6. **Natijalarim** — barcha o'tilgan testlar tarixi.
-7. **Admin panel** (faqat `ADMIN_IDS`dagi foydalanuvchilarga ko'rinadi) —
+   ko'rsatiladi) ekanligi chiqadi; xato yoki vaqt tugagan javoblarda,
+   ba'zi mavzular uchun (foizlar, geometriya, funksiyalar, statistika,
+   darajalar/ildizlar, qoldiqli bo'lish, mantiqiy masalalar) qisqacha
+   **yechim formulasi** ham ko'rsatiladi. Istalgan vaqtda pastdagi
+   **"Testni tugatish"** tugmasi bilan testni erta yakunlash mumkin —
+   javob berilmagan savollar hisoblanmaydi.
+7. Test tugagach umumiy natija va batafsil (har bir savol bo'yicha) ko'rinish
+   mavjud; agar shu safar seriya oshgan yoki yangi yutuq qo'lga kiritilgan
+   bo'lsa, natija sahifasida shu haqda alohida xabar chiqadi.
+8. **Natijalarim** — barcha o'tilgan testlar tarixi.
+9. **Statistikam** (bosh menyudagi yangi bo'lim) — bitta ekranda:
+   - 🔥 **Kunlik seriya** — necha kun ketma-ket test yechilgani (joriy va
+     eng uzun seriya). Bir kunda bir nechta test yechish seriyani faqat
+     bir marta oshiradi; kun o'tkazib yuborilsa seriya 1 ga tushadi.
+   - 🏆 **Reyting** — jami to'g'ri javoblar soni bo'yicha o'z o'rningiz va
+     to'liq reytingni (eng yaxshi 10 nafar) ko'rish tugmasi.
+   - **Mavzular bo'yicha natija** — har bir bo'lim (Arifmetika, Kasrlar va
+     h.k.) bo'yicha to'g'ri javob foizi.
+   - **Yutuqlar** — 8 ta yutuq: birinchi test, 3/7/30 kunlik seriyalar,
+     50/200/1000 ta to'g'ri javob va mukammal natija (20/20). Qo'lga
+     kiritilganlari yorqin, qolganlari xira ko'rinadi.
+   - 🎁 **Do'stni taklif qilish** — shaxsiy referral kodi (va agar
+     `BOT_USERNAME` sozlangan bo'lsa, to'liq ulashiladigan havola) hamda
+     shu havola orqali qo'shilgan do'stlar soni.
+   - Sonlar xonasi/daraja tanlash ekranida, oldingi natijalar asosida
+     (85%+ to'g'ri bo'lsa — bir daraja yuqoriroq, 50%dan past bo'lsa —
+     bir daraja pastroq) mos darajaga **"✨ Tavsiya"** belgisi chiqadi.
+10. **Admin panel** (faqat `ADMIN_IDS`dagi foydalanuvchilarga ko'rinadi) —
    barcha foydalanuvchilar ro'yxati, har birining testlari soni, jami
    to'g'ri/xato sonlari; foydalanuvchini bosib uning har bir testini,
-   testni bosib esa savol-javob tafsilotlarini ko'rish mumkin.
+   testni bosib esa savol-javob tafsilotlarini ko'rish mumkin. Yuqoridagi
+   **"Excel formatida yuklab olish"** tugmasi orqali barcha foydalanuvchilar
+   ro'yxatini (ism, username, testlar soni, to'g'ri/xato, seriya) `.xlsx`
+   fayl sifatida yuklab olish mumkin.
 
 ## Loyiha tuzilishi
 
@@ -151,10 +206,12 @@ Web-app sahifasida **Reload** tugmasini bosasiz.
 mathbot/
 ├── app.py                     # Flask ilovasi (WSGI) — hammasi shu yerdan boshlanadi
 ├── set_webhook.py              # Deploy'dan keyin bir marta ishga tushiriladi
+├── send_reminders.py            # Nofaol foydalanuvchilarga eslatma (kunlik scheduled task)
 ├── config.py                    # .env dan sozlamalarni o'qish
 ├── bot/
 │   ├── telegram_api.py            # Telegram Bot API'ga oddiy HTTP so'rovlar
-│   └── webhook.py                  # Kiruvchi update'larni (masalan /start) qayta ishlash
+│   ├── webhook.py                  # Kiruvchi update'larni (masalan /start) qayta ishlash
+│   └── i18n.py                     # Bot xabarlarining uz/ru/en matnlari
 ├── webapp/
 │   ├── api.py                  # barcha /api/* endpointlar (Flask blueprint)
 │   ├── auth.py                  # Telegram initData tekshiruvi

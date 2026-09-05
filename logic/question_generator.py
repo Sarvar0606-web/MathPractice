@@ -1345,6 +1345,157 @@ def _generate_statistics_question(operation: str, level: int) -> dict:
 
 
 # ============================================================
+# MANTIQIY MASALALAR (logic_*)
+# ============================================================
+
+LOGIC_OPS = {"logic_sequence", "logic_odd_one_out", "logic_age", "logic_comparison"}
+
+_SEQ_DIFF_RANGE = {1: 5, 2: 8, 3: 12, 4: 18, 5: 25}
+_SEQ_START_RANGE = {1: 10, 2: 20, 3: 30, 4: 50, 5: 80}
+
+
+def _logic_sequence(level: int) -> dict:
+    diff_max = _SEQ_DIFF_RANGE.get(level, 10)
+    start_max = _SEQ_START_RANGE.get(level, 30)
+    use_geometric = level >= 4 and random.random() < 0.4
+
+    if use_geometric:
+        ratio = random.choice([2, 3]) if level < 5 else random.choice([2, 3, -2])
+        start = random.randint(1, 6)
+        terms = [start]
+        for _ in range(3):
+            terms.append(terms[-1] * ratio)
+        answer = terms[-1] * ratio
+    else:
+        diff = random.randint(1, diff_max)
+        if level >= 3 and random.random() < 0.5:
+            diff = -diff
+        start = random.randint(1, start_max)
+        terms = [start + i * diff for i in range(4)]
+        answer = start + 4 * diff
+
+    display_text = ", ".join(str(v) for v in terms) + ", ?"
+    spread = max(4, abs(answer) // 5 + 4)
+    distractors = _general_int_distractors(answer, 3, spread=spread)
+    choices = [str(v) for v in distractors] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": None, "b": None, "c": None, "d": None, "operation": "logic_sequence",
+            "answer": str(answer), "choices": choices, "display_text": display_text}
+
+
+_ODD_RANGE = {1: 20, 2: 30, 3: 50, 4: 80, 5: 120}
+
+
+def _logic_odd_one_out(level: int) -> dict:
+    rng = _ODD_RANGE.get(level, 50)
+    kind = random.choice(["multiple", "parity"]) if level < 4 else random.choice(["multiple", "parity", "square"])
+
+    if kind == "multiple":
+        k = random.choice([3, 4, 5, 6, 7]) if level <= 3 else random.choice([6, 7, 8, 9, 11, 12])
+        same = set()
+        while len(same) < 3:
+            same.add(k * random.randint(1, max(2, rng // k)))
+        same = list(same)
+        while True:
+            odd = random.randint(1, rng)
+            if odd % k != 0 and odd not in same:
+                break
+        numbers = same + [odd]
+    elif kind == "parity":
+        want_even = random.random() < 0.5
+
+        def _gen(even: bool) -> int:
+            v = random.randint(2, rng)
+            if even and v % 2 != 0:
+                v += 1
+            if not even and v % 2 == 0:
+                v += 1
+            return v
+
+        same = set()
+        while len(same) < 3:
+            same.add(_gen(want_even))
+        same = list(same)
+        while True:
+            odd = _gen(not want_even)
+            if odd not in same:
+                break
+        numbers = same + [odd]
+    else:  # square
+        squares_pool = [i * i for i in range(2, 12)]
+        same = random.sample(squares_pool, 3)
+        while True:
+            odd = random.randint(2, 140)
+            if odd not in same and int(round(odd ** 0.5)) ** 2 != odd:
+                break
+        numbers = same + [odd]
+
+    random.shuffle(numbers)
+    answer = odd
+    choices = [str(n) for n in numbers]
+    display_text = ", ".join(str(n) for n in numbers)
+    return {"a": None, "b": None, "c": None, "d": None, "operation": "logic_odd_one_out",
+            "answer": str(answer), "choices": choices, "display_text": display_text}
+
+
+_AGE_RANGE = {1: (5, 15), 2: (6, 20), 3: (8, 30), 4: (10, 40), 5: (12, 50)}
+_AGE_DIFF_RANGE = {1: 5, 2: 8, 3: 12, 4: 15, 5: 20}
+_AGE_YEARS_RANGE = {1: 5, 2: 8, 3: 12, 4: 15, 5: 20}
+
+
+def _logic_age(level: int) -> dict:
+    lo, hi = _AGE_RANGE.get(level, (8, 30))
+    a = random.randint(lo, hi)
+    diff_max = _AGE_DIFF_RANGE.get(level, 10)
+    b = random.randint(1, diff_max) * random.choice([1, -1])
+    if a + b <= 0:
+        b = abs(b)
+    years_max = _AGE_YEARS_RANGE.get(level, 10)
+    c = random.randint(1, years_max) if level >= 2 else random.randint(0, years_max)
+    mode = 0 if level < 4 else random.choice([0, 1])
+    answer = (a + b + c) if mode == 0 else (a + c) + (a + b + c)
+
+    spread = max(5, abs(answer) // 5 + 5)
+    distractors = _general_int_distractors(answer, 3, spread=spread)
+    choices = [str(v) for v in distractors] + [str(answer)]
+    random.shuffle(choices)
+    return {"a": a, "b": b, "c": c, "d": mode, "operation": "logic_age",
+            "answer": str(answer), "choices": choices}
+
+
+_COMPARE_N = {1: 3, 2: 3, 3: 3, 4: 4, 5: 4}
+_COMPARE_LETTERS = ["A", "B", "C", "D", "E"]
+
+
+def _logic_comparison(level: int) -> dict:
+    n = _COMPARE_N.get(level, 3)
+    letters = _COMPARE_LETTERS[:n]
+    order = letters[:]  # order[0] = eng katta ... order[-1] = eng kichik
+    random.shuffle(order)
+    statements = [f"{order[i]} > {order[i + 1]}" for i in range(n - 1)]
+    random.shuffle(statements)
+    ask_max = random.random() < 0.5
+    answer = order[0] if ask_max else order[-1]
+    choices = letters[:]
+    random.shuffle(choices)
+    return {"a": 0 if ask_max else 1, "b": None, "c": None, "d": None,
+            "operation": "logic_comparison", "answer": answer, "choices": choices,
+            "extra": statements}
+
+
+def _generate_logic_question(operation: str, level: int) -> dict:
+    if operation == "logic_sequence":
+        return _logic_sequence(level)
+    if operation == "logic_odd_one_out":
+        return _logic_odd_one_out(level)
+    if operation == "logic_age":
+        return _logic_age(level)
+    if operation == "logic_comparison":
+        return _logic_comparison(level)
+    raise ValueError(f"Noma'lum mantiqiy masala: {operation}")
+
+
+# ============================================================
 # UMUMIY DISPATCH
 # ============================================================
 
@@ -1369,6 +1520,8 @@ def generate_question(operation: str, digits: int) -> dict:
         return _generate_function_question(operation, digits)
     if operation in STATISTICS_OPS:
         return _generate_statistics_question(operation, digits)
+    if operation in LOGIC_OPS:
+        return _generate_logic_question(operation, digits)
     if operation in _SPECIAL_ARITHMETIC_OPS:
         return _SPECIAL_ARITHMETIC_FUNCS[operation](digits)
     if operation in ARITHMETIC_OPS:

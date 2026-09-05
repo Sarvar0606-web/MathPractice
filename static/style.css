@@ -474,3 +474,112 @@ html, body {
 .admin-user-row .stats { display: flex; gap: 10px; margin-top: 8px; font-size: 12.5px; font-weight: 700; }
 .admin-user-row .stats .c { color: var(--green); }
 .admin-user-row .stats .w { color: var(--red); }
+
+/* ---------- Yechim (explanation) ---------- */
+.explanation-box {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 14px;
+  margin-top: -6px;
+  border-left: 4px solid var(--accent);
+}
+.explanation-box b { color: var(--accent-dark); margin-right: 4px; }
+
+/* ---------- Seriya / yutuq toast'lari (test yakunida) ---------- */
+.toast-banner {
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.toast-banner.streak { background: #fff7ed; color: #c2410c; }
+.toast-banner.achievement { background: #fef9c3; color: #854d0e; }
+
+/* ---------- Tavsiya etilgan daraja (adaptive) ---------- */
+.choice-btn { position: relative; }
+.choice-btn.recommended { border-color: var(--accent); background: #eef0ff; }
+.recommend-badge {
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* ---------- Statistikam ekrani ---------- */
+.stat-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.stat-card-title { font-weight: 800; font-size: 15px; margin-bottom: 8px; }
+
+.topic-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.topic-stat-label { flex: 0 0 40%; font-size: 12.5px; color: var(--text); }
+.topic-stat-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 6px;
+  background: #eceefc;
+  overflow: hidden;
+}
+.topic-stat-bar-fill { height: 100%; background: var(--accent); }
+.topic-stat-pct { width: 38px; text-align: right; font-size: 12px; font-weight: 700; color: var(--hint); }
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.achievement-card {
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 12px;
+  background: #f1f2fa;
+  opacity: 0.45;
+}
+.achievement-card.earned { opacity: 1; background: #eef0ff; }
+.achievement-card .ach-icon { font-size: 22px; }
+.achievement-card .ach-label { font-size: 10px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+
+.referral-code {
+  background: #f1f2fa;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* ---------- Reyting (leaderboard) ekrani ---------- */
+.leaderboard-row {
+  background: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.leaderboard-row .lb-rank { font-size: 18px; font-weight: 800; width: 30px; }
+.leaderboard-row .lb-name { flex: 1; font-weight: 700; font-size: 14px; }
+.leaderboard-row .lb-points { font-weight: 800; color: var(--accent-dark); font-size: 13px; }

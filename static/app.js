@@ -26,6 +26,7 @@ const OP_EMOJI = {
   func_zeros: "0️⃣",
   stat_mean: "📊", stat_median: "🎚️", stat_mode: "🏆", stat_probability: "🎲",
   stat_combinatorics: "🔢",
+  logic_sequence: "🔢", logic_odd_one_out: "🧐", logic_age: "👤", logic_comparison: "⚖️",
 };
 
 const SUPERSCRIPT_DIGITS = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
@@ -72,6 +73,7 @@ const WORD_PROBLEM_OPS = new Set([
   "frac_basic",
   "func_linear", "func_quadratic", "func_graph", "func_value", "func_zeros",
   "stat_mean", "stat_median", "stat_mode", "stat_probability", "stat_combinatorics",
+  "logic_age", "logic_comparison",
 ]);
 
 // "= ?" qo'shilmaydigan amallar (natija emas, aylantirish/qisqartirish so'raladi,
@@ -175,6 +177,8 @@ const I18N = {
       func_value: "Funksiya qiymatini topish", func_zeros: "Nol nuqtalar",
       stat_mean: "O'rtacha qiymat", stat_median: "Mediana", stat_mode: "Moda",
       stat_probability: "Ehtimollik", stat_combinatorics: "Kombinatorika",
+      logic_sequence: "Ketma-ketlik", logic_odd_one_out: "Ortiqchasini toping",
+      logic_age: "Yosh masalalari", logic_comparison: "Taqqoslash",
     },
     sections: {
       arithmetic: { label: "Arifmetika", desc: "Qo'shish, ayirish, ko'paytirish, bo'lish, solishtirish" },
@@ -184,11 +188,13 @@ const I18N = {
       geometry: { label: "Geometriya", desc: "Perimetr, yuza, hajm va boshqa masalalar" },
       functions: { label: "Funksiyalar", desc: "Chiziqli va kvadrat funksiyalar bilan ishlash" },
       statistics: { label: "Ehtimollik va statistika", desc: "O'rtacha qiymat, mediana, ehtimollik va boshqalar" },
+      logic: { label: "Mantiqiy masalalar", desc: "Ketma-ketlik, ortiqchasini topish, yosh va taqqoslash masalalari" },
     },
     sectionCardDesc: {
       fractions: "Kasrlar ustida", percent: "Foizlar ustida",
       algebra: "Algebraik ifodalar ustida", geometry: "Geometrik masalalar ustida",
       functions: "Funksiyalar ustida", statistics: "Ehtimollik va statistika ustida",
+      logic: "Mantiqiy fikrlash ustida",
       default: "1–5 xonali sonlar ustida",
     },
     timeOptions: { 30: "30 soniya", 60: "1 daqiqa", 120: "2 daqiqa", 180: "3 daqiqa", 300: "5 daqiqa" },
@@ -196,6 +202,8 @@ const I18N = {
       frac_simplify: "Kasrni qisqartiring:",
       frac_mixed: "Aralash songa aylantiring:",
       frac_decimal: "O'nli kasrga aylantiring:",
+      logic_sequence: "Ketma-ketlikni davom ettiring:",
+      logic_odd_one_out: "Ortiqcha sonni toping:",
     },
     profitLossWords: { profit: "foyda", loss: "zarar" },
     remainderWord: "qoldiq",
@@ -233,7 +241,56 @@ const I18N = {
         : `Radiusi <b>${q.a}</b> bo'lgan doiraning yuzasini toping (π ≈ 3.14).`,
       geo_pythagoras: (q) => `Katetlari <b>${q.a}</b> va <b>${q.b}</b> bo'lgan to'g'ri burchakli uchburchakning gipotenuzasini toping.`,
       geo_angles: (q) => `Uchburchakning ikkita burchagi <b>${q.a}°</b> va <b>${q.b}°</b> ga teng. Uchinchi burchakni toping.`,
+      logic_age: (q) => {
+        const diffWord = q.b >= 0 ? "katta" : "kichik";
+        const tail = `1-bolaning yoshi hozir <b>${q.a}</b>. 2-bola undan <b>${Math.abs(q.b)}</b> yosh ${diffWord}.`;
+        if (q.d === 1) return `${tail} <b>${q.c}</b> yildan keyin ikkalasining yoshlari yig'indisi nechiga teng bo'ladi?`;
+        return `${tail} <b>${q.c}</b> yildan keyin 2-bola necha yoshda bo'ladi?`;
+      },
+      logic_comparison: (q) => {
+        const lines = q.extra.join("<br>");
+        const question = q.a === 0 ? "Kim (yoki nima) eng katta?" : "Kim (yoki nima) eng kichik?";
+        return `${lines}<br><br>${question}`;
+      },
     },
+    achievements: {
+      first_test: { icon: "🎯", label: "Birinchi test" },
+      streak_3: { icon: "🔥", label: "3 kunlik seriya" },
+      streak_7: { icon: "🔥", label: "7 kunlik seriya" },
+      streak_30: { icon: "🔥", label: "30 kunlik seriya" },
+      correct_50: { icon: "⭐", label: "50 ta to'g'ri javob" },
+      correct_200: { icon: "⭐", label: "200 ta to'g'ri javob" },
+      correct_1000: { icon: "🏆", label: "1000 ta to'g'ri javob" },
+      perfect_score: { icon: "💯", label: "Mukammal natija (20/20)" },
+    },
+    statsTitle: "Statistikam",
+    statsDesc: "Seriya, yutuqlar va mavzular bo'yicha natijalar",
+    streakCardTitle: "🔥 Kunlik seriya",
+    streakCurrent: (n) => `Joriy seriya: <b>${n} kun</b>`,
+    streakLongest: (n) => `Eng uzun seriya: <b>${n} kun</b>`,
+    rankCardTitle: "🏆 Reyting",
+    rankLine: (rank, points) => `Siz <b>${rank}-o'rin</b>dasiz (${points} ball)`,
+    noRankYet: "Hali reytingga tushmadingiz — birinchi testingizni yakunlang!",
+    viewLeaderboardBtn: "To'liq reytingni ko'rish",
+    topicStatsTitle: "Mavzular bo'yicha natija",
+    noTopicStatsYet: "Hali test yechilmagan",
+    achievementsTitle: "Yutuqlar",
+    referralCardTitle: "🎁 Do'stni taklif qiling",
+    referralDesc: "Havolangiz orqali ro'yxatdan o'tgan har bir do'stingiz shu yerda hisoblanadi.",
+    referralCount: (n) => `Taklif qilingan do'stlar: <b>${n}</b>`,
+    referralCodeLabel: "Sizning kodingiz:",
+    referralNoLink: "Havolani ulashish uchun botga BOT_USERNAME sozlanishi kerak — hozircha kodni ulashing.",
+    copyBtn: "📋 Nusxalash",
+    copiedMsg: "Nusxalandi!",
+    leaderboardTitle: "Reyting",
+    leaderboardDesc: "Eng ko'p to'g'ri javob bergan 10 nafar foydalanuvchi",
+    noLeaderboardYet: "Hali reytingda hech kim yo'q",
+    pointsSuffix: (n) => `${n} ball`,
+    adminExportBtn: "📥 Excel formatida yuklab olish",
+    recommendedBadge: "✨ Tavsiya",
+    newAchievementToast: (label) => `🎉 Yangi yutuq: ${label}!`,
+    streakToast: (n) => `🔥 ${n} kunlik seriya!`,
+    explanationLabel: "Yechim:",
   },
 
   ru: {
@@ -315,6 +372,8 @@ const I18N = {
       func_value: "Нахождение значения функции", func_zeros: "Нули функции",
       stat_mean: "Среднее значение", stat_median: "Медиана", stat_mode: "Мода",
       stat_probability: "Вероятность", stat_combinatorics: "Комбинаторика",
+      logic_sequence: "Последовательность", logic_odd_one_out: "Найди лишнее",
+      logic_age: "Задачи на возраст", logic_comparison: "Сравнение",
     },
     sections: {
       arithmetic: { label: "Арифметика", desc: "Сложение, вычитание, умножение, деление, сравнение" },
@@ -324,11 +383,13 @@ const I18N = {
       geometry: { label: "Геометрия", desc: "Периметр, площадь, объём и другие задачи" },
       functions: { label: "Функции", desc: "Работа с линейными и квадратичными функциями" },
       statistics: { label: "Вероятность и статистика", desc: "Среднее значение, медиана, вероятность и другое" },
+      logic: { label: "Логические задачи", desc: "Последовательности, лишнее число, задачи на возраст и сравнение" },
     },
     sectionCardDesc: {
       fractions: "Действия с дробями", percent: "Задачи на проценты",
       algebra: "Алгебраические выражения", geometry: "Геометрические задачи",
       functions: "Работа с функциями", statistics: "Вероятность и статистика",
+      logic: "Логическое мышление",
       default: "Числа от 1 до 5 разрядов",
     },
     timeOptions: { 30: "30 секунд", 60: "1 минута", 120: "2 минуты", 180: "3 минуты", 300: "5 минут" },
@@ -336,6 +397,8 @@ const I18N = {
       frac_simplify: "Сократите дробь:",
       frac_mixed: "Преобразуйте в смешанное число:",
       frac_decimal: "Преобразуйте в десятичную дробь:",
+      logic_sequence: "Продолжите последовательность:",
+      logic_odd_one_out: "Найдите лишнее число:",
     },
     profitLossWords: { profit: "прибыль", loss: "убыток" },
     remainderWord: "остаток",
@@ -373,7 +436,56 @@ const I18N = {
         : `Найдите площадь круга радиусом <b>${q.a}</b> (π ≈ 3.14).`,
       geo_pythagoras: (q) => `Найдите гипотенузу прямоугольного треугольника с катетами <b>${q.a}</b> и <b>${q.b}</b>.`,
       geo_angles: (q) => `Два угла треугольника равны <b>${q.a}°</b> и <b>${q.b}°</b>. Найдите третий угол.`,
+      logic_age: (q) => {
+        const diffWord = q.b >= 0 ? "старше" : "младше";
+        const tail = `Возраст первого ребёнка сейчас <b>${q.a}</b>. Второй ребёнок на <b>${Math.abs(q.b)}</b> лет ${diffWord}.`;
+        if (q.d === 1) return `${tail} Через <b>${q.c}</b> лет чему будет равна сумма их возрастов?`;
+        return `${tail} Через <b>${q.c}</b> лет сколько лет будет второму ребёнку?`;
+      },
+      logic_comparison: (q) => {
+        const lines = q.extra.join("<br>");
+        const question = q.a === 0 ? "Кто (или что) самый большой?" : "Кто (или что) самый маленький?";
+        return `${lines}<br><br>${question}`;
+      },
     },
+    achievements: {
+      first_test: { icon: "🎯", label: "Первый тест" },
+      streak_3: { icon: "🔥", label: "Серия 3 дня" },
+      streak_7: { icon: "🔥", label: "Серия 7 дней" },
+      streak_30: { icon: "🔥", label: "Серия 30 дней" },
+      correct_50: { icon: "⭐", label: "50 верных ответов" },
+      correct_200: { icon: "⭐", label: "200 верных ответов" },
+      correct_1000: { icon: "🏆", label: "1000 верных ответов" },
+      perfect_score: { icon: "💯", label: "Идеальный результат (20/20)" },
+    },
+    statsTitle: "Моя статистика",
+    statsDesc: "Серия, достижения и результаты по темам",
+    streakCardTitle: "🔥 Ежедневная серия",
+    streakCurrent: (n) => `Текущая серия: <b>${n} дн.</b>`,
+    streakLongest: (n) => `Самая длинная серия: <b>${n} дн.</b>`,
+    rankCardTitle: "🏆 Рейтинг",
+    rankLine: (rank, points) => `Вы на <b>${rank}-м месте</b> (${points} баллов)`,
+    noRankYet: "Вы ещё не в рейтинге — завершите свой первый тест!",
+    viewLeaderboardBtn: "Смотреть весь рейтинг",
+    topicStatsTitle: "Результаты по темам",
+    noTopicStatsYet: "Тестов пока не было",
+    achievementsTitle: "Достижения",
+    referralCardTitle: "🎁 Пригласите друга",
+    referralDesc: "Каждый друг, зарегистрировавшийся по вашей ссылке, учитывается здесь.",
+    referralCount: (n) => `Приглашено друзей: <b>${n}</b>`,
+    referralCodeLabel: "Ваш код:",
+    referralNoLink: "Для ссылки нужно настроить BOT_USERNAME у бота — пока поделитесь кодом.",
+    copyBtn: "📋 Копировать",
+    copiedMsg: "Скопировано!",
+    leaderboardTitle: "Рейтинг",
+    leaderboardDesc: "10 пользователей с наибольшим числом верных ответов",
+    noLeaderboardYet: "В рейтинге пока никого нет",
+    pointsSuffix: (n) => `${n} баллов`,
+    adminExportBtn: "📥 Скачать в Excel",
+    recommendedBadge: "✨ Рекомендуем",
+    newAchievementToast: (label) => `🎉 Новое достижение: ${label}!`,
+    streakToast: (n) => `🔥 Серия ${n} дней!`,
+    explanationLabel: "Решение:",
   },
 
   en: {
@@ -455,6 +567,8 @@ const I18N = {
       func_value: "Finding a function's value", func_zeros: "Zeros of a function",
       stat_mean: "Mean", stat_median: "Median", stat_mode: "Mode",
       stat_probability: "Probability", stat_combinatorics: "Combinatorics",
+      logic_sequence: "Sequence", logic_odd_one_out: "Find the odd one out",
+      logic_age: "Age problems", logic_comparison: "Comparison",
     },
     sections: {
       arithmetic: { label: "Arithmetic", desc: "Addition, subtraction, multiplication, division, comparison" },
@@ -464,11 +578,13 @@ const I18N = {
       geometry: { label: "Geometry", desc: "Perimeter, area, volume and other problems" },
       functions: { label: "Functions", desc: "Working with linear and quadratic functions" },
       statistics: { label: "Probability & Statistics", desc: "Mean, median, probability and more" },
+      logic: { label: "Logic problems", desc: "Sequences, odd one out, age and comparison problems" },
     },
     sectionCardDesc: {
       fractions: "Working with fractions", percent: "Working with percentages",
       algebra: "Algebraic expressions", geometry: "Geometry problems",
       functions: "Working with functions", statistics: "Probability and statistics",
+      logic: "Logical thinking",
       default: "1–5 digit numbers",
     },
     timeOptions: { 30: "30 seconds", 60: "1 minute", 120: "2 minutes", 180: "3 minutes", 300: "5 minutes" },
@@ -476,6 +592,8 @@ const I18N = {
       frac_simplify: "Simplify the fraction:",
       frac_mixed: "Convert to a mixed number:",
       frac_decimal: "Convert to a decimal:",
+      logic_sequence: "Continue the sequence:",
+      logic_odd_one_out: "Find the odd one out:",
     },
     profitLossWords: { profit: "profit", loss: "loss" },
     remainderWord: "remainder",
@@ -513,7 +631,56 @@ const I18N = {
         : `Find the area of a circle with radius <b>${q.a}</b> (π ≈ 3.14).`,
       geo_pythagoras: (q) => `Find the hypotenuse of a right triangle with legs <b>${q.a}</b> and <b>${q.b}</b>.`,
       geo_angles: (q) => `Two angles of a triangle are <b>${q.a}°</b> and <b>${q.b}°</b>. Find the third angle.`,
+      logic_age: (q) => {
+        const diffWord = q.b >= 0 ? "older" : "younger";
+        const tail = `The first child is currently <b>${q.a}</b> years old. The second child is <b>${Math.abs(q.b)}</b> years ${diffWord}.`;
+        if (q.d === 1) return `${tail} In <b>${q.c}</b> years, what will the sum of their ages be?`;
+        return `${tail} In <b>${q.c}</b> years, how old will the second child be?`;
+      },
+      logic_comparison: (q) => {
+        const lines = q.extra.join("<br>");
+        const question = q.a === 0 ? "Who (or what) is the biggest?" : "Who (or what) is the smallest?";
+        return `${lines}<br><br>${question}`;
+      },
     },
+    achievements: {
+      first_test: { icon: "🎯", label: "First test" },
+      streak_3: { icon: "🔥", label: "3-day streak" },
+      streak_7: { icon: "🔥", label: "7-day streak" },
+      streak_30: { icon: "🔥", label: "30-day streak" },
+      correct_50: { icon: "⭐", label: "50 correct answers" },
+      correct_200: { icon: "⭐", label: "200 correct answers" },
+      correct_1000: { icon: "🏆", label: "1000 correct answers" },
+      perfect_score: { icon: "💯", label: "Perfect score (20/20)" },
+    },
+    statsTitle: "My stats",
+    statsDesc: "Streak, achievements and results by topic",
+    streakCardTitle: "🔥 Daily streak",
+    streakCurrent: (n) => `Current streak: <b>${n} days</b>`,
+    streakLongest: (n) => `Longest streak: <b>${n} days</b>`,
+    rankCardTitle: "🏆 Leaderboard",
+    rankLine: (rank, points) => `You're in <b>#${rank}</b> place (${points} points)`,
+    noRankYet: "You're not ranked yet — finish your first test!",
+    viewLeaderboardBtn: "View full leaderboard",
+    topicStatsTitle: "Results by topic",
+    noTopicStatsYet: "No tests taken yet",
+    achievementsTitle: "Achievements",
+    referralCardTitle: "🎁 Invite a friend",
+    referralDesc: "Every friend who registers through your link is counted here.",
+    referralCount: (n) => `Friends invited: <b>${n}</b>`,
+    referralCodeLabel: "Your code:",
+    referralNoLink: "A shareable link needs BOT_USERNAME configured on the bot — share the code for now.",
+    copyBtn: "📋 Copy",
+    copiedMsg: "Copied!",
+    leaderboardTitle: "Leaderboard",
+    leaderboardDesc: "Top 10 users by correct answers",
+    noLeaderboardYet: "No one is on the leaderboard yet",
+    pointsSuffix: (n) => `${n} points`,
+    adminExportBtn: "📥 Download as Excel",
+    recommendedBadge: "✨ Recommended",
+    newAchievementToast: (label) => `🎉 New achievement: ${label}!`,
+    streakToast: (n) => `🔥 ${n}-day streak!`,
+    explanationLabel: "Solution:",
   },
 };
 
@@ -761,6 +928,47 @@ function questionSuffix(q) {
   return NO_SUFFIX_OPS.has(q.operation) ? "" : " = ?";
 }
 
+// ---------- Xato/to'g'ri javobdan keyin ko'rsatiladigan qisqa yechim
+// (til-neytral — faqat sonlar va matematik belgilardan iborat) ----------
+const EXPLANATIONS = {
+  arith_remainder: (q, ans) => {
+    const parts = String(ans).split(" ");
+    return `${q.a} = ${parts[0]} × ${q.b} + ${parts[2]}`;
+  },
+  percent_of: (q, ans) => `${q.a} × ${q.b} ÷ 100 = ${ans}`,
+  percent_find_whole: (q, ans) => `${q.a} ÷ ${q.b} × 100 = ${ans}`,
+  percent_increase: (q, ans) => `${q.a} + (${q.a} × ${q.b} ÷ 100) = ${ans}`,
+  percent_discount: (q, ans) => `${q.a} − (${q.a} × ${q.b} ÷ 100) = ${ans}`,
+  percent_profit_loss: (q, ans) => `(${q.b} − ${q.a}) ÷ ${q.a} × 100% = ${translateChoiceLabel("percent_profit_loss", ans)}`,
+  percent_successive: (q, ans) => `${q.a} → ×(100${q.b >= 0 ? "+" : ""}${q.b})/100 → ×(100${q.c >= 0 ? "+" : ""}${q.c})/100 = ${ans}`,
+  algebra_exponent: (q, ans) => `${q.a}${superscript(q.b)} = ${Array(q.b).fill(q.a).join(" × ")} = ${ans}`,
+  algebra_root: (q, ans) => `${ans}${superscript(q.b)} = ${q.a}`,
+  geo_perimeter: (q, ans) => `P = 2×(${q.a}+${q.b}) = ${ans}`,
+  geo_area: (q, ans) => `S = ${q.a}×${q.b} = ${ans}`,
+  geo_volume: (q, ans) => `V = ${q.a}×${q.b}×${q.c} = ${ans}`,
+  geo_triangle: (q, ans) => `S = (${q.a}×${q.b})÷2 = ${ans}`,
+  geo_quad: (q, ans) => `S = ((${q.a}+${q.b})×${q.c})÷2 = ${ans}`,
+  geo_circle: (q, ans) => q.c === 1 ? `L = 2×π×${q.a} ≈ ${ans}` : `S = π×${q.a}² ≈ ${ans}`,
+  geo_pythagoras: (q, ans) => `c = √(${q.a}² + ${q.b}²) = ${ans}`,
+  geo_angles: (q, ans) => `180° − ${q.a}° − ${q.b}° = ${ans}`,
+  func_linear: (q, ans) => `${q.a}×(${q.c}) + (${q.b}) = ${ans}`,
+  func_quadratic: (q, ans) => `${q.a}×(${q.d})² + ${q.b}×(${q.d}) + (${q.c}) = ${ans}`,
+  func_graph: (q, ans) => `x=0 → y = ${ans}`,
+  func_value: (q, ans) => (q.d === null || q.d === undefined)
+    ? `${q.a}×(${q.c}) + (${q.b}) = ${ans}`
+    : `${q.a}×(${q.d})² + ${q.b}×(${q.d}) + (${q.c}) = ${ans}`,
+  func_zeros: (q, ans) => `${q.a}x + ${q.b} = 0 → x = ${ans}`,
+  stat_mean: (q, ans) => `(${q.extra.join(" + ")}) ÷ ${q.extra.length} = ${ans}`,
+  stat_median: (q, ans) => `${[...q.extra].sort((x, y) => x - y).join(", ")} → Me = ${ans}`,
+  stat_mode: (q, ans) => `Mo = ${ans}`,
+  stat_probability: (q, ans) => `${q.a}/${q.b} = ${ans}`,
+  stat_combinatorics: (q, ans) => `${q.a}! = ${Array.from({ length: q.a }, (_, i) => i + 1).join("×")} = ${ans}`,
+  logic_sequence: (q, ans) => `${(q.display_text || "").replace(/,\s*\?$/, "")}, ${ans}`,
+  logic_age: (q, ans) => (q.d === 1)
+    ? `(${q.a}+${q.c}) + (${q.a}${q.b >= 0 ? "+" : ""}${q.b}+${q.c}) = ${ans}`
+    : `${q.a}${q.b >= 0 ? "+" : ""}${q.b}+${q.c} = ${ans}`,
+};
+
 // ---------- Render dispatch ----------
 function render() {
   switch (state.screen) {
@@ -776,6 +984,8 @@ function render() {
     case "admin_attempts": return renderResultsList(true, state.viewUserId);
     case "result_detail": return renderResultDetail();
     case "admin_users": return renderAdminUsers();
+    case "stats": return renderStats();
+    case "leaderboard": return renderLeaderboard();
     default: return renderMain();
   }
 }
@@ -924,6 +1134,14 @@ function renderMain() {
       </div>
       <div class="chevron">›</div>
     </div>
+    <div class="menu-row" id="row-stats">
+      <div class="icon-badge" style="background:#7c3aed">🔥</div>
+      <div>
+        <div class="title">${t("statsTitle")}</div>
+        <div class="desc">${t("statsDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
   `;
   if (ME.is_admin) {
     rows += `
@@ -949,6 +1167,7 @@ function renderMain() {
     };
   });
   document.getElementById("row-results").onclick = () => pushScreen("my_results");
+  document.getElementById("row-stats").onclick = () => pushScreen("stats");
   const adminRow = document.getElementById("row-admin");
   if (adminRow) adminRow.onclick = () => pushScreen("admin_users");
 }
@@ -981,24 +1200,39 @@ function renderSection() {
 }
 
 // ---------- Xona / daraja tanlash ----------
-function renderDigits() {
+async function renderDigits() {
   const op = CONFIG.operations[state.selection.operation];
   const useLevelWording = op.section !== "arithmetic";
-  const buttons = [];
-  for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
-    buttons.push(`<button class="choice-btn" data-d="${d}">${useLevelWording ? t("levelLabel")(d) : t("digitLabel")(d)}</button>`);
+
+  const renderButtons = (recommended) => {
+    const buttons = [];
+    for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
+      const label = useLevelWording ? t("levelLabel")(d) : t("digitLabel")(d);
+      const badge = d === recommended ? `<div class="recommend-badge">${t("recommendedBadge")}</div>` : "";
+      buttons.push(`<button class="choice-btn${d === recommended ? " recommended" : ""}" data-d="${d}">${badge}${label}</button>`);
+    }
+    appEl.innerHTML = `
+      ${header(opLabel(state.selection.operation), useLevelWording ? t("chooseLevelSubtitle") : t("chooseDigitsSubtitle"), true)}
+      <div class="choice-grid">${buttons.join("")}</div>
+    `;
+    bindHeaderControls();
+    document.querySelectorAll(".choice-btn").forEach((el) => {
+      el.onclick = () => {
+        state.selection.digits = parseInt(el.dataset.d, 10);
+        pushScreen("time");
+      };
+    });
+  };
+
+  renderButtons(null);
+  try {
+    const rec = await api(`/api/recommend?operation=${encodeURIComponent(state.selection.operation)}`);
+    if (rec.suggested_level && state.screen === "digits") {
+      renderButtons(rec.suggested_level);
+    }
+  } catch (e) {
+    // tavsiya ixtiyoriy — xato bo'lsa jim o'tkazib yuboriladi
   }
-  appEl.innerHTML = `
-    ${header(opLabel(state.selection.operation), useLevelWording ? t("chooseLevelSubtitle") : t("chooseDigitsSubtitle"), true)}
-    <div class="choice-grid">${buttons.join("")}</div>
-  `;
-  bindHeaderControls();
-  document.querySelectorAll(".choice-btn").forEach((el) => {
-    el.onclick = () => {
-      state.selection.digits = parseInt(el.dataset.d, 10);
-      pushScreen("time");
-    };
-  });
 }
 
 // ---------- Vaqt tanlash ----------
@@ -1116,6 +1350,8 @@ async function finishTestEarly() {
     const res = await api(`/api/tests/${state.test.attempt_id}/finish`, { method: "POST" });
     state.test.progress = res.progress;
     state.test.finished = true;
+    state.test.streak = res.streak;
+    state.test.newAchievements = res.new_achievements || [];
     state.lastFeedback = null;
     state.screen = "test_result";
     render();
@@ -1124,17 +1360,29 @@ async function finishTestEarly() {
   }
 }
 
+function explanationHtml(fb) {
+  const fn = EXPLANATIONS[fb.operation];
+  if (!fn || !fb.question) return "";
+  try {
+    const text = fn(fb.question, fb.correctAnswer);
+    if (!text) return "";
+    return `<div class="explanation-box"><b>${t("explanationLabel")}</b> ${text}</div>`;
+  } catch (e) {
+    return "";
+  }
+}
+
 function renderFeedbackBanner() {
   const fb = state.lastFeedback;
   const correctDisplay = dash(translateChoiceLabel(fb.operation, fb.correctAnswer));
   const chosenDisplay = dash(translateChoiceLabel(fb.operation, fb.chosen));
   if (fb.timedOut) {
-    return `<div class="feedback-banner wrong">${t("timedOutFeedback")(correctDisplay)}</div>`;
+    return `<div class="feedback-banner wrong">${t("timedOutFeedback")(correctDisplay)}</div>${explanationHtml(fb)}`;
   }
   if (fb.isCorrect) {
     return `<div class="feedback-banner correct">${t("correctFeedback")}</div>`;
   }
-  return `<div class="feedback-banner wrong">${t("wrongFeedback")(chosenDisplay, correctDisplay)}</div>`;
+  return `<div class="feedback-banner wrong">${t("wrongFeedback")(chosenDisplay, correctDisplay)}</div>${explanationHtml(fb)}`;
 }
 
 function onChooseAnswer(value) {
@@ -1209,9 +1457,14 @@ async function confirmAnswer(timedOut) {
       chosen,
       timedOut,
       operation: q.operation,
+      question: q,
     };
 
     t_.progress = res.progress;
+    if (res.finished) {
+      state.test.streak = res.streak;
+      state.test.newAchievements = res.new_achievements || [];
+    }
 
     setTimeout(() => {
       answerLocked = false;
@@ -1297,11 +1550,23 @@ function renderTestResult() {
   const summaryLine = early
     ? t("summaryEarly")(total, answered, correct, wrong)
     : t("summaryFull")(total, correct, wrong);
+
+  let toasts = "";
+  if (t_.streak && t_.streak.current > 1) {
+    toasts += `<div class="toast-banner streak">${t("streakToast")(t_.streak.current)}</div>`;
+  }
+  const dict = I18N[LANG] || I18N.uz;
+  (t_.newAchievements || []).forEach((key) => {
+    const meta = dict.achievements[key];
+    if (meta) toasts += `<div class="toast-banner achievement">${t("newAchievementToast")(`${meta.icon} ${meta.label}`)}</div>`;
+  });
+
   appEl.innerHTML = `
     ${header(t("testFinishedTitle"))}
     <div class="feedback-banner ${good ? "correct" : "wrong"}" style="font-size:18px;padding:22px;">
       ${summaryLine}
     </div>
+    ${toasts}
     <button class="btn btn-primary" id="btn-detail">${t("detailBtn")}</button>
     <div style="height:10px"></div>
     <button class="btn btn-outline" id="btn-home">${t("homeBtn")}</button>
@@ -1424,9 +1689,11 @@ async function renderAdminUsers() {
   bindHeaderControls();
   try {
     const res = await api("/api/admin/users");
+    const exportBtn = `<button class="btn btn-outline" id="btn-admin-export" style="margin-bottom:14px;">${t("adminExportBtn")}</button>`;
     if (!res.users.length) {
-      appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}<div class="empty-state">${t("noUsersYet")}</div>`;
+      appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${exportBtn}<div class="empty-state">${t("noUsersYet")}</div>`;
       bindHeaderControls();
+      bindAdminExportBtn();
       return;
     }
     const rows = res.users.map((u) => `
@@ -1435,14 +1702,154 @@ async function renderAdminUsers() {
         <div class="sub">${u.username ? "@" + u.username : t("noUsername")} · ${t("testsCountSuffix")(u.attempts_count)}</div>
         <div class="stats"><span class="c">✔ ${u.total_correct}</span><span class="w">✘ ${u.total_wrong}</span></div>
       </div>`).join("");
-    appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}<div>${rows}</div>`;
+    appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${exportBtn}<div>${rows}</div>`;
     bindHeaderControls();
+    bindAdminExportBtn();
     document.querySelectorAll(".admin-user-row").forEach((el) => {
       el.onclick = () => {
         state.viewUserId = parseInt(el.dataset.id, 10);
         pushScreen("admin_attempts");
       };
     });
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+function bindAdminExportBtn() {
+  const btn = document.getElementById("btn-admin-export");
+  if (!btn) return;
+  btn.onclick = async () => {
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/admin/export", {
+        headers: { "X-Telegram-Init-Data": INIT_DATA },
+      });
+      if (!res.ok) throw new Error(t("genericError"));
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mathbot_foydalanuvchilar.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      btn.disabled = false;
+    }
+  };
+}
+
+// ---------- Statistikam: seriya, yutuqlar, mavzular, referral ----------
+async function renderStats() {
+  appEl.innerHTML = `${header(t("statsTitle"), t("statsDesc"), true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api("/api/stats");
+    const dict = I18N[LANG] || I18N.uz;
+
+    const rankHtml = res.rank
+      ? `${t("rankLine")(res.rank.rank, res.rank.points)}<button class="btn btn-outline" id="btn-view-leaderboard" style="margin-top:10px;">${t("viewLeaderboardBtn")}</button>`
+      : `${t("noRankYet")}`;
+
+    const topicRows = res.topic_stats.length
+      ? res.topic_stats.map((ts) => `
+          <div class="topic-stat-row">
+            <div class="topic-stat-label">${sectionLabel(ts.section)}</div>
+            <div class="topic-stat-bar-track"><div class="topic-stat-bar-fill" style="width:${ts.accuracy}%"></div></div>
+            <div class="topic-stat-pct">${ts.accuracy}%</div>
+          </div>`).join("")
+      : `<div class="empty-state">${t("noTopicStatsYet")}</div>`;
+
+    const achievementCards = res.achievements.map((a) => {
+      const meta = dict.achievements[a.key] || { icon: "🏅", label: a.key };
+      return `<div class="achievement-card${a.earned ? " earned" : ""}">
+        <div class="ach-icon">${meta.icon}</div>
+        <div class="ach-label">${meta.label}</div>
+      </div>`;
+    }).join("");
+
+    const referralLinkHtml = res.referral.link
+      ? `<div class="referral-code" id="referral-copy-target">${escapeHtml(res.referral.link)}</div>`
+      : `<div class="referral-code" id="referral-copy-target">${escapeHtml(res.referral.code)}</div><div style="font-size:12px;color:var(--hint);margin-top:6px;">${t("referralNoLink")}</div>`;
+
+    appEl.innerHTML = `
+      ${header(t("statsTitle"), t("statsDesc"), true)}
+      <div class="stat-card">
+        <div class="stat-card-title">${t("streakCardTitle")}</div>
+        <div>${t("streakCurrent")(res.streak.current)}</div>
+        <div style="margin-top:4px;">${t("streakLongest")(res.streak.longest)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("rankCardTitle")}</div>
+        <div>${rankHtml}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("topicStatsTitle")}</div>
+        ${topicRows}
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("achievementsTitle")}</div>
+        <div class="achievement-grid">${achievementCards}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("referralCardTitle")}</div>
+        <div style="font-size:13px;color:var(--hint);margin-bottom:8px;">${t("referralDesc")}</div>
+        <div style="margin-bottom:8px;">${t("referralCount")(res.referral.count)}</div>
+        <div style="font-size:12px;color:var(--hint);margin-bottom:4px;">${t("referralCodeLabel")}</div>
+        ${referralLinkHtml}
+        <button class="btn btn-outline" id="btn-copy-referral" style="margin-top:10px;">${t("copyBtn")}</button>
+      </div>
+    `;
+    bindHeaderControls();
+    const lbBtn = document.getElementById("btn-view-leaderboard");
+    if (lbBtn) lbBtn.onclick = () => pushScreen("leaderboard");
+    const copyBtn = document.getElementById("btn-copy-referral");
+    if (copyBtn) {
+      copyBtn.onclick = async () => {
+        const text = document.getElementById("referral-copy-target").textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = t("copiedMsg");
+          setTimeout(() => { copyBtn.textContent = t("copyBtn"); }, 1500);
+        } catch (e) {
+          alert(text);
+        }
+      };
+    }
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+// ---------- Reyting (leaderboard) ----------
+async function renderLeaderboard() {
+  appEl.innerHTML = `${header(t("leaderboardTitle"), t("leaderboardDesc"), true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api("/api/leaderboard");
+    if (!res.top.length) {
+      appEl.innerHTML = `${header(t("leaderboardTitle"), t("leaderboardDesc"), true)}<div class="empty-state">${t("noLeaderboardYet")}</div>`;
+      bindHeaderControls();
+      return;
+    }
+    const medals = ["🥇", "🥈", "🥉"];
+    const rows = res.top.map((r, i) => `
+      <div class="leaderboard-row">
+        <div class="lb-rank">${medals[i] || (i + 1)}</div>
+        <div class="lb-name">${escapeHtml(r.first_name)} ${escapeHtml(r.last_name)}</div>
+        <div class="lb-points">${t("pointsSuffix")(r.points)}</div>
+      </div>`).join("");
+    const myRankLine = res.my_rank
+      ? `<div class="stat-card">${t("rankLine")(res.my_rank.rank, res.my_rank.points)}</div>`
+      : "";
+    appEl.innerHTML = `${header(t("leaderboardTitle"), t("leaderboardDesc"), true)}${myRankLine}<div>${rows}</div>`;
+    bindHeaderControls();
   } catch (e) {
     appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
     bindHeaderControls();

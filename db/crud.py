@@ -1,9 +1,14 @@
 """Ma'lumotlar bazasi bilan ishlash funksiyalari (CRUD)."""
+import datetime
 import json
 from typing import Optional
 
-from config import ADMIN_IDS
+from config import ACHIEVEMENTS, ADMIN_IDS
 from db.database import db_cursor, get_db
+
+
+def _today_str() -> str:
+    return datetime.datetime.utcnow().date().isoformat()
 
 
 # ---------- USERS ----------
@@ -26,6 +31,7 @@ def create_or_update_user(
     birth_day: int,
     username: Optional[str] = None,
     language: Optional[str] = None,
+    referred_by_id: Optional[int] = None,
 ) -> dict:
     is_admin = 1 if telegram_id in ADMIN_IDS else 0
     with db_cursor() as cur:
@@ -49,15 +55,57 @@ def create_or_update_user(
                      birth_day, username, is_admin, telegram_id),
                 )
         else:
+            referral_code = format(telegram_id, "X")
             cur.execute(
                 """INSERT INTO users
                    (telegram_id, first_name, last_name, father_name,
-                    birth_year, birth_month, birth_day, username, is_admin, language)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    birth_year, birth_month, birth_day, username, is_admin, language,
+                    referral_code, referred_by_id)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (telegram_id, first_name, last_name, father_name, birth_year,
-                 birth_month, birth_day, username, is_admin, language or "uz"),
+                 birth_month, birth_day, username, is_admin, language or "uz",
+                 referral_code, referred_by_id),
             )
     return get_user(telegram_id)
+
+
+def get_user_by_referral_code(code: str) -> Optional[dict]:
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM users WHERE referral_code = ?", (code.upper(),)
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def count_referrals(telegram_id: int) -> int:
+    conn = get_db()
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM users WHERE referred_by_id = ?", (telegram_id,)
+    ).fetchone()
+    return row["n"] or 0
+
+
+def record_pending_referral(telegram_id: int, referrer_code: str) -> None:
+    with db_cursor() as cur:
+        cur.execute(
+            """INSERT INTO pending_referrals (telegram_id, referrer_code)
+               VALUES (?, ?)
+               ON CONFLICT(telegram_id) DO UPDATE SET referrer_code=excluded.referrer_code""",
+            (telegram_id, referrer_code.upper()),
+        )
+
+
+def consume_pending_referral(telegram_id: int) -> Optional[str]:
+    conn = get_db()
+    row = conn.execute(
+        "SELECT referrer_code FROM pending_referrals WHERE telegram_id=?",
+        (telegram_id,),
+    ).fetchone()
+    if not row:
+        return None
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM pending_referrals WHERE telegram_id=?", (telegram_id,))
+    return row["referrer_code"]
 
 
 def set_user_language(telegram_id: int, language: str) -> None:
@@ -222,11 +270,179 @@ def user_stats(user_id: int) -> dict:
     return dict(row)
 
 
+# ---------- Kunlik seriya (streak) ----------
+
+def update_streak_on_finish(telegram_id: int) -> dict:
+    """Test yakunlanganda chaqiriladi. Bir kunda bir nechta test tugatilsa
+    ham seriya faqat bir marta oshadi (kun almashganda)."""
+    today = _today_str()
+    user = get_user(telegram_id)
+    last_date = user.get("last_test_date")
+    current = user.get("current_streak") or 0
+    longest = user.get("longest_streak") or 0
+
+    if last_date == today:
+        pass  # bugun allaqachon hisoblangan
+    elif last_date == (datetime.date.fromisoformat(today) - datetime.timedelta(days=1)).isoformat():
+        current += 1
+    else:
+        current = 1
+    longest = max(longest, current)
+
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE users SET current_streak=?, longest_streak=?, last_test_date=? WHERE telegram_id=?",
+            (current, longest, today, telegram_id),
+        )
+    return {"current": current, "longest": longest}
+
+
+# ---------- Yutuqlar (achievements) ----------
+
+def get_earned_achievements(telegram_id: int) -> dict:
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT achievement_key, earned_at FROM user_achievements WHERE user_id=?",
+        (telegram_id,),
+    ).fetchall()
+    return {r["achievement_key"]: r["earned_at"] for r in rows}
+
+
+def _award(telegram_id: int, key: str, earned: dict, newly: list) -> None:
+    if key in earned:
+        return
+    with db_cursor() as cur:
+        cur.execute(
+            "INSERT OR IGNORE INTO user_achievements (user_id, achievement_key) VALUES (?,?)",
+            (telegram_id, key),
+        )
+    newly.append(key)
+
+
+def award_achievements(telegram_id: int, current_streak: int,
+                        perfect_score: bool, attempts_count: int) -> list[str]:
+    """Test yakunlangach shartlarni tekshirib, yangi yutuqlarni yozadi.
+    Qaytadi: shu safar yangi qo'lga kiritilgan yutuqlar ro'yxati."""
+    earned = get_earned_achievements(telegram_id)
+    stats = user_stats(telegram_id)
+    total_correct = stats["total_correct"]
+    newly: list[str] = []
+
+    if attempts_count >= 1:
+        _award(telegram_id, "first_test", earned, newly)
+    if current_streak >= 3:
+        _award(telegram_id, "streak_3", earned, newly)
+    if current_streak >= 7:
+        _award(telegram_id, "streak_7", earned, newly)
+    if current_streak >= 30:
+        _award(telegram_id, "streak_30", earned, newly)
+    if total_correct >= 50:
+        _award(telegram_id, "correct_50", earned, newly)
+    if total_correct >= 200:
+        _award(telegram_id, "correct_200", earned, newly)
+    if total_correct >= 1000:
+        _award(telegram_id, "correct_1000", earned, newly)
+    if perfect_score:
+        _award(telegram_id, "perfect_score", earned, newly)
+    return newly
+
+
+def all_achievements_status(telegram_id: int) -> list[dict]:
+    earned = get_earned_achievements(telegram_id)
+    return [
+        {"key": key, "earned": key in earned, "earned_at": earned.get(key)}
+        for key in ACHIEVEMENTS
+    ]
+
+
+# ---------- Mavzular kesimidagi statistika ----------
+
+def topic_stats(telegram_id: int) -> list[dict]:
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT q.operation AS operation,
+                  COUNT(*) AS total,
+                  SUM(CASE WHEN q.is_correct=1 THEN 1 ELSE 0 END) AS correct
+           FROM questions q
+           JOIN attempts a ON a.id = q.attempt_id
+           WHERE a.user_id = ? AND q.status IN ('answered', 'timeout')
+           GROUP BY q.operation""",
+        (telegram_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+# ---------- Moslashuvchan daraja tavsiyasi ----------
+
+def last_attempt_for_operation(telegram_id: int, operation: str) -> Optional[dict]:
+    conn = get_db()
+    row = conn.execute(
+        """SELECT * FROM attempts
+           WHERE user_id=? AND operation=? AND status='finished'
+           ORDER BY finished_at DESC LIMIT 1""",
+        (telegram_id, operation),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+# ---------- Reyting (leaderboard) ----------
+
+def leaderboard(limit: int = 10) -> list[dict]:
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT u.telegram_id, u.first_name, u.last_name,
+                  COALESCE(SUM(a.correct_count), 0) AS points
+           FROM users u
+           JOIN attempts a ON a.user_id = u.telegram_id AND a.status='finished'
+           GROUP BY u.telegram_id
+           HAVING points > 0
+           ORDER BY points DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def user_rank(telegram_id: int) -> Optional[dict]:
+    stats = user_stats(telegram_id)
+    points = stats["total_correct"]
+    if points <= 0:
+        return None
+    conn = get_db()
+    row = conn.execute(
+        """SELECT COUNT(*) AS n FROM (
+             SELECT a.user_id AS uid, SUM(a.correct_count) AS pts
+             FROM attempts a WHERE a.status='finished'
+             GROUP BY a.user_id
+             HAVING pts > ?
+           )""",
+        (points,),
+    ).fetchone()
+    return {"rank": (row["n"] or 0) + 1, "points": points}
+
+
+def inactive_users(days: int = 2) -> list[dict]:
+    """`days` kundan beri test yechmagan (yoki umuman yechmagan, lekin
+    kamida 1 kun oldin ro'yxatdan o'tgan) foydalanuvchilar — eslatma
+    yuborish uchun (send_reminders.py)."""
+    threshold = (datetime.datetime.utcnow().date() - datetime.timedelta(days=days)).isoformat()
+    yesterday = (datetime.datetime.utcnow().date() - datetime.timedelta(days=1)).isoformat()
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT telegram_id, first_name, language FROM users
+           WHERE date(registered_at) <= ?
+             AND (last_test_date IS NULL OR last_test_date <= ?)""",
+        (yesterday, threshold),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def all_users_with_stats() -> list[dict]:
     conn = get_db()
     rows = conn.execute(
         """SELECT u.telegram_id, u.first_name, u.last_name, u.father_name,
                   u.username, u.is_admin, u.registered_at,
+                  u.current_streak, u.longest_streak, u.language,
                   COUNT(a.id) AS attempts_count,
                   COALESCE(SUM(a.correct_count),0) AS total_correct,
                   COALESCE(SUM(a.wrong_count),0) AS total_wrong

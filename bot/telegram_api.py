@@ -14,10 +14,10 @@ def send_message(chat_id: int, text: str, reply_markup: dict | None = None) -> d
     return resp.json()
 
 
-def webapp_keyboard(url: str) -> dict:
+def webapp_keyboard(url: str, button_text: str = "🧮 Mini App'ni ochish") -> dict:
     return {
         "inline_keyboard": [[
-            {"text": "🧮 Mini App'ni ochish", "web_app": {"url": url}},
+            {"text": button_text, "web_app": {"url": url}},
         ]]
     }
 

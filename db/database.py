@@ -57,6 +57,20 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_questions_attempt ON questions(attempt_id);
+
+CREATE TABLE IF NOT EXISTS user_achievements (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id         INTEGER NOT NULL REFERENCES users(telegram_id),
+    achievement_key TEXT NOT NULL,
+    earned_at       TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_id, achievement_key)
+);
+
+CREATE TABLE IF NOT EXISTS pending_referrals (
+    telegram_id     INTEGER PRIMARY KEY,
+    referrer_code   TEXT NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
@@ -139,5 +153,19 @@ def init_db():
     _ensure_column(conn, "questions", "display_text", "TEXT")
     _ensure_column(conn, "questions", "extra_data", "TEXT")
     _ensure_column(conn, "users", "language", "TEXT NOT NULL DEFAULT 'uz'")
+    _ensure_column(conn, "users", "current_streak", "INTEGER NOT NULL DEFAULT 0")
+    _ensure_column(conn, "users", "longest_streak", "INTEGER NOT NULL DEFAULT 0")
+    _ensure_column(conn, "users", "last_test_date", "TEXT")
+    _ensure_column(conn, "users", "referral_code", "TEXT")
+    _ensure_column(conn, "users", "referred_by_id", "INTEGER")
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code "
+        "ON users(referral_code) WHERE referral_code IS NOT NULL"
+    )
+    # Eski (referral tizimidan oldingi) foydalanuvchilarga ham kod beriladi.
+    conn.execute(
+        "UPDATE users SET referral_code = printf('%X', telegram_id) "
+        "WHERE referral_code IS NULL"
+    )
     conn.commit()
     conn.close()

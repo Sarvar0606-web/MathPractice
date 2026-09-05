@@ -18,6 +18,11 @@ ADMIN_IDS = {
 
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").rstrip("/")
 
+# Do'stni taklif qilish (referral) havolasi uchun bot username (@ belgisiz).
+# Bo'sh qoldirilsa, referral kodi ko'rsatiladi-yu, lekin to'liq havola
+# tuzilmaydi (frontend shunga qarab moslashadi).
+BOT_USERNAME = os.getenv("BOT_USERNAME", "")
+
 # Mini App qo'llab-quvvatlaydigan tillar.
 SUPPORTED_LANGUAGES = ["uz", "ru", "en"]
 DEFAULT_LANGUAGE = "uz"
@@ -109,6 +114,20 @@ SECTIONS = [
         "color": "#ec4899",
         "desc": "O'rtacha qiymat, mediana, ehtimollik va boshqalar",
     },
+    {
+        "key": "logic",
+        "label": "Mantiqiy masalalar",
+        "icon": "🧩",
+        "color": "#7c3aed",
+        "desc": "Ketma-ketlik, ortiqchasini topish, yosh va taqqoslash masalalari",
+    },
+]
+
+# Yutuqlar (achievements) — kalitlar; matn/ikonka frontendda (app.js I18N)
+# tilga qarab ko'rsatiladi, backend faqat kalit va shartni biladi.
+ACHIEVEMENTS = [
+    "first_test", "streak_3", "streak_7", "streak_30",
+    "correct_50", "correct_200", "correct_1000", "perfect_score",
 ]
 
 OPERATIONS = {
@@ -166,4 +185,9 @@ OPERATIONS = {
     "stat_mode": {"label": "Moda", "symbol": "Mo", "color": "#ec4899", "icon": "mode", "section": "statistics"},
     "stat_probability": {"label": "Ehtimollik", "symbol": "P", "color": "#06b6d4", "icon": "probability", "section": "statistics"},
     "stat_combinatorics": {"label": "Kombinatorika", "symbol": "n!", "color": "#f97316", "icon": "combinatorics", "section": "statistics"},
+
+    "logic_sequence": {"label": "Ketma-ketlik", "symbol": "…", "color": "#7c3aed", "icon": "sequence", "section": "logic"},
+    "logic_odd_one_out": {"label": "Ortiqchasini toping", "symbol": "≠", "color": "#db2777", "icon": "odd", "section": "logic"},
+    "logic_age": {"label": "Yosh masalalari", "symbol": "👤", "color": "#059669", "icon": "age", "section": "logic"},
+    "logic_comparison": {"label": "Taqqoslash", "symbol": "><", "color": "#2563eb", "icon": "comparison", "section": "logic"},
 }
