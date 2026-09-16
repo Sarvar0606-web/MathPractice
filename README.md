@@ -198,7 +198,66 @@ qilmaydi.
    testni bosib esa savol-javob tafsilotlarini ko'rish mumkin. Yuqoridagi
    **"Excel formatida yuklab olish"** tugmasi orqali barcha foydalanuvchilar
    ro'yxatini (ism, username, testlar soni, to'g'ri/xato, seriya) `.xlsx`
-   fayl sifatida yuklab olish mumkin.
+   fayl sifatida yuklab olish mumkin. Shuningdek **"Statistika (analitika)"**
+   tugmasi orqali umumiy ko'rsatkichlar (foydalanuvchilar soni, jami
+   testlar, o'rtacha aniqlik, eng faol bo'limlar) va **"Xabar yuborish"**
+   tugmasi orqali barcha ro'yxatdan o'tgan foydalanuvchilarga bir vaqtda
+   Telegram orqali xabar (broadcast) yuborish mumkin.
+
+### Qo'shimcha imkoniyatlar
+
+11. **Yordam (hint) tugmasi** — test davomida har bir savolda (agar shu
+    mavzu uchun mavjud bo'lsa) "💡 Yordam" tugmasi bosilsa, javobning o'zini
+    ochib qo'ymasdan, yechim yo'nalishini ko'rsatuvchi qisqa maslahat
+    chiqadi (masalan formulaning o'ng tomoni yashirilgan holda). Oddiy kasr
+    (`frac_basic`) kabi javobi formuladan emas, balki bevosita berilgan
+    mavzularda yordam tugmasi chiqmaydi — chunki bunday holatda "yordam"
+    aslida javobning o'ziga teng bo'lib qolar edi.
+12. **Aralash (DTM uslubidagi) imtihon** — bosh menyudan barcha bo'limlar
+    aralashtirilgan holda 20 ta savoldan iborat yagona test boshlanadi
+    (real DTM/imtihon formatiga yaqinlashtirish uchun). Natijalar va
+    mavzular bo'yicha statistika oddiy testlar bilan bir xil tarzda
+    hisoblanadi.
+13. **Xatolarni qayta ko'rish** — foydalanuvchi avval xato javob bergan
+    savollar mavzusi bo'yicha maxsus test (agar kamida bitta xato mavjud
+    bo'lsa, bosh menyuda tugma faollashadi). Bu ham statistikada alohida
+    "rejim" sifatida, ammo har bir savolning haqiqiy mavzusi saqlangan
+    holda hisoblanadi.
+14. **Kunlik seriyani "muzlatish" (streak freeze)** — agar foydalanuvchi bir
+    kun test yechishni unutib qolsa, oyiga bir marta seriyasini
+    saqlab qolish imkoniyati beriladi (avtomatik taklif qilinadi, agar
+    mavjud bo'lsa).
+15. **Guruh/sinf va uy vazifasi** — foydalanuvchi guruh yaratib (qo'shilish
+    kodi bilan), boshqalarni taklif qilishi, guruh a'zolariga uy vazifasi
+    (aniq bo'lim + daraja + savollar soni) tayinlashi va kimlar bajarganini
+    ko'rishi mumkin.
+16. **Do'stni chaqirish (async duel)** — ikki foydalanuvchi bir xil
+    savollar to'plamidan (bir xil bo'lim/daraja) mustaqil ravishda, o'z
+    vaqtida test yechib, natijalarini solishtirishi mumkin. Bu — chinakam
+    real-vaqtli (bir vaqtning o'zida, WebSocket orqali) ko'p o'yinchili
+    rejim EMAS: bepul PythonAnywhere hostingi doimiy fon jarayonlarini
+    (masalan WebSocket serverini) qo'llab-quvvatlamaydi, shuning uchun
+    "duel" kodi orqali ikkala o'yinchi bir xil savollarni turli vaqtda
+    yechadi va yakunda ikkala natija solishtirib ko'rsatiladi — soddaroq,
+    ammo hozirgi infratuzilmada barqaror ishlaydigan yechim.
+17. **Yozib javob berish (typed input)** rejimi — ba'zi mavzularda 4
+    variantdan birini tanlash o'rniga, javobni klaviaturadan to'g'ridan-
+    to'g'ri yozib kiritish mumkin (sozlamalar orqali yoqiladi/o'chiriladi).
+18. **Geometriya sxemalari (SVG)** — geometriya bo'limidagi ba'zi savollarda
+    (masalan uchburchak, to'rtburchak, aylana) savol matni bilan birga
+    kichik chizma (SVG) ham ko'rsatiladi.
+19. **PDF sertifikat** — bo'lim bo'yicha yetarlicha test yechilgan va
+    aniqlik darajasi yuqori bo'lsa (kamida 40 ta savol, 85%+ to'g'ri),
+    Statistikam bo'limidan shu mavzu uchun rasmiylashtirilgan PDF
+    sertifikatni yuklab olish mumkin (mavjud Excel eksporti kabi, matni
+    o'zbek tilida).
+20. **Avtomatik zaxira nusxa (backup)** — bepul PythonAnywhere rejasida
+    kuniga faqat bitta scheduled task (vazifa) slot mavjudligi sababli,
+    ma'lumotlar bazasining zaxira nusxasi alohida vazifa sifatida emas,
+    balki mavjud kunlik eslatma skripti (`send_reminders.py`) ichiga
+    qo'shilgan — eslatmalar yuborilgach, skript `data/backups/` papkasiga
+    sanani o'z ichiga olgan nusxa yozadi va eng so'nggi 14 tasidan
+    ortig'ini avtomatik o'chiradi.
 
 ## Loyiha tuzilishi
 
@@ -206,7 +265,8 @@ qilmaydi.
 mathbot/
 ├── app.py                     # Flask ilovasi (WSGI) — hammasi shu yerdan boshlanadi
 ├── set_webhook.py              # Deploy'dan keyin bir marta ishga tushiriladi
-├── send_reminders.py            # Nofaol foydalanuvchilarga eslatma (kunlik scheduled task)
+├── send_reminders.py            # Nofaol foydalanuvchilarga eslatma + avtomatik DB backup (kunlik scheduled task)
+├── backup_db.py                  # data/backups/ ga zaxira nusxa yozish va eskilarini tozalash
 ├── config.py                    # .env dan sozlamalarni o'qish
 ├── bot/
 │   ├── telegram_api.py            # Telegram Bot API'ga oddiy HTTP so'rovlar
@@ -219,9 +279,12 @@ mathbot/
 ├── db/
 │   ├── database.py            # SQLite ulanish va sxema
 │   └── crud.py                 # ma'lumotlar bilan ishlash
-├── logic/question_generator.py  # misollarni generatsiya qilish
+├── logic/
+│   ├── question_generator.py     # misollarni generatsiya qilish (aralash/xatolarni qayta ko'rish uchun ham)
+│   └── certificate.py             # PDF sertifikat generatsiyasi (fpdf2)
+├── assets/fonts/               # PDF sertifikat uchun Unicode shriftlar (DejaVu Sans)
 ├── static/                   # Mini App frontend (HTML/CSS/JS)
-└── data/, logs/                # runtime papkalar (avtomatik yaratiladi)
+└── data/, logs/                # runtime papkalar (avtomatik yaratiladi; data/backups/ — zaxira nusxalar)
 ```
 
 ## Qo'shimcha bo'lim qo'shish

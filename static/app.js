@@ -11,6 +11,7 @@ const INIT_DATA = tg ? tg.initData : "";
 const appEl = document.getElementById("app");
 
 const OP_EMOJI = {
+  mixed_exam: "🎯", mistake_review: "🔁",
   add: "➕", sub: "➖", mul: "✖️", div: "➗", compare: "⚖️",
   frac_compare: "⚖️", frac_simplify: "↓", frac_add: "➕", frac_sub: "➖",
   frac_mul: "✖️", frac_div: "➗", frac_mixed: "🔄", frac_decimal: "🔢",
@@ -100,6 +101,42 @@ let LANG = "uz";
 const I18N = {
   uz: {
     genericError: "Xatolik yuz berdi",
+    errors: {
+      invalid_birthdate: "Tug'ilgan sana noto'g'ri",
+      missing_name_fields: "Ism, familiya va otasining ismini to'ldiring",
+      invalid_birth_year: "Tug'ilgan yil noto'g'ri",
+      invalid_birth_month: "Tug'ilgan oy noto'g'ri",
+      invalid_birth_day: "Tug'ilgan kun noto'g'ri",
+      invalid_language: "Noto'g'ri til",
+      not_registered: "Avval ro'yxatdan o'ting",
+      invalid_operation: "Noto'g'ri amal turi",
+      invalid_params: "Noto'g'ri parametrlar",
+      invalid_digits: "Noto'g'ri xonalar soni",
+      invalid_time: "Noto'g'ri vaqt",
+      test_not_found: "Test topilmadi",
+      invalid_question_id: "Noto'g'ri savol ID",
+      question_not_found: "Savol topilmadi",
+      not_your_test: "Bu sizning testingiz emas",
+      already_answered: "Bu savolga allaqachon javob berilgan",
+      access_denied: "Ruxsat yo'q",
+      admin_only: "Faqat admin uchun",
+      user_not_found: "Foydalanuvchi topilmadi",
+      not_enough_mistakes: "Hali xatolar tarixi yetarli emas — avval bir nechta test yeching",
+      invalid_section: "Noto'g'ri bo'lim",
+      certificate_not_available: "Sertifikat uchun hali yetarli natija yo'q",
+      empty_broadcast_message: "Xabar matni bo'sh bo'lmasligi kerak",
+      broadcast_message_too_long: "Xabar juda uzun",
+      missing_group_name: "Guruh nomini kiriting",
+      group_name_too_long: "Guruh nomi juda uzun",
+      missing_join_code: "Qo'shilish kodini kiriting",
+      group_not_found: "Bunday kod bilan guruh topilmadi",
+      not_group_owner: "Faqat guruh egasi uy vazifasi bera oladi",
+      invalid_question_count: "Savollar soni noto'g'ri",
+      homework_not_found: "Uy vazifasi topilmadi",
+      duel_not_found: "Bunday kod bilan duel topilmadi",
+      duel_own: "O'zingiz yaratgan duelga qo'shila olmaysiz",
+      duel_already_taken: "Bu duelga boshqa raqib allaqachon qo'shilgan",
+    },
     loading: "Yuklanmoqda...",
     openInTelegram: "Iltimos, botni Telegram ichida oching.",
     chooseLanguageTitle: "Tilni tanlang",
@@ -119,6 +156,51 @@ const I18N = {
     continueBtn: "Davom etish",
     mainGreeting: (name) => `Salom, ${name} 👋`,
     mainSubtitle: "Nima bilan shug'ullanamiz?",
+    mixedExamTitle: "Aralash / DTM imtihon",
+    mixedExamDesc: "Turli mavzulardan aralash savollar — DTM uslubida",
+    mixedExamTimeSubtitle: "Har bir savol uchun vaqtni tanlang",
+    mistakeReviewTitle: "Xatolarni qayta ko'rish",
+    mistakeReviewDesc: "Ko'proq xato qilgan mavzularingiz bo'yicha maxsus test",
+    mistakeReviewTimeSubtitle: "Har bir savol uchun vaqtni tanlang",
+    groupsTitle: "Guruhlar",
+    groupsDesc: "Sinf yoki do'stlar guruhini yarating, uy vazifasi bering",
+    createGroupBtn: "➕ Guruh yaratish",
+    joinGroupBtn: "🔑 Guruhga qo'shilish",
+    groupMemberCount: (n) => `${n} a'zo`,
+    groupOwnerBadge: "sizniki",
+    noGroupsYet: "Hali guruhingiz yo'q",
+    groupNamePlaceholder: "Guruh nomi (masalan: 5-A sinf)",
+    joinCodePlaceholder: "Kod (masalan: AB12CD)",
+    groupDetailTitle: "Guruh",
+    joinCodeLabel: "Qo'shilish kodi (a'zolarga ulashing)",
+    groupMembersTitle: "A'zolar (to'g'ri javoblar bo'yicha)",
+    groupHomeworkTitle: "Uy vazifalari",
+    newHomeworkBtn: "➕ Uy vazifasi berish",
+    noHomeworkYet: "Hali uy vazifasi yo'q",
+    homeworkCompletionCount: (done, total) => `${done}/${total} a'zo bajardi`,
+    homeworkDoneLabel: (c, t2) => `Bajarildi: ${c}/${t2} to'g'ri`,
+    homeworkStartBtn: "▶️ Boshlash",
+    homeworkOperationLabel: "Amal turi",
+    homeworkLevelLabel: "Daraja",
+    homeworkTimeLabel: "Vaqt (har bir savol uchun)",
+    homeworkCountLabel: "Savollar soni",
+    homeworkAssignBtn: "Uy vazifasi berish",
+    duelTitle: "Do'stni chaqirish",
+    duelDesc: "Do'stingiz bilan bir xil savollarga javob bering va natijalarni solishtiring",
+    duelNewBtn: "🆕 Yangi duel yaratish",
+    duelJoinBtn: "🔑 Kodni kiritish",
+    duelCreateBtn: "Duel yaratish va boshlash",
+    duelCreatedAlert: (code) => `Duel yaratildi! Do'stingizga shu kodni yuboring: ${code}`,
+    duelResultTitle: "Duel natijasi",
+    duelResultBtn: "🤝 Duel natijasini ko'rish",
+    duelYou: "Siz",
+    duelNotFinished: "hali tugatmadi",
+    duelWaitingForFriend: "Do'stingiz hali qo'shilmadi",
+    duelYouWon: "🎉 Siz yutdingiz!",
+    duelYouLost: "😔 Siz yutqazdingiz",
+    duelTie: "🤝 Durrang!",
+    duelWaitingMsg: "Do'stingiz hali tugatmagan — natija tayyor bo'lganda qayta tekshiring",
+    duelRefreshBtn: "🔄 Qayta tekshirish",
     myResultsTitle: "Natijalarim",
     myResultsDesc: "Yechilgan testlar tarixi",
     adminPanelTitle: "Admin panel",
@@ -159,6 +241,7 @@ const I18N = {
     levelLabel: (d) => `${d}-daraja`,
     digitLabel: (d) => `${d} xonali`,
     operations: {
+      mixed_exam: "Aralash / DTM imtihon", mistake_review: "Xatolarni qayta ko'rish",
       add: "Qo'shish", sub: "Ayirish", mul: "Ko'paytirish", div: "Bo'lish", compare: "Solishtirish",
       arith_order: "Amal tartibi", arith_remainder: "Qoldiqli bo'lish", arith_negative: "Manfiy sonlar",
       frac_compare: "Solishtirish", frac_simplify: "Qisqartirish", frac_add: "Qo'shish",
@@ -274,6 +357,7 @@ const I18N = {
     viewLeaderboardBtn: "To'liq reytingni ko'rish",
     topicStatsTitle: "Mavzular bo'yicha natija",
     noTopicStatsYet: "Hali test yechilmagan",
+    certificateBtn: "🎓 Sertifikatni yuklab olish",
     achievementsTitle: "Yutuqlar",
     referralCardTitle: "🎁 Do'stni taklif qiling",
     referralDesc: "Havolangiz orqali ro'yxatdan o'tgan har bir do'stingiz shu yerda hisoblanadi.",
@@ -287,14 +371,71 @@ const I18N = {
     noLeaderboardYet: "Hali reytingda hech kim yo'q",
     pointsSuffix: (n) => `${n} ball`,
     adminExportBtn: "📥 Excel formatida yuklab olish",
+    adminAnalyticsBtn: "📊 Analitika",
+    adminBroadcastBtn: "📢 Xabar yuborish",
+    analyticsSummaryTitle: "Umumiy ko'rsatkichlar",
+    analyticsTotalUsers: (n) => `👤 Jami foydalanuvchilar: ${n}`,
+    analyticsTotalAttempts: (n) => `📝 Yakunlangan testlar: ${n}`,
+    analyticsTotalQuestions: (n) => `❓ Javob berilgan savollar: ${n}`,
+    analyticsDauTitle: "Kunlik faol foydalanuvchilar (oxirgi 7 kun)",
+    analyticsPopularTitle: "Eng ommabop mavzular",
+    broadcastDesc: "Barcha ro'yxatdan o'tgan foydalanuvchilarga Telegram orqali xabar yuboriladi",
+    broadcastPlaceholder: "Xabar matnini shu yerga yozing...",
+    broadcastSendBtn: "📤 Yuborish",
+    broadcastConfirm: "Xabar BARCHA foydalanuvchilarga yuborilsinmi?",
+    broadcastResult: (sent, failed, total) => `✅ Yuborildi: ${sent} / ${total}${failed ? ` (❌ xato: ${failed})` : ""}`,
     recommendedBadge: "✨ Tavsiya",
     newAchievementToast: (label) => `🎉 Yangi yutuq: ${label}!`,
     streakToast: (n) => `🔥 ${n} kunlik seriya!`,
+    freezeUsedToast: "🧊 Seriyangiz muzlatildi — bir kun o'tkazib yuborsangiz ham seriya davom etadi!",
+    freezeAvailable: "🧊 Muzlatish tayyor: 1 kun o'tkazib yuborsangiz ham seriya buzilmaydi",
+    freezeUnavailable: "🧊 Muzlatish band (7 kunda 1 marta)",
     explanationLabel: "Yechim:",
+    hintBtn: "💡 Yordam",
+    hintLabel: "💡 Maslahat:",
+    submitAnswerBtn: "Tekshirish",
+    switchToTypedBtn: "⌨️ Yozib javob berish",
+    switchToChoiceBtn: "🔢 Variantlardan tanlash",
   },
 
   ru: {
     genericError: "Произошла ошибка",
+    errors: {
+      invalid_birthdate: "Неверная дата рождения",
+      missing_name_fields: "Заполните имя, фамилию и отчество",
+      invalid_birth_year: "Неверный год рождения",
+      invalid_birth_month: "Неверный месяц рождения",
+      invalid_birth_day: "Неверный день рождения",
+      invalid_language: "Неверный язык",
+      not_registered: "Сначала зарегистрируйтесь",
+      invalid_operation: "Неверный тип операции",
+      invalid_params: "Неверные параметры",
+      invalid_digits: "Неверное количество разрядов",
+      invalid_time: "Неверное время",
+      test_not_found: "Тест не найден",
+      invalid_question_id: "Неверный ID вопроса",
+      question_not_found: "Вопрос не найден",
+      not_your_test: "Это не ваш тест",
+      already_answered: "На этот вопрос уже дан ответ",
+      access_denied: "Доступ запрещён",
+      admin_only: "Только для администратора",
+      user_not_found: "Пользователь не найден",
+      not_enough_mistakes: "Пока недостаточно истории ошибок — сначала пройдите несколько тестов",
+      invalid_section: "Неверный раздел",
+      certificate_not_available: "Пока недостаточно результатов для сертификата",
+      empty_broadcast_message: "Текст сообщения не может быть пустым",
+      broadcast_message_too_long: "Сообщение слишком длинное",
+      missing_group_name: "Введите название группы",
+      group_name_too_long: "Название группы слишком длинное",
+      missing_join_code: "Введите код присоединения",
+      group_not_found: "Группа с таким кодом не найдена",
+      not_group_owner: "Только владелец группы может задавать домашнее задание",
+      invalid_question_count: "Неверное количество вопросов",
+      homework_not_found: "Домашнее задание не найдено",
+      duel_not_found: "Дуэль с таким кодом не найдена",
+      duel_own: "Нельзя присоединиться к своей же дуэли",
+      duel_already_taken: "К этой дуэли уже присоединился другой соперник",
+    },
     loading: "Загрузка...",
     openInTelegram: "Пожалуйста, откройте бота в Telegram.",
     chooseLanguageTitle: "Выберите язык",
@@ -314,6 +455,51 @@ const I18N = {
     continueBtn: "Продолжить",
     mainGreeting: (name) => `Привет, ${name} 👋`,
     mainSubtitle: "Чем займёмся?",
+    mixedExamTitle: "Смешанный / DTM экзамен",
+    mixedExamDesc: "Смешанные вопросы из разных тем — в стиле DTM",
+    mixedExamTimeSubtitle: "Выберите время на каждый вопрос",
+    mistakeReviewTitle: "Повторение ошибок",
+    mistakeReviewDesc: "Специальный тест по темам, где вы чаще ошибались",
+    mistakeReviewTimeSubtitle: "Выберите время на каждый вопрос",
+    groupsTitle: "Группы",
+    groupsDesc: "Создайте группу класса или друзей, задавайте домашние задания",
+    createGroupBtn: "➕ Создать группу",
+    joinGroupBtn: "🔑 Присоединиться к группе",
+    groupMemberCount: (n) => `${n} участников`,
+    groupOwnerBadge: "ваша",
+    noGroupsYet: "У вас пока нет групп",
+    groupNamePlaceholder: "Название группы (напр.: 5-А класс)",
+    joinCodePlaceholder: "Код (напр.: AB12CD)",
+    groupDetailTitle: "Группа",
+    joinCodeLabel: "Код присоединения (поделитесь с участниками)",
+    groupMembersTitle: "Участники (по правильным ответам)",
+    groupHomeworkTitle: "Домашние задания",
+    newHomeworkBtn: "➕ Задать домашнее задание",
+    noHomeworkYet: "Пока нет домашних заданий",
+    homeworkCompletionCount: (done, total) => `${done}/${total} участников выполнили`,
+    homeworkDoneLabel: (c, t2) => `Выполнено: ${c}/${t2} правильно`,
+    homeworkStartBtn: "▶️ Начать",
+    homeworkOperationLabel: "Тип действия",
+    homeworkLevelLabel: "Уровень",
+    homeworkTimeLabel: "Время (на каждый вопрос)",
+    homeworkCountLabel: "Количество вопросов",
+    homeworkAssignBtn: "Задать домашнее задание",
+    duelTitle: "Вызвать друга",
+    duelDesc: "Отвечайте на одинаковые вопросы с другом и сравните результаты",
+    duelNewBtn: "🆕 Создать новую дуэль",
+    duelJoinBtn: "🔑 Ввести код",
+    duelCreateBtn: "Создать дуэль и начать",
+    duelCreatedAlert: (code) => `Дуэль создана! Отправьте другу этот код: ${code}`,
+    duelResultTitle: "Результат дуэли",
+    duelResultBtn: "🤝 Посмотреть результат дуэли",
+    duelYou: "Вы",
+    duelNotFinished: "ещё не закончил(а)",
+    duelWaitingForFriend: "Друг ещё не присоединился",
+    duelYouWon: "🎉 Вы выиграли!",
+    duelYouLost: "😔 Вы проиграли",
+    duelTie: "🤝 Ничья!",
+    duelWaitingMsg: "Друг ещё не закончил — проверьте позже",
+    duelRefreshBtn: "🔄 Проверить снова",
     myResultsTitle: "Мои результаты",
     myResultsDesc: "История пройденных тестов",
     adminPanelTitle: "Панель администратора",
@@ -354,6 +540,7 @@ const I18N = {
     levelLabel: (d) => `${d}-уровень`,
     digitLabel: (d) => `${d}-значные`,
     operations: {
+      mixed_exam: "Смешанный / DTM экзамен", mistake_review: "Повторение ошибок",
       add: "Сложение", sub: "Вычитание", mul: "Умножение", div: "Деление", compare: "Сравнение",
       arith_order: "Порядок действий", arith_remainder: "Деление с остатком", arith_negative: "Отрицательные числа",
       frac_compare: "Сравнение", frac_simplify: "Сокращение", frac_add: "Сложение",
@@ -469,6 +656,7 @@ const I18N = {
     viewLeaderboardBtn: "Смотреть весь рейтинг",
     topicStatsTitle: "Результаты по темам",
     noTopicStatsYet: "Тестов пока не было",
+    certificateBtn: "🎓 Скачать сертификат",
     achievementsTitle: "Достижения",
     referralCardTitle: "🎁 Пригласите друга",
     referralDesc: "Каждый друг, зарегистрировавшийся по вашей ссылке, учитывается здесь.",
@@ -482,14 +670,71 @@ const I18N = {
     noLeaderboardYet: "В рейтинге пока никого нет",
     pointsSuffix: (n) => `${n} баллов`,
     adminExportBtn: "📥 Скачать в Excel",
+    adminAnalyticsBtn: "📊 Аналитика",
+    adminBroadcastBtn: "📢 Отправить сообщение",
+    analyticsSummaryTitle: "Общие показатели",
+    analyticsTotalUsers: (n) => `👤 Всего пользователей: ${n}`,
+    analyticsTotalAttempts: (n) => `📝 Завершённых тестов: ${n}`,
+    analyticsTotalQuestions: (n) => `❓ Отвечено вопросов: ${n}`,
+    analyticsDauTitle: "Активные пользователи по дням (последние 7 дней)",
+    analyticsPopularTitle: "Самые популярные темы",
+    broadcastDesc: "Сообщение будет отправлено всем зарегистрированным пользователям через Telegram",
+    broadcastPlaceholder: "Введите текст сообщения...",
+    broadcastSendBtn: "📤 Отправить",
+    broadcastConfirm: "Отправить сообщение ВСЕМ пользователям?",
+    broadcastResult: (sent, failed, total) => `✅ Отправлено: ${sent} / ${total}${failed ? ` (❌ ошибок: ${failed})` : ""}`,
     recommendedBadge: "✨ Рекомендуем",
     newAchievementToast: (label) => `🎉 Новое достижение: ${label}!`,
     streakToast: (n) => `🔥 Серия ${n} дней!`,
+    freezeUsedToast: "🧊 Серия заморожена — пропуск одного дня не собьёт серию!",
+    freezeAvailable: "🧊 Заморозка готова: пропуск 1 дня не собьёт серию",
+    freezeUnavailable: "🧊 Заморозка занята (1 раз в 7 дней)",
     explanationLabel: "Решение:",
+    hintBtn: "💡 Подсказка",
+    hintLabel: "💡 Подсказка:",
+    submitAnswerBtn: "Проверить",
+    switchToTypedBtn: "⌨️ Ввести ответ вручную",
+    switchToChoiceBtn: "🔢 Выбрать из вариантов",
   },
 
   en: {
     genericError: "Something went wrong",
+    errors: {
+      invalid_birthdate: "Invalid birth date",
+      missing_name_fields: "Please fill in first name, last name, and father's name",
+      invalid_birth_year: "Invalid birth year",
+      invalid_birth_month: "Invalid birth month",
+      invalid_birth_day: "Invalid birth day",
+      invalid_language: "Invalid language",
+      not_registered: "Please register first",
+      invalid_operation: "Invalid operation type",
+      invalid_params: "Invalid parameters",
+      invalid_digits: "Invalid number of digits",
+      invalid_time: "Invalid time",
+      test_not_found: "Test not found",
+      invalid_question_id: "Invalid question ID",
+      question_not_found: "Question not found",
+      not_your_test: "This is not your test",
+      already_answered: "This question has already been answered",
+      access_denied: "Access denied",
+      admin_only: "Admins only",
+      user_not_found: "User not found",
+      not_enough_mistakes: "Not enough mistake history yet — try a few tests first",
+      invalid_section: "Invalid section",
+      certificate_not_available: "Not enough results yet for a certificate",
+      empty_broadcast_message: "Message text cannot be empty",
+      broadcast_message_too_long: "Message is too long",
+      missing_group_name: "Please enter a group name",
+      group_name_too_long: "Group name is too long",
+      missing_join_code: "Please enter a join code",
+      group_not_found: "No group found with that code",
+      not_group_owner: "Only the group owner can assign homework",
+      invalid_question_count: "Invalid question count",
+      homework_not_found: "Homework not found",
+      duel_not_found: "No duel found with that code",
+      duel_own: "You can't join your own duel",
+      duel_already_taken: "Another opponent has already joined this duel",
+    },
     loading: "Loading...",
     openInTelegram: "Please open the bot inside Telegram.",
     chooseLanguageTitle: "Choose language",
@@ -509,6 +754,51 @@ const I18N = {
     continueBtn: "Continue",
     mainGreeting: (name) => `Hi, ${name} 👋`,
     mainSubtitle: "What shall we work on?",
+    mixedExamTitle: "Mixed / DTM exam",
+    mixedExamDesc: "Mixed questions from different topics — DTM-style",
+    mixedExamTimeSubtitle: "Choose the time per question",
+    mistakeReviewTitle: "Review mistakes",
+    mistakeReviewDesc: "A focused test on topics you've missed the most",
+    mistakeReviewTimeSubtitle: "Choose the time per question",
+    groupsTitle: "Groups",
+    groupsDesc: "Create a class or friends group and assign homework",
+    createGroupBtn: "➕ Create group",
+    joinGroupBtn: "🔑 Join a group",
+    groupMemberCount: (n) => `${n} members`,
+    groupOwnerBadge: "yours",
+    noGroupsYet: "You don't have any groups yet",
+    groupNamePlaceholder: "Group name (e.g. Class 5-A)",
+    joinCodePlaceholder: "Code (e.g. AB12CD)",
+    groupDetailTitle: "Group",
+    joinCodeLabel: "Join code (share with members)",
+    groupMembersTitle: "Members (by correct answers)",
+    groupHomeworkTitle: "Homework",
+    newHomeworkBtn: "➕ Assign homework",
+    noHomeworkYet: "No homework yet",
+    homeworkCompletionCount: (done, total) => `${done}/${total} members completed`,
+    homeworkDoneLabel: (c, t2) => `Completed: ${c}/${t2} correct`,
+    homeworkStartBtn: "▶️ Start",
+    homeworkOperationLabel: "Operation type",
+    homeworkLevelLabel: "Level",
+    homeworkTimeLabel: "Time (per question)",
+    homeworkCountLabel: "Number of questions",
+    homeworkAssignBtn: "Assign homework",
+    duelTitle: "Challenge a friend",
+    duelDesc: "Answer the same questions as a friend and compare results",
+    duelNewBtn: "🆕 Create a new duel",
+    duelJoinBtn: "🔑 Enter code",
+    duelCreateBtn: "Create duel and start",
+    duelCreatedAlert: (code) => `Duel created! Send this code to your friend: ${code}`,
+    duelResultTitle: "Duel result",
+    duelResultBtn: "🤝 View duel result",
+    duelYou: "You",
+    duelNotFinished: "hasn't finished yet",
+    duelWaitingForFriend: "Your friend hasn't joined yet",
+    duelYouWon: "🎉 You won!",
+    duelYouLost: "😔 You lost",
+    duelTie: "🤝 It's a tie!",
+    duelWaitingMsg: "Your friend hasn't finished yet — check back later",
+    duelRefreshBtn: "🔄 Check again",
     myResultsTitle: "My results",
     myResultsDesc: "History of completed tests",
     adminPanelTitle: "Admin panel",
@@ -549,6 +839,7 @@ const I18N = {
     levelLabel: (d) => `Level ${d}`,
     digitLabel: (d) => `${d} digits`,
     operations: {
+      mixed_exam: "Mixed / DTM exam", mistake_review: "Review mistakes",
       add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division", compare: "Comparison",
       arith_order: "Order of operations", arith_remainder: "Division with remainder", arith_negative: "Negative numbers",
       frac_compare: "Comparison", frac_simplify: "Simplifying", frac_add: "Addition",
@@ -664,6 +955,7 @@ const I18N = {
     viewLeaderboardBtn: "View full leaderboard",
     topicStatsTitle: "Results by topic",
     noTopicStatsYet: "No tests taken yet",
+    certificateBtn: "🎓 Download certificate",
     achievementsTitle: "Achievements",
     referralCardTitle: "🎁 Invite a friend",
     referralDesc: "Every friend who registers through your link is counted here.",
@@ -677,10 +969,31 @@ const I18N = {
     noLeaderboardYet: "No one is on the leaderboard yet",
     pointsSuffix: (n) => `${n} points`,
     adminExportBtn: "📥 Download as Excel",
+    adminAnalyticsBtn: "📊 Analytics",
+    adminBroadcastBtn: "📢 Send message",
+    analyticsSummaryTitle: "Overall stats",
+    analyticsTotalUsers: (n) => `👤 Total users: ${n}`,
+    analyticsTotalAttempts: (n) => `📝 Finished tests: ${n}`,
+    analyticsTotalQuestions: (n) => `❓ Questions answered: ${n}`,
+    analyticsDauTitle: "Daily active users (last 7 days)",
+    analyticsPopularTitle: "Most popular topics",
+    broadcastDesc: "The message will be sent to all registered users via Telegram",
+    broadcastPlaceholder: "Type your message here...",
+    broadcastSendBtn: "📤 Send",
+    broadcastConfirm: "Send this message to ALL users?",
+    broadcastResult: (sent, failed, total) => `✅ Sent: ${sent} / ${total}${failed ? ` (❌ failed: ${failed})` : ""}`,
     recommendedBadge: "✨ Recommended",
     newAchievementToast: (label) => `🎉 New achievement: ${label}!`,
     streakToast: (n) => `🔥 ${n}-day streak!`,
+    freezeUsedToast: "🧊 Your streak was frozen — missing one day won't break it!",
+    freezeAvailable: "🧊 Freeze ready: missing 1 day won't break your streak",
+    freezeUnavailable: "🧊 Freeze already used (1 per 7 days)",
     explanationLabel: "Solution:",
+    hintBtn: "💡 Hint",
+    hintLabel: "💡 Hint:",
+    submitAnswerBtn: "Check",
+    switchToTypedBtn: "⌨️ Type your answer",
+    switchToChoiceBtn: "🔢 Choose from options",
   },
 };
 
@@ -754,6 +1067,25 @@ function storeLanguage(lang) {
   } catch (e) {}
 }
 
+// ---------- Yozib javob berish rejimi (add/sub/mul/div uchun) ----------
+const TYPED_INPUT_OPS = new Set(["add", "sub", "mul", "div"]);
+const INPUT_MODE_STORAGE_KEY = "mathbot_input_mode";
+
+function loadInputMode() {
+  try {
+    const v = localStorage.getItem(INPUT_MODE_STORAGE_KEY);
+    return v === "typed" ? "typed" : "choice";
+  } catch (e) {
+    return "choice";
+  }
+}
+
+function storeInputMode(mode) {
+  try {
+    localStorage.setItem(INPUT_MODE_STORAGE_KEY, mode);
+  } catch (e) {}
+}
+
 async function setLanguage(newLang) {
   LANG = newLang;
   storeLanguage(LANG);
@@ -807,7 +1139,10 @@ const state = {
   lastFeedback: null, // {isCorrect, correctAnswer, chosen, timedOut, operation}
   viewAttemptId: null,
   viewUserId: null,
+  viewGroupId: null,
+  duelId: null,
   navStack: [],
+  inputMode: loadInputMode(), // "choice" | "typed" — add/sub/mul/div uchun javob kiritish uslubi
 };
 
 function pushScreen(screen, extra) {
@@ -842,11 +1177,44 @@ async function api(path, options = {}) {
     let msg = t("genericError");
     try {
       const j = await res.json();
-      msg = j.detail || msg;
+      const errs = I18N[LANG] && I18N[LANG].errors;
+      msg = (j.code && errs && errs[j.code]) || j.detail || msg;
     } catch (e) {}
     throw new Error(msg);
   }
   return res.json();
+}
+
+async function downloadCertificate(sectionKey, btnEl) {
+  const originalText = btnEl ? btnEl.textContent : "";
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = t("loading"); }
+  try {
+    const res = await fetch(`/api/certificate/${encodeURIComponent(sectionKey)}`, {
+      headers: { "X-Telegram-Init-Data": INIT_DATA },
+    });
+    if (!res.ok) {
+      let msg = t("genericError");
+      try {
+        const j = await res.json();
+        const errs = I18N[LANG] && I18N[LANG].errors;
+        msg = (j.code && errs && errs[j.code]) || j.detail || msg;
+      } catch (e) {}
+      throw new Error(msg);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `mathbot_sertifikat_${sectionKey}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (e) {
+    alert(e.message);
+  } finally {
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = originalText; }
+  }
 }
 
 // ---------- Bootstrap ----------
@@ -889,6 +1257,66 @@ function dash(v) {
 // ---------- Kasr ko'rinishi (numerator ustida, denominator ostida) ----------
 function fracHtml(n, d) {
   return `<span class="frac"><span class="num">${dash(n)}</span><span class="den">${dash(d)}</span></span>`;
+}
+
+// ---------- Geometriya uchun oddiy SVG diagramma (javobni oshkor qilmaydi) ----------
+const GEO_DIAGRAM_OPS = new Set(["geo_perimeter", "geo_area", "geo_triangle", "geo_quad", "geo_circle", "geo_pythagoras"]);
+
+function geoDiagramSvg(q) {
+  if (!GEO_DIAGRAM_OPS.has(q.operation)) return "";
+  const stroke = "#6366f1";
+  const fillLight = "#6366f11a";
+  const label = "#1e293b";
+  const wrap = (inner) => `<div class="geo-diagram"><svg viewBox="0 0 220 140" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">${inner}</svg></div>`;
+
+  switch (q.operation) {
+    case "geo_perimeter":
+    case "geo_area": {
+      const x = 30, y = 20, w = 160, h = 85;
+      return wrap(`
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fillLight}" stroke="${stroke}" stroke-width="3"/>
+        <text x="${x + w / 2}" y="${y - 8}" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.a))}</text>
+        <text x="${x - 14}" y="${y + h / 2 + 5}" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.b))}</text>
+      `);
+    }
+    case "geo_triangle": {
+      const base = [[20, 115], [190, 115]];
+      const apex = [105, 20];
+      return wrap(`
+        <polygon points="${base[0].join(",")} ${base[1].join(",")} ${apex.join(",")}" fill="${fillLight}" stroke="${stroke}" stroke-width="3"/>
+        <line x1="${apex[0]}" y1="${apex[1]}" x2="${apex[0]}" y2="115" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="105" y="132" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.a))}</text>
+        <text x="${apex[0] + 14}" y="70" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.b))}</text>
+      `);
+    }
+    case "geo_quad": {
+      return wrap(`
+        <polygon points="60,20 160,20 200,115 20,115" fill="${fillLight}" stroke="${stroke}" stroke-width="3"/>
+        <line x1="60" y1="20" x2="60" y2="115" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="110" y="12" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.a))}</text>
+        <text x="110" y="132" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.b))}</text>
+        <text x="46" y="70" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.c))}</text>
+      `);
+    }
+    case "geo_circle": {
+      return wrap(`
+        <circle cx="110" cy="70" r="55" fill="${fillLight}" stroke="${stroke}" stroke-width="3"/>
+        <line x1="110" y1="70" x2="165" y2="70" stroke="${stroke}" stroke-width="2"/>
+        <circle cx="110" cy="70" r="2.5" fill="${stroke}"/>
+        <text x="137" y="62" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.a))}</text>
+      `);
+    }
+    case "geo_pythagoras": {
+      return wrap(`
+        <polygon points="30,115 190,115 30,25" fill="${fillLight}" stroke="${stroke}" stroke-width="3"/>
+        <polyline points="30,100 45,100 45,115" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+        <text x="110" y="132" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.a))}</text>
+        <text x="14" y="72" text-anchor="middle" font-size="15" fill="${label}">${escapeHtml(String(q.b))}</text>
+      `);
+    }
+    default:
+      return "";
+  }
 }
 
 // ---------- Savol ifodasi (test ekrani va natija tafsiloti uchun umumiy) ----------
@@ -967,7 +1395,34 @@ const EXPLANATIONS = {
   logic_age: (q, ans) => (q.d === 1)
     ? `(${q.a}+${q.c}) + (${q.a}${q.b >= 0 ? "+" : ""}${q.b}+${q.c}) = ${ans}`
     : `${q.a}${q.b >= 0 ? "+" : ""}${q.b}+${q.c} = ${ans}`,
+  algebra_equation: (q, ans) => `${q.display_text} → x = ${ans}`,
+  algebra_inequality: (q, ans) => `${q.display_text} → ${ans}`,
+  algebra_expand: (q, ans) => `${q.display_text} = ${ans}`,
+  algebra_simplify: (q, ans) => `${q.display_text} = ${ans}`,
+  algebra_system: (q, ans) => `${(q.display_text || "").split("\n").join("; ")} → x = ${ans}`,
+  arith_order: (q, ans) => `${q.display_text} = ${ans}`,
+  arith_negative: (q, ans) => `${q.display_text} = ${ans}`,
+  frac_basic: (q, ans) => `${q.a}/${q.b} = ${ans}`,
+  logic_odd_one_out: (q, ans) => `${q.display_text} → ${ans}`,
+  logic_comparison: (q, ans) => `${(q.extra || []).join(", ")} → ${ans}`,
 };
+
+// HINTS: EXPLANATIONS'dan hosil qilingan, javobni oshkor qilmaydigan maslahat
+// (formulaning oxirgi "= javob" yoki "→ javob" qismini olib tashlaydi).
+const NO_HINT_OPS = new Set(["frac_basic"]); // javob formula bilan emas, to'g'ridan-to'g'ri aniqlanadi
+function hintFor(op, q) {
+  if (NO_HINT_OPS.has(op)) return null;
+  const fn = EXPLANATIONS[op];
+  if (!fn) return null;
+  try {
+    const full = fn(q, "???");
+    const stripped = full.replace(/[=→]\s*\?\?\?\s*%?$/, "").trim();
+    if (!stripped || stripped === full.trim()) return null;
+    return stripped;
+  } catch (e) {
+    return null;
+  }
+}
 
 // ---------- Render dispatch ----------
 function render() {
@@ -978,12 +1433,22 @@ function render() {
     case "section": return renderSection();
     case "digits": return renderDigits();
     case "time": return renderTime();
+    case "mixed_time": return renderMixedTime();
+    case "review_time": return renderReviewTime();
+    case "groups": return renderGroups();
+    case "group_detail": return renderGroupDetail();
+    case "group_homework_new": return renderGroupHomeworkNew();
+    case "duel_menu": return renderDuelMenu();
+    case "duel_new": return renderDuelNew();
+    case "duel_result": return renderDuelResult();
     case "test": return renderTest();
     case "test_result": return renderTestResult();
     case "my_results": return renderResultsList(false, null);
     case "admin_attempts": return renderResultsList(true, state.viewUserId);
     case "result_detail": return renderResultDetail();
     case "admin_users": return renderAdminUsers();
+    case "admin_analytics": return renderAdminAnalytics();
+    case "admin_broadcast": return renderAdminBroadcast();
     case "stats": return renderStats();
     case "leaderboard": return renderLeaderboard();
     default: return renderMain();
@@ -1126,6 +1591,38 @@ function renderMain() {
     </div>
   `).join("");
   rows += `
+    <div class="menu-row" id="row-mixed-exam">
+      <div class="icon-badge" style="background:#dc2626">🎯</div>
+      <div>
+        <div class="title">${t("mixedExamTitle")}</div>
+        <div class="desc">${t("mixedExamDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+    <div class="menu-row" id="row-duel">
+      <div class="icon-badge" style="background:#db2777">🤝</div>
+      <div>
+        <div class="title">${t("duelTitle")}</div>
+        <div class="desc">${t("duelDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+    <div class="menu-row" id="row-groups">
+      <div class="icon-badge" style="background:#0891b2">👥</div>
+      <div>
+        <div class="title">${t("groupsTitle")}</div>
+        <div class="desc">${t("groupsDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+    <div class="menu-row" id="row-mistake-review">
+      <div class="icon-badge" style="background:#ea580c">🔁</div>
+      <div>
+        <div class="title">${t("mistakeReviewTitle")}</div>
+        <div class="desc">${t("mistakeReviewDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
     <div class="menu-row" id="row-results">
       <div class="icon-badge" style="background:#14b8a6">📊</div>
       <div>
@@ -1166,6 +1663,10 @@ function renderMain() {
       pushScreen("section");
     };
   });
+  document.getElementById("row-mixed-exam").onclick = () => pushScreen("mixed_time");
+  document.getElementById("row-mistake-review").onclick = () => pushScreen("review_time");
+  document.getElementById("row-groups").onclick = () => pushScreen("groups");
+  document.getElementById("row-duel").onclick = () => pushScreen("duel_menu");
   document.getElementById("row-results").onclick = () => pushScreen("my_results");
   document.getElementById("row-stats").onclick = () => pushScreen("stats");
   const adminRow = document.getElementById("row-admin");
@@ -1256,6 +1757,82 @@ function renderTime() {
   });
 }
 
+// ---------- Aralash/DTM imtihon: vaqt tanlash ----------
+function renderMixedTime() {
+  const buttons = CONFIG.time_options
+    .map((tOpt) => `<button class="choice-btn" data-s="${tOpt.seconds}">${timeLabel(tOpt.seconds)}</button>`)
+    .join("");
+  appEl.innerHTML = `
+    ${header(t("mixedExamTitle"), t("mixedExamTimeSubtitle"), true)}
+    <div class="choice-grid">${buttons}</div>
+  `;
+  bindHeaderControls();
+  document.querySelectorAll(".choice-btn").forEach((el) => {
+    el.onclick = async () => {
+      await startMixedTest(parseInt(el.dataset.s, 10));
+    };
+  });
+}
+
+async function startMixedTest(timePerQuestion) {
+  try {
+    const res = await api("/api/tests/start-mixed", {
+      method: "POST",
+      body: { time_per_question: timePerQuestion },
+    });
+    state.test = res;
+    state.pendingChoice = null;
+    state.lastFeedback = null;
+    state.hintShown = false;
+    state.duelId = null;
+    state.navStack = [];
+    state.screen = "test";
+    render();
+    startTimer();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+// ---------- Xatolarni qayta ko'rish: vaqt tanlash ----------
+function renderReviewTime() {
+  const buttons = CONFIG.time_options
+    .map((tOpt) => `<button class="choice-btn" data-s="${tOpt.seconds}">${timeLabel(tOpt.seconds)}</button>`)
+    .join("");
+  appEl.innerHTML = `
+    ${header(t("mistakeReviewTitle"), t("mistakeReviewTimeSubtitle"), true)}
+    <div class="choice-grid">${buttons}</div>
+  `;
+  bindHeaderControls();
+  document.querySelectorAll(".choice-btn").forEach((el) => {
+    el.onclick = async () => {
+      await startReviewTest(parseInt(el.dataset.s, 10));
+    };
+  });
+}
+
+async function startReviewTest(timePerQuestion) {
+  try {
+    const res = await api("/api/tests/start-review", {
+      method: "POST",
+      body: { time_per_question: timePerQuestion },
+    });
+    state.test = res;
+    state.pendingChoice = null;
+    state.lastFeedback = null;
+    state.hintShown = false;
+    state.duelId = null;
+    state.navStack = [];
+    state.screen = "test";
+    render();
+    startTimer();
+  } catch (e) {
+    alert(e.message);
+    state.screen = "main";
+    render();
+  }
+}
+
 // ---------- Test boshlash ----------
 async function startTest() {
   try {
@@ -1270,6 +1847,8 @@ async function startTest() {
     state.test = res;
     state.pendingChoice = null;
     state.lastFeedback = null;
+    state.hintShown = false;
+    state.duelId = null;
     state.navStack = [];
     state.screen = "test";
     render();
@@ -1308,10 +1887,10 @@ function renderTest() {
     <div class="question-card${wordProblem ? " word-problem" : ""}">
       ${instruction ? `<div class="question-instruction">${instruction}</div>` : ""}
       <div>${questionExprHtml(q)}${questionSuffix(q)}</div>
+      ${geoDiagramSvg(q)}
     </div>
-    <div class="answer-grid" id="answer-grid">
-      ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(translateChoiceLabel(q.operation, c))}</button>`).join("")}
-    </div>
+    ${renderHintArea(q)}
+    ${renderAnswerArea(q, bigChoices)}
     <button class="btn btn-danger-outline" id="btn-finish-test" style="margin-top:18px;">${t("finishTestBtn")}</button>
   `;
 
@@ -1319,6 +1898,76 @@ function renderTest() {
     el.onclick = () => onChooseAnswer(el.dataset.c);
   });
   document.getElementById("btn-finish-test").onclick = showFinishConfirmModal;
+  const hintBtn = document.getElementById("btn-hint");
+  if (hintBtn) {
+    hintBtn.onclick = () => {
+      state.hintShown = true;
+      render();
+    };
+  }
+  bindAnswerAreaControls(q);
+}
+
+function renderAnswerArea(q, bigChoices) {
+  const typedEligible = TYPED_INPUT_OPS.has(q.operation);
+  if (typedEligible && state.inputMode === "typed") {
+    return `
+      <div class="typed-answer-wrap">
+        <input type="number" inputmode="numeric" class="typed-answer-input" id="typed-answer-input" placeholder="?" autocomplete="off" />
+        <button class="btn btn-success" id="btn-typed-submit">${t("submitAnswerBtn")}</button>
+      </div>
+      <button class="input-mode-toggle" id="btn-toggle-input-mode" type="button">${t("switchToChoiceBtn")}</button>
+    `;
+  }
+  const choiceGrid = `
+    <div class="answer-grid" id="answer-grid">
+      ${q.choices.map((c, i) => `<button class="answer-btn${bigChoices ? " compare-btn" : ""}" data-c="${escapeHtml(c)}" data-i="${i}">${escapeHtml(translateChoiceLabel(q.operation, c))}</button>`).join("")}
+    </div>
+  `;
+  if (typedEligible) {
+    return `${choiceGrid}<button class="input-mode-toggle" id="btn-toggle-input-mode" type="button">${t("switchToTypedBtn")}</button>`;
+  }
+  return choiceGrid;
+}
+
+function bindAnswerAreaControls(q) {
+  const toggleBtn = document.getElementById("btn-toggle-input-mode");
+  if (toggleBtn) {
+    toggleBtn.onclick = () => {
+      state.inputMode = state.inputMode === "typed" ? "choice" : "typed";
+      storeInputMode(state.inputMode);
+      render();
+    };
+  }
+  const typedInput = document.getElementById("typed-answer-input");
+  const typedSubmit = document.getElementById("btn-typed-submit");
+  if (typedInput && typedSubmit) {
+    typedInput.focus();
+    const submitTyped = () => {
+      const val = typedInput.value.trim();
+      if (!val) {
+        typedInput.focus();
+        return;
+      }
+      onChooseAnswer(val);
+    };
+    typedSubmit.onclick = submitTyped;
+    typedInput.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitTyped();
+      }
+    };
+  }
+}
+
+function renderHintArea(q) {
+  const hint = hintFor(q.operation, q);
+  if (!hint) return "";
+  if (state.hintShown) {
+    return `<div class="hint-box"><b>${t("hintLabel")}</b> ${escapeHtml(hint)}</div>`;
+  }
+  return `<button class="btn btn-outline hint-btn" id="btn-hint" type="button">${t("hintBtn")}</button>`;
 }
 
 function showFinishConfirmModal() {
@@ -1476,6 +2125,7 @@ async function confirmAnswer(timedOut) {
       } else {
         state.test.question = res.next_question;
         state.lastFeedback = null;
+        state.hintShown = false;
         render();
         startTimer();
       }
@@ -1555,6 +2205,9 @@ function renderTestResult() {
   if (t_.streak && t_.streak.current > 1) {
     toasts += `<div class="toast-banner streak">${t("streakToast")(t_.streak.current)}</div>`;
   }
+  if (t_.streak && t_.streak.freeze_used) {
+    toasts += `<div class="toast-banner streak">${t("freezeUsedToast")}</div>`;
+  }
   const dict = I18N[LANG] || I18N.uz;
   (t_.newAchievements || []).forEach((key) => {
     const meta = dict.achievements[key];
@@ -1567,11 +2220,19 @@ function renderTestResult() {
       ${summaryLine}
     </div>
     ${toasts}
+    ${state.duelId ? `<button class="btn btn-success" id="btn-duel-result" style="margin-bottom:10px;">${t("duelResultBtn")}</button>` : ""}
     <button class="btn btn-primary" id="btn-detail">${t("detailBtn")}</button>
     <div style="height:10px"></div>
     <button class="btn btn-outline" id="btn-home">${t("homeBtn")}</button>
   `;
   bindHeaderControls();
+  const duelBtn = document.getElementById("btn-duel-result");
+  if (duelBtn) {
+    duelBtn.onclick = () => {
+      state.navStack = [];
+      pushScreen("duel_result");
+    };
+  }
   document.getElementById("btn-detail").onclick = () => {
     state.viewAttemptId = t_.attempt_id;
     state.navStack = [];
@@ -1689,11 +2350,17 @@ async function renderAdminUsers() {
   bindHeaderControls();
   try {
     const res = await api("/api/admin/users");
-    const exportBtn = `<button class="btn btn-outline" id="btn-admin-export" style="margin-bottom:14px;">${t("adminExportBtn")}</button>`;
+    const topBtns = `
+      <div class="btn-row" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-outline" id="btn-admin-export">${t("adminExportBtn")}</button>
+        <button class="btn btn-outline" id="btn-admin-analytics">${t("adminAnalyticsBtn")}</button>
+        <button class="btn btn-outline" id="btn-admin-broadcast">${t("adminBroadcastBtn")}</button>
+      </div>`;
     if (!res.users.length) {
-      appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${exportBtn}<div class="empty-state">${t("noUsersYet")}</div>`;
+      appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${topBtns}<div class="empty-state">${t("noUsersYet")}</div>`;
       bindHeaderControls();
       bindAdminExportBtn();
+      bindAdminTopBtns();
       return;
     }
     const rows = res.users.map((u) => `
@@ -1702,9 +2369,10 @@ async function renderAdminUsers() {
         <div class="sub">${u.username ? "@" + u.username : t("noUsername")} · ${t("testsCountSuffix")(u.attempts_count)}</div>
         <div class="stats"><span class="c">✔ ${u.total_correct}</span><span class="w">✘ ${u.total_wrong}</span></div>
       </div>`).join("");
-    appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${exportBtn}<div>${rows}</div>`;
+    appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${topBtns}<div>${rows}</div>`;
     bindHeaderControls();
     bindAdminExportBtn();
+    bindAdminTopBtns();
     document.querySelectorAll(".admin-user-row").forEach((el) => {
       el.onclick = () => {
         state.viewUserId = parseInt(el.dataset.id, 10);
@@ -1715,6 +2383,92 @@ async function renderAdminUsers() {
     appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
     bindHeaderControls();
   }
+}
+
+function bindAdminTopBtns() {
+  const analyticsBtn = document.getElementById("btn-admin-analytics");
+  if (analyticsBtn) analyticsBtn.onclick = () => pushScreen("admin_analytics");
+  const broadcastBtn = document.getElementById("btn-admin-broadcast");
+  if (broadcastBtn) broadcastBtn.onclick = () => pushScreen("admin_broadcast");
+}
+
+// ---------- Admin: analitika (DAU + ommabop mavzular) ----------
+async function renderAdminAnalytics() {
+  appEl.innerHTML = `${header(t("adminAnalyticsBtn"), null, true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api("/api/admin/analytics");
+    const dauMax = Math.max(1, ...res.daily_active.map((d) => d.active_users));
+    const dauRows = res.daily_active.map((d) => `
+      <div class="topic-stat-row">
+        <div class="topic-stat-label">${d.day.slice(5)}</div>
+        <div class="topic-stat-bar-track"><div class="topic-stat-bar-fill" style="width:${(d.active_users / dauMax) * 100}%"></div></div>
+        <div class="topic-stat-pct">${d.active_users}</div>
+      </div>`).join("");
+
+    const topicsMax = Math.max(1, ...res.popular_topics.map((tp) => tp.total));
+    const topicRows = res.popular_topics.map((tp) => `
+      <div class="topic-stat-row">
+        <div class="topic-stat-label">${opLabel(tp.operation)}</div>
+        <div class="topic-stat-bar-track"><div class="topic-stat-bar-fill" style="width:${(tp.total / topicsMax) * 100}%"></div></div>
+        <div class="topic-stat-pct">${tp.total}</div>
+      </div>`).join("") || `<div class="empty-state">${t("noTopicStatsYet")}</div>`;
+
+    appEl.innerHTML = `
+      ${header(t("adminAnalyticsBtn"), null, true)}
+      <div class="stat-card">
+        <div class="stat-card-title">${t("analyticsSummaryTitle")}</div>
+        <div>${t("analyticsTotalUsers")(res.total_users)}</div>
+        <div style="margin-top:4px;">${t("analyticsTotalAttempts")(res.total_attempts)}</div>
+        <div style="margin-top:4px;">${t("analyticsTotalQuestions")(res.total_questions_answered)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("analyticsDauTitle")}</div>
+        ${dauRows}
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">${t("analyticsPopularTitle")}</div>
+        ${topicRows}
+      </div>
+    `;
+    bindHeaderControls();
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+// ---------- Admin: barcha foydalanuvchilarga xabar yuborish ----------
+function renderAdminBroadcast() {
+  appEl.innerHTML = `
+    ${header(t("adminBroadcastBtn"), t("broadcastDesc"), true)}
+    <textarea id="broadcast-text" class="broadcast-textarea" rows="6" placeholder="${t("broadcastPlaceholder")}"></textarea>
+    <button class="btn btn-success" id="btn-broadcast-send" style="margin-top:12px;">${t("broadcastSendBtn")}</button>
+    <div id="broadcast-result" style="margin-top:12px;"></div>
+  `;
+  bindHeaderControls();
+  document.getElementById("btn-broadcast-send").onclick = async () => {
+    const textarea = document.getElementById("broadcast-text");
+    const resultEl = document.getElementById("broadcast-result");
+    const message = textarea.value.trim();
+    if (!message) {
+      textarea.focus();
+      return;
+    }
+    if (!confirm(t("broadcastConfirm"))) return;
+    const btn = document.getElementById("btn-broadcast-send");
+    btn.disabled = true;
+    resultEl.innerHTML = `<div class="empty-state">${t("loading")}</div>`;
+    try {
+      const res = await api("/api/admin/broadcast", { method: "POST", body: { message } });
+      resultEl.innerHTML = `<div class="feedback-banner correct">${t("broadcastResult")(res.sent, res.failed, res.total)}</div>`;
+      textarea.value = "";
+    } catch (e) {
+      resultEl.innerHTML = `<div class="feedback-banner wrong">${escapeHtml(e.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  };
 }
 
 function bindAdminExportBtn() {
@@ -1762,7 +2516,9 @@ async function renderStats() {
             <div class="topic-stat-label">${sectionLabel(ts.section)}</div>
             <div class="topic-stat-bar-track"><div class="topic-stat-bar-fill" style="width:${ts.accuracy}%"></div></div>
             <div class="topic-stat-pct">${ts.accuracy}%</div>
-          </div>`).join("")
+          </div>
+          ${ts.certificate_available ? `<button class="btn btn-outline certificate-btn" data-section="${ts.section}" style="margin:2px 0 10px 0;font-size:12.5px;padding:6px 12px;">${t("certificateBtn")}</button>` : ""}
+        `).join("")
       : `<div class="empty-state">${t("noTopicStatsYet")}</div>`;
 
     const achievementCards = res.achievements.map((a) => {
@@ -1783,6 +2539,7 @@ async function renderStats() {
         <div class="stat-card-title">${t("streakCardTitle")}</div>
         <div>${t("streakCurrent")(res.streak.current)}</div>
         <div style="margin-top:4px;">${t("streakLongest")(res.streak.longest)}</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--hint);">${res.streak.freeze_available ? t("freezeAvailable") : t("freezeUnavailable")}</div>
       </div>
       <div class="stat-card">
         <div class="stat-card-title">${t("rankCardTitle")}</div>
@@ -1808,6 +2565,9 @@ async function renderStats() {
     bindHeaderControls();
     const lbBtn = document.getElementById("btn-view-leaderboard");
     if (lbBtn) lbBtn.onclick = () => pushScreen("leaderboard");
+    document.querySelectorAll(".certificate-btn").forEach((el) => {
+      el.onclick = () => downloadCertificate(el.dataset.section, el);
+    });
     const copyBtn = document.getElementById("btn-copy-referral");
     if (copyBtn) {
       copyBtn.onclick = async () => {
@@ -1825,6 +2585,387 @@ async function renderStats() {
     appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
     bindHeaderControls();
   }
+}
+
+// ---------- Do'stni chaqirish (async duel) ----------
+function renderDuelMenu() {
+  appEl.innerHTML = `
+    ${header(t("duelTitle"), t("duelDesc"), true)}
+    <button class="btn btn-success" id="btn-duel-new" style="margin-bottom:12px;">${t("duelNewBtn")}</button>
+    <button class="btn btn-outline" id="btn-duel-join">${t("duelJoinBtn")}</button>
+  `;
+  bindHeaderControls();
+  document.getElementById("btn-duel-new").onclick = () => pushScreen("duel_new");
+  document.getElementById("btn-duel-join").onclick = showJoinDuelModal;
+}
+
+function showJoinDuelModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>${t("duelJoinBtn")}</h3>
+      <input type="text" class="typed-answer-input" id="duel-code-input" placeholder="${t("joinCodePlaceholder")}" style="width:100%;box-sizing:border-box;text-align:center;font-size:20px;letter-spacing:2px;margin:10px 0;text-transform:uppercase;" maxlength="8" />
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-modal-cancel">${t("rethinkBtn")}</button>
+        <button class="btn btn-success" id="btn-modal-confirm">${t("duelJoinBtn")}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const input = document.getElementById("duel-code-input");
+  input.focus();
+  document.getElementById("btn-modal-cancel").onclick = () => modal.remove();
+  document.getElementById("btn-modal-confirm").onclick = async () => {
+    const code = input.value.trim();
+    if (!code) { input.focus(); return; }
+    try {
+      const res = await api("/api/duels/join", { method: "POST", body: { join_code: code } });
+      modal.remove();
+      state.test = res;
+      state.pendingChoice = null;
+      state.lastFeedback = null;
+      state.hintShown = false;
+      state.duelId = res.duel_id;
+      state.navStack = [];
+      state.screen = "test";
+      render();
+      startTimer();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+}
+
+function renderDuelNew() {
+  const opOptions = Object.keys(CONFIG.operations)
+    .map((key) => `<option value="${key}">${escapeHtml(opLabel(key))}</option>`)
+    .join("");
+  const digitOptions = [];
+  for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
+    digitOptions.push(`<option value="${d}">${t("levelLabel")(d)}</option>`);
+  }
+  const timeOptions = CONFIG.time_options
+    .map((tOpt) => `<option value="${tOpt.seconds}">${timeLabel(tOpt.seconds)}</option>`)
+    .join("");
+
+  appEl.innerHTML = `
+    ${header(t("duelNewBtn"), null, true)}
+    <div class="stat-card">
+      <div class="stat-card-title">${t("homeworkOperationLabel")}</div>
+      <select id="duel-operation" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${opOptions}</select>
+      <div class="stat-card-title">${t("homeworkLevelLabel")}</div>
+      <select id="duel-digits" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${digitOptions.join("")}</select>
+      <div class="stat-card-title">${t("homeworkTimeLabel")}</div>
+      <select id="duel-time" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${timeOptions}</select>
+      <div class="stat-card-title">${t("homeworkCountLabel")}</div>
+      <input type="number" id="duel-count" class="typed-answer-input" style="width:100%;box-sizing:border-box;" value="10" min="5" max="50" />
+    </div>
+    <button class="btn btn-success" id="btn-duel-create" style="margin-top:14px;">${t("duelCreateBtn")}</button>
+  `;
+  bindHeaderControls();
+  document.getElementById("btn-duel-create").onclick = async () => {
+    const operation = document.getElementById("duel-operation").value;
+    const digits = parseInt(document.getElementById("duel-digits").value, 10);
+    const time_per_question = parseInt(document.getElementById("duel-time").value, 10);
+    const question_count = parseInt(document.getElementById("duel-count").value, 10);
+    try {
+      const res = await api("/api/duels", {
+        method: "POST",
+        body: { operation, digits, time_per_question, question_count },
+      });
+      state.test = res;
+      state.pendingChoice = null;
+      state.lastFeedback = null;
+      state.hintShown = false;
+      state.duelId = res.duel_id;
+      state.navStack = [];
+      state.pendingDuelCode = res.join_code;
+      state.screen = "test";
+      render();
+      startTimer();
+      alert(t("duelCreatedAlert")(res.join_code));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+}
+
+async function renderDuelResult() {
+  appEl.innerHTML = `${header(t("duelResultTitle"), null, true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api(`/api/duels/${state.duelId}`);
+    const side = (p, isMe) => {
+      if (!p) {
+        return `<div class="stat-card"><div class="stat-card-title">${t("duelWaitingForFriend")}</div></div>`;
+      }
+      const label = isMe ? t("duelYou") : `${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)}`;
+      const scoreText = p.finished ? `${p.correct_count}/${p.total_questions}` : t("duelNotFinished");
+      return `<div class="stat-card"><div class="stat-card-title">${label}</div><div style="font-size:20px;font-weight:700;">${scoreText}</div></div>`;
+    };
+    const myId = ME.telegram_id;
+    const creatorIsMe = res.creator && res.creator.telegram_id === myId;
+    const meSide = creatorIsMe ? res.creator : res.opponent;
+    const otherSide = creatorIsMe ? res.opponent : res.creator;
+
+    let resultBanner = "";
+    if (res.both_finished) {
+      if (meSide.correct_count > otherSide.correct_count) resultBanner = `<div class="feedback-banner correct">${t("duelYouWon")}</div>`;
+      else if (meSide.correct_count < otherSide.correct_count) resultBanner = `<div class="feedback-banner wrong">${t("duelYouLost")}</div>`;
+      else resultBanner = `<div class="feedback-banner">${t("duelTie")}</div>`;
+    } else {
+      resultBanner = `<div class="empty-state">${t("duelWaitingMsg")}</div>`;
+    }
+
+    appEl.innerHTML = `
+      ${header(t("duelResultTitle"), null, true)}
+      ${resultBanner}
+      ${side(meSide, true)}
+      ${side(otherSide, false)}
+      ${!res.both_finished ? `<button class="btn btn-outline" id="btn-duel-refresh" style="margin-top:10px;">${t("duelRefreshBtn")}</button>` : ""}
+    `;
+    bindHeaderControls();
+    const refreshBtn = document.getElementById("btn-duel-refresh");
+    if (refreshBtn) refreshBtn.onclick = () => render();
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+// ---------- Guruh/sinf va uy vazifasi ----------
+async function renderGroups() {
+  appEl.innerHTML = `${header(t("groupsTitle"), t("groupsDesc"), true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api("/api/groups");
+    const actionBtns = `
+      <div class="btn-row" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-success" id="btn-create-group">${t("createGroupBtn")}</button>
+        <button class="btn btn-outline" id="btn-join-group">${t("joinGroupBtn")}</button>
+      </div>`;
+    const rows = res.groups.length
+      ? res.groups.map((g) => `
+          <div class="menu-row" data-id="${g.id}">
+            <div class="icon-badge" style="background:#0891b2">${g.is_owner ? "🎓" : "👥"}</div>
+            <div>
+              <div class="title">${escapeHtml(g.name)}</div>
+              <div class="desc">${t("groupMemberCount")(g.member_count)}${g.is_owner ? " · " + t("groupOwnerBadge") : ""}</div>
+            </div>
+            <div class="chevron">›</div>
+          </div>`).join("")
+      : `<div class="empty-state">${t("noGroupsYet")}</div>`;
+    appEl.innerHTML = `${header(t("groupsTitle"), t("groupsDesc"), true)}${actionBtns}<div>${rows}</div>`;
+    bindHeaderControls();
+    document.querySelectorAll(".menu-row[data-id]").forEach((el) => {
+      el.onclick = () => {
+        state.viewGroupId = parseInt(el.dataset.id, 10);
+        pushScreen("group_detail");
+      };
+    });
+    document.getElementById("btn-create-group").onclick = showCreateGroupModal;
+    document.getElementById("btn-join-group").onclick = showJoinGroupModal;
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+function showCreateGroupModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>${t("createGroupBtn")}</h3>
+      <input type="text" class="typed-answer-input" id="group-name-input" placeholder="${t("groupNamePlaceholder")}" style="width:100%;box-sizing:border-box;text-align:left;font-size:16px;margin:10px 0;" maxlength="60" />
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-modal-cancel">${t("rethinkBtn")}</button>
+        <button class="btn btn-success" id="btn-modal-confirm">${t("createGroupBtn")}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const input = document.getElementById("group-name-input");
+  input.focus();
+  document.getElementById("btn-modal-cancel").onclick = () => modal.remove();
+  document.getElementById("btn-modal-confirm").onclick = async () => {
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    try {
+      const res = await api("/api/groups", { method: "POST", body: { name } });
+      modal.remove();
+      state.viewGroupId = res.group.id;
+      pushScreen("group_detail");
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+}
+
+function showJoinGroupModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>${t("joinGroupBtn")}</h3>
+      <input type="text" class="typed-answer-input" id="join-code-input" placeholder="${t("joinCodePlaceholder")}" style="width:100%;box-sizing:border-box;text-align:center;font-size:20px;letter-spacing:2px;margin:10px 0;text-transform:uppercase;" maxlength="8" />
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-modal-cancel">${t("rethinkBtn")}</button>
+        <button class="btn btn-success" id="btn-modal-confirm">${t("joinGroupBtn")}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const input = document.getElementById("join-code-input");
+  input.focus();
+  document.getElementById("btn-modal-cancel").onclick = () => modal.remove();
+  document.getElementById("btn-modal-confirm").onclick = async () => {
+    const code = input.value.trim();
+    if (!code) { input.focus(); return; }
+    try {
+      const res = await api("/api/groups/join", { method: "POST", body: { join_code: code } });
+      modal.remove();
+      state.viewGroupId = res.group_id;
+      pushScreen("group_detail");
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+}
+
+async function renderGroupDetail() {
+  appEl.innerHTML = `${header(t("groupDetailTitle"), null, true)}<div class="empty-state">${t("loading")}</div>`;
+  bindHeaderControls();
+  try {
+    const res = await api(`/api/groups/${state.viewGroupId}`);
+    const g = res.group;
+    state.currentGroupIsOwner = g.is_owner;
+
+    const memberRows = res.members.map((m, i) => `
+      <div class="leaderboard-row">
+        <div class="lb-rank">${i + 1}</div>
+        <div class="lb-name">${escapeHtml(m.first_name)} ${escapeHtml(m.last_name)}</div>
+        <div class="lb-points">${t("pointsSuffix")(m.total_correct)}</div>
+      </div>`).join("");
+
+    const homeworkRows = res.homework.length
+      ? res.homework.map((hw) => {
+          const opText = opLabel(hw.operation);
+          if (g.is_owner) {
+            const doneCount = hw.completion.filter((c) => c.completed).length;
+            return `
+              <div class="stat-card" style="margin-bottom:10px;">
+                <div class="stat-card-title">${opText} · ${t("levelLabel")(hw.digits)}</div>
+                <div style="font-size:13px;color:var(--hint);">${t("homeworkCompletionCount")(doneCount, hw.completion.length)}</div>
+              </div>`;
+          }
+          const done = hw.my_status.completed;
+          return `
+            <div class="stat-card" style="margin-bottom:10px;">
+              <div class="stat-card-title">${opText} · ${t("levelLabel")(hw.digits)}</div>
+              ${done
+                ? `<div style="color:var(--green,#16a34a);font-size:13.5px;">✅ ${t("homeworkDoneLabel")(hw.my_status.correct_count, hw.my_status.total_questions)}</div>`
+                : `<button class="btn btn-success homework-start-btn" data-hw="${hw.id}" style="margin-top:6px;">${t("homeworkStartBtn")}</button>`}
+            </div>`;
+        }).join("")
+      : `<div class="empty-state">${t("noHomeworkYet")}</div>`;
+
+    const ownerBtn = g.is_owner
+      ? `<button class="btn btn-outline" id="btn-new-homework" style="margin-bottom:14px;">${t("newHomeworkBtn")}</button>`
+      : "";
+    const joinCodeBox = g.is_owner
+      ? `<div class="stat-card"><div class="stat-card-title">${t("joinCodeLabel")}</div><div class="referral-code" id="group-code-copy">${escapeHtml(g.join_code)}</div></div>`
+      : "";
+
+    appEl.innerHTML = `
+      ${header(escapeHtml(g.name), null, true)}
+      ${joinCodeBox}
+      ${ownerBtn}
+      <div class="stat-card">
+        <div class="stat-card-title">${t("groupMembersTitle")}</div>
+        ${memberRows}
+      </div>
+      <div class="stat-card-title" style="margin:16px 4px 8px 4px;font-weight:700;">${t("groupHomeworkTitle")}</div>
+      ${homeworkRows}
+    `;
+    bindHeaderControls();
+    const newHwBtn = document.getElementById("btn-new-homework");
+    if (newHwBtn) newHwBtn.onclick = () => pushScreen("group_homework_new");
+    const codeBox = document.getElementById("group-code-copy");
+    if (codeBox) {
+      codeBox.onclick = async () => {
+        try { await navigator.clipboard.writeText(g.join_code); } catch (e) {}
+      };
+    }
+    document.querySelectorAll(".homework-start-btn").forEach((el) => {
+      el.onclick = () => startHomeworkTest(parseInt(el.dataset.hw, 10));
+    });
+  } catch (e) {
+    appEl.innerHTML = `${header(t("errorTitle"), null, true)}<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    bindHeaderControls();
+  }
+}
+
+async function startHomeworkTest(homeworkId) {
+  try {
+    const res = await api(`/api/homework/${homeworkId}/start`, { method: "POST" });
+    state.test = res;
+    state.pendingChoice = null;
+    state.lastFeedback = null;
+    state.hintShown = false;
+    state.duelId = null;
+    state.navStack = [];
+    state.screen = "test";
+    render();
+    startTimer();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function renderGroupHomeworkNew() {
+  const opOptions = Object.keys(CONFIG.operations)
+    .map((key) => `<option value="${key}">${escapeHtml(opLabel(key))}</option>`)
+    .join("");
+  const digitOptions = [];
+  for (let d = CONFIG.min_digits; d <= CONFIG.max_digits; d++) {
+    digitOptions.push(`<option value="${d}">${t("levelLabel")(d)}</option>`);
+  }
+  const timeOptions = CONFIG.time_options
+    .map((tOpt) => `<option value="${tOpt.seconds}">${timeLabel(tOpt.seconds)}</option>`)
+    .join("");
+
+  appEl.innerHTML = `
+    ${header(t("newHomeworkBtn"), null, true)}
+    <div class="stat-card">
+      <div class="stat-card-title">${t("homeworkOperationLabel")}</div>
+      <select id="hw-operation" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${opOptions}</select>
+      <div class="stat-card-title">${t("homeworkLevelLabel")}</div>
+      <select id="hw-digits" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${digitOptions.join("")}</select>
+      <div class="stat-card-title">${t("homeworkTimeLabel")}</div>
+      <select id="hw-time" class="typed-answer-input" style="width:100%;box-sizing:border-box;margin-bottom:12px;">${timeOptions}</select>
+      <div class="stat-card-title">${t("homeworkCountLabel")}</div>
+      <input type="number" id="hw-count" class="typed-answer-input" style="width:100%;box-sizing:border-box;" value="20" min="5" max="50" />
+    </div>
+    <button class="btn btn-success" id="btn-hw-create" style="margin-top:14px;">${t("homeworkAssignBtn")}</button>
+  `;
+  bindHeaderControls();
+  document.getElementById("btn-hw-create").onclick = async () => {
+    const operation = document.getElementById("hw-operation").value;
+    const digits = parseInt(document.getElementById("hw-digits").value, 10);
+    const time_per_question = parseInt(document.getElementById("hw-time").value, 10);
+    const question_count = parseInt(document.getElementById("hw-count").value, 10);
+    try {
+      await api(`/api/groups/${state.viewGroupId}/homework`, {
+        method: "POST",
+        body: { operation, digits, time_per_question, question_count },
+      });
+      goBack();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
 }
 
 // ---------- Reyting (leaderboard) ----------

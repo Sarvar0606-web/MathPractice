@@ -1548,3 +1548,76 @@ def generate_test(operation: str, digits: int, count: int) -> list[dict]:
     while len(questions) < count:
         questions.append(generate_question(operation, digits))
     return questions
+
+
+# ============================================================
+# ARALASH / DTM IMTIHON REJIMI
+# ============================================================
+
+ALL_OPS = (
+    ARITHMETIC_OPS | FRACTION_OPS | PERCENT_OPS | ALGEBRA_OPS
+    | GEOMETRY_OPS | FUNCTION_OPS | STATISTICS_OPS | LOGIC_OPS
+)
+# DTM uslubidagi aralash imtihonda faqat "compare"ni chiqarmaymiz — u juda
+# oson va boshqa savollar bilan uslubiy mos kelmaydi.
+_MIXED_EXAM_OPS = sorted(ALL_OPS - {"compare"})
+_MIXED_EXAM_LEVELS = [2, 3, 4]  # o'rtacha qiyinlik oralig'i
+
+
+def generate_review_test(weak_ops: list[dict], count: int) -> list[dict]:
+    """'Xatolarni qayta ko'rish' rejimi uchun — foydalanuvchi ko'proq xato
+    qilgan amallardan (og'irlik bilan) `count` ta YANGI savol generatsiya
+    qiladi (xato javob asl holicha qaytarilmaydi — yangi, xuddi shu
+    turdagi savol tuziladi)."""
+    if not weak_ops:
+        return []
+    pool = []
+    for w in weak_ops:
+        # ko'proq xato qilingan amal ko'proq savolda uchraydi
+        weight = max(1, min(6, w["wrong_count"]))
+        pool.extend([(w["operation"], w["level"])] * weight)
+    random.shuffle(pool)
+
+    sequence = []
+    while len(sequence) < count:
+        random.shuffle(pool)
+        sequence.extend(pool)
+    sequence = sequence[:count]
+
+    questions = []
+    for op, level in sequence:
+        try:
+            q = generate_question(op, level)
+        except Exception:
+            continue
+        questions.append(q)
+    while len(questions) < count and weak_ops:
+        op, level = random.choice([(w["operation"], w["level"]) for w in weak_ops])
+        questions.append(generate_question(op, level))
+    return questions
+
+
+def generate_mixed_test(count: int) -> list[dict]:
+    """Aralash/DTM imtihoni uchun turli amallardan (turli qiyinlikda)
+    `count` ta savol generatsiya qiladi. Har bir savol o'z 'operation'ini
+    saqlaydi (questions jadvalida allaqachon shunday qilib saqlanadi)."""
+    pool = list(_MIXED_EXAM_OPS)
+    random.shuffle(pool)
+    ops_sequence = []
+    while len(ops_sequence) < count:
+        random.shuffle(pool)
+        ops_sequence.extend(pool)
+    ops_sequence = ops_sequence[:count]
+
+    questions = []
+    for op in ops_sequence:
+        level = random.choice(_MIXED_EXAM_LEVELS)
+        try:
+            q = generate_question(op, level)
+        except Exception:
+            continue
+        questions.append(q)
+    while len(questions) < count:
+        op = random.choice(_MIXED_EXAM_OPS)
+        questions.append(generate_question(op, random.choice(_MIXED_EXAM_LEVELS)))
+    return questions

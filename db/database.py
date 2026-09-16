@@ -158,6 +158,59 @@ def init_db():
     _ensure_column(conn, "users", "last_test_date", "TEXT")
     _ensure_column(conn, "users", "referral_code", "TEXT")
     _ensure_column(conn, "users", "referred_by_id", "INTEGER")
+    _ensure_column(conn, "users", "streak_freeze_log", "TEXT NOT NULL DEFAULT '[]'")
+    _ensure_column(conn, "attempts", "homework_id", "INTEGER")
+    _ensure_column(conn, "attempts", "duel_id", "INTEGER")
+
+    conn.executescript("""
+    CREATE TABLE IF NOT EXISTS groups (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT NOT NULL,
+        join_code   TEXT NOT NULL UNIQUE,
+        owner_id    INTEGER NOT NULL REFERENCES users(telegram_id),
+        created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS group_members (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_id    INTEGER NOT NULL REFERENCES groups(id),
+        user_id     INTEGER NOT NULL REFERENCES users(telegram_id),
+        joined_at   TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(group_id, user_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS homework (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_id        INTEGER NOT NULL REFERENCES groups(id),
+        operation       TEXT NOT NULL,
+        digits          INTEGER NOT NULL,
+        question_count  INTEGER NOT NULL,
+        time_per_q      INTEGER NOT NULL,
+        created_by      INTEGER NOT NULL REFERENCES users(telegram_id),
+        created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        due_at          TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
+    CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+    CREATE INDEX IF NOT EXISTS idx_homework_group ON homework(group_id);
+
+    CREATE TABLE IF NOT EXISTS duels (
+        id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+        creator_id            INTEGER NOT NULL REFERENCES users(telegram_id),
+        opponent_id           INTEGER REFERENCES users(telegram_id),
+        operation             TEXT NOT NULL,
+        digits                INTEGER NOT NULL,
+        question_count        INTEGER NOT NULL,
+        time_per_q            INTEGER NOT NULL,
+        join_code             TEXT NOT NULL UNIQUE,
+        questions_json        TEXT NOT NULL,
+        creator_attempt_id    INTEGER REFERENCES attempts(id),
+        opponent_attempt_id   INTEGER REFERENCES attempts(id),
+        created_at            TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_duels_join_code ON duels(join_code);
+    """)
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code "
         "ON users(referral_code) WHERE referral_code IS NOT NULL"

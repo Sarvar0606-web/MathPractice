@@ -488,6 +488,86 @@ html, body {
 }
 .explanation-box b { color: var(--accent-dark); margin-right: 4px; }
 
+/* ---------- Yozib javob berish (typed answer) ---------- */
+.typed-answer-wrap {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 6px 0;
+}
+.typed-answer-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 22px;
+  text-align: center;
+  padding: 12px 10px;
+  border-radius: 12px;
+  border: 2px solid var(--border, #e2e8f0);
+  background: var(--card-bg);
+  color: var(--text);
+}
+.typed-answer-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.input-mode-toggle {
+  display: block;
+  width: auto;
+  margin: 0 auto 14px auto;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  border: none;
+  background: none;
+  color: var(--accent-dark, var(--accent));
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Admin: xabar yuborish (broadcast) ---------- */
+.broadcast-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-family: inherit;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid var(--border, #e2e8f0);
+  background: var(--card-bg);
+  color: var(--text);
+  resize: vertical;
+}
+.broadcast-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ---------- Geometriya diagrammasi ---------- */
+.geo-diagram {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+.geo-diagram svg { max-width: 260px; }
+
+/* ---------- Yordam (hint) ---------- */
+.hint-btn {
+  width: auto;
+  display: block;
+  margin: 0 auto 14px auto;
+  padding: 6px 16px;
+  font-size: 13px;
+  border-radius: 20px;
+}
+.hint-box {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 14px;
+  border-left: 4px dashed var(--accent);
+}
+.hint-box b { color: var(--accent-dark); margin-right: 4px; }
+
 /* ---------- Seriya / yutuq toast'lari (test yakunida) ---------- */
 .toast-banner {
   border-radius: 14px;
