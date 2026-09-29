@@ -258,6 +258,15 @@ qilmaydi.
     qo'shilgan — eslatmalar yuborilgach, skript `data/backups/` papkasiga
     sanani o'z ichiga olgan nusxa yozadi va eng so'nggi 14 tasidan
     ortig'ini avtomatik o'chiradi.
+21. **"Vaqtsiz" rejim** — har bir savol uchun vaqt tanlash ekranida (oddiy
+    test, aralash imtihon, xatolarni qayta ko'rish, uy vazifasi, duel —
+    barchasida) "Vaqtsiz" degan qo'shimcha variant mavjud: savolga hech
+    qanday vaqt chegarasi qo'yilmaydi va hisoblagich orqaga sanamaydi.
+    Shunga qaramay, har bir savolga necha vaqt sarflanganligi baribir
+    o'lchanadi va **Natijalarim → test tafsiloti** ekranida har bir savol
+    qatorida (daqiqa:soniya, uzoq davom etsa soat:daqiqa:soniya shaklida)
+    ko'rsatiladi — bu vaqtli testlarda ham, "Vaqtsiz" rejimida ham bir xil
+    ishlaydi.
 
 ## Loyiha tuzilishi
 

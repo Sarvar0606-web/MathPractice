@@ -53,13 +53,17 @@ QUESTIONS_PER_TEST = 20
 MIN_DIGITS = 1
 MAX_DIGITS = 5
 
-# Har bir savol uchun tanlanadigan vaqt variantlari (soniyalarda)
+# Har bir savol uchun tanlanadigan vaqt variantlari (soniyalarda).
+# "seconds": 0 — "Vaqtsiz" (cheklovsiz) rejimini bildiradi: savolga hech
+# qanday vaqt chegarasi qo'yilmaydi, lekin sarflangan vaqt baribir
+# o'lchanib statistikaga yoziladi.
 TIME_OPTIONS = [
     {"label": "30 soniya", "seconds": 30},
     {"label": "1 daqiqa", "seconds": 60},
     {"label": "2 daqiqa", "seconds": 120},
     {"label": "3 daqiqa", "seconds": 180},
     {"label": "5 daqiqa", "seconds": 300},
+    {"label": "Vaqtsiz", "seconds": 0},
 ]
 
 # Bosh menyudagi bo'limlar. Har bir amal (OPERATIONS) o'z bo'limiga

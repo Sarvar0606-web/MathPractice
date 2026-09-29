@@ -27,6 +27,12 @@ def current_user():
     return get_current_telegram_user()
 
 
+def _valid_time_per_question(seconds: int) -> bool:
+    """Har bir savol uchun ajratilgan vaqt to'g'ri qiymatmi?
+    0 — 'vaqtsiz' (cheklovsiz) rejimini bildiradi."""
+    return seconds == 0 or 5 <= seconds <= 3600
+
+
 @api_bp.errorhandler(AuthError)
 def handle_auth_error(e: AuthError):
     return err(e.status, e.message)
@@ -315,7 +321,7 @@ def start_test():
         return err(400, "Noto'g'ri amal turi", "invalid_operation")
     if not (MIN_DIGITS <= digits <= MAX_DIGITS):
         return err(400, "Noto'g'ri xonalar soni", "invalid_digits")
-    if not (5 <= time_per_question <= 3600):
+    if not _valid_time_per_question(time_per_question):
         return err(400, "Noto'g'ri vaqt", "invalid_time")
 
     questions = generate_test(operation, digits, QUESTIONS_PER_TEST)
@@ -355,7 +361,7 @@ def start_mixed_test():
         time_per_question = int(body.get("time_per_question"))
     except (TypeError, ValueError):
         return err(400, "Noto'g'ri parametrlar", "invalid_params")
-    if not (5 <= time_per_question <= 3600):
+    if not _valid_time_per_question(time_per_question):
         return err(400, "Noto'g'ri vaqt", "invalid_time")
 
     questions = generate_mixed_test(QUESTIONS_PER_TEST)
@@ -405,7 +411,7 @@ def start_review_test():
         time_per_question = int(body.get("time_per_question"))
     except (TypeError, ValueError):
         return err(400, "Noto'g'ri parametrlar", "invalid_params")
-    if not (5 <= time_per_question <= 3600):
+    if not _valid_time_per_question(time_per_question):
         return err(400, "Noto'g'ri vaqt", "invalid_time")
 
     weak = crud.weak_operations(tg_user["id"], limit=12)
@@ -613,6 +619,7 @@ def result_detail(attempt_id: int):
                 "selected_answer": q["selected_answer"],
                 "is_correct": bool(q["is_correct"]) if q["is_correct"] is not None else None,
                 "status": q["status"],
+                "time_taken_ms": q["time_taken_ms"],
             }
             for q in questions
         ],
@@ -817,7 +824,7 @@ def create_group_homework(group_id: int):
         return err(400, "Noto'g'ri amal turi", "invalid_operation")
     if not (MIN_DIGITS <= digits <= MAX_DIGITS):
         return err(400, "Noto'g'ri xonalar soni", "invalid_digits")
-    if not (5 <= time_per_question <= 3600):
+    if not _valid_time_per_question(time_per_question):
         return err(400, "Noto'g'ri vaqt", "invalid_time")
     if not (5 <= question_count <= 50):
         return err(400, "Savollar soni noto'g'ri", "invalid_question_count")
@@ -881,7 +888,7 @@ def create_duel_endpoint():
         return err(400, "Noto'g'ri amal turi", "invalid_operation")
     if not (MIN_DIGITS <= digits <= MAX_DIGITS):
         return err(400, "Noto'g'ri xonalar soni", "invalid_digits")
-    if not (5 <= time_per_question <= 3600):
+    if not _valid_time_per_question(time_per_question):
         return err(400, "Noto'g'ri vaqt", "invalid_time")
     if not (5 <= question_count <= 50):
         return err(400, "Savollar soni noto'g'ri", "invalid_question_count")

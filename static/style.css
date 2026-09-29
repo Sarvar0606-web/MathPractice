@@ -453,6 +453,7 @@ html, body {
 .detail-q-row .ans-line .chosen-wrong { color: var(--red); font-weight: 700; }
 .detail-q-row .ans-line .chosen-correct { color: var(--green); font-weight: 700; }
 .detail-q-row .ans-line .correct-val { color: var(--green); font-weight: 700; }
+.detail-q-row .q-time { font-size: 11.5px; color: var(--hint); margin-top: 3px; opacity: 0.8; }
 
 .empty-state {
   text-align: center;

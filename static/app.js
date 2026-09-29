@@ -232,6 +232,7 @@ const I18N = {
     userTestsTitle: (name) => `${name} testlari`,
     noAnswer: "Javob berilmagan",
     timeoutLine: (correct) => `⏰ Vaqt tugadi — to'g'ri javob: ${correct}`,
+    questionTimeTaken: (val) => `⏱ Javob vaqti: ${val}`,
     yourAnswerCorrect: (val) => `Javobingiz: ${val} ✔`,
     yourAnswerWrong: (chosen, correct) => `Javobingiz: ${chosen} — to'g'risi: ${correct}`,
     resultSummary: (total, correct, wrong) => `${total} tadan <b>${correct}</b> to'g'ri, <b>${wrong}</b> noto'g'ri`,
@@ -280,7 +281,7 @@ const I18N = {
       logic: "Mantiqiy fikrlash ustida",
       default: "1–5 xonali sonlar ustida",
     },
-    timeOptions: { 30: "30 soniya", 60: "1 daqiqa", 120: "2 daqiqa", 180: "3 daqiqa", 300: "5 daqiqa" },
+    timeOptions: { 30: "30 soniya", 60: "1 daqiqa", 120: "2 daqiqa", 180: "3 daqiqa", 300: "5 daqiqa", 0: "Vaqtsiz" },
     instructions: {
       frac_simplify: "Kasrni qisqartiring:",
       frac_mixed: "Aralash songa aylantiring:",
@@ -531,6 +532,7 @@ const I18N = {
     userTestsTitle: (name) => `Тесты пользователя ${name}`,
     noAnswer: "Нет ответа",
     timeoutLine: (correct) => `⏰ Время вышло — правильный ответ: ${correct}`,
+    questionTimeTaken: (val) => `⏱ Время ответа: ${val}`,
     yourAnswerCorrect: (val) => `Ваш ответ: ${val} ✔`,
     yourAnswerWrong: (chosen, correct) => `Ваш ответ: ${chosen} — правильно: ${correct}`,
     resultSummary: (total, correct, wrong) => `Из ${total}: <b>${correct}</b> верно, <b>${wrong}</b> неверно`,
@@ -579,7 +581,7 @@ const I18N = {
       logic: "Логическое мышление",
       default: "Числа от 1 до 5 разрядов",
     },
-    timeOptions: { 30: "30 секунд", 60: "1 минута", 120: "2 минуты", 180: "3 минуты", 300: "5 минут" },
+    timeOptions: { 30: "30 секунд", 60: "1 минута", 120: "2 минуты", 180: "3 минуты", 300: "5 минут", 0: "Без ограничения" },
     instructions: {
       frac_simplify: "Сократите дробь:",
       frac_mixed: "Преобразуйте в смешанное число:",
@@ -830,6 +832,7 @@ const I18N = {
     userTestsTitle: (name) => `${name}'s tests`,
     noAnswer: "No answer given",
     timeoutLine: (correct) => `⏰ Time's up — correct answer: ${correct}`,
+    questionTimeTaken: (val) => `⏱ Answer time: ${val}`,
     yourAnswerCorrect: (val) => `Your answer: ${val} ✔`,
     yourAnswerWrong: (chosen, correct) => `Your answer: ${chosen} — correct: ${correct}`,
     resultSummary: (total, correct, wrong) => `Out of ${total}: <b>${correct}</b> correct, <b>${wrong}</b> wrong`,
@@ -878,7 +881,7 @@ const I18N = {
       logic: "Logical thinking",
       default: "1–5 digit numbers",
     },
-    timeOptions: { 30: "30 seconds", 60: "1 minute", 120: "2 minutes", 180: "3 minutes", 300: "5 minutes" },
+    timeOptions: { 30: "30 seconds", 60: "1 minute", 120: "2 minutes", 180: "3 minutes", 300: "5 minutes", 0: "No limit" },
     instructions: {
       frac_simplify: "Simplify the fraction:",
       frac_mixed: "Convert to a mixed number:",
@@ -1134,7 +1137,7 @@ const state = {
   screen: "loading",
   selection: { section: null, operation: null, digits: null, timePerQuestion: null },
   test: null, // {attempt_id, total_questions, time_per_question, question, progress}
-  timer: { deadline: 0, raf: null, total: 0 },
+  timer: { deadline: 0, raf: null, total: 0, unlimited: false, startedAt: 0 },
   pendingChoice: null, // tanlangan-lekin-hali-tasdiqlanmagan javob
   lastFeedback: null, // {isCorrect, correctAnswer, chosen, timedOut, operation}
   viewAttemptId: null,
@@ -2075,7 +2078,9 @@ async function confirmAnswer(timedOut) {
   const t_ = state.test;
   const q = t_.question;
   const chosen = timedOut ? null : state.pendingChoice;
-  const timeTaken = t_.time_per_question * 1000 - Math.max(0, state.timer.deadline - Date.now());
+  const timeTaken = state.timer.unlimited
+    ? Date.now() - state.timer.startedAt
+    : t_.time_per_question * 1000 - Math.max(0, state.timer.deadline - Date.now());
 
   // javob tugmalarini vizual belgilash
   document.querySelectorAll(".answer-btn").forEach((el) => {
@@ -2140,8 +2145,15 @@ async function confirmAnswer(timedOut) {
 function startTimer() {
   stopTimer();
   const seconds = state.test.time_per_question;
-  state.timer.total = seconds * 1000;
-  state.timer.deadline = Date.now() + seconds * 1000;
+  state.timer.unlimited = !seconds;
+  if (state.timer.unlimited) {
+    // "Vaqtsiz" rejim: hisoblagich orqaga sanamaydi, faqat sarflangan
+    // vaqtni statistikaga yozish uchun boshlanish vaqti saqlanadi.
+    state.timer.startedAt = Date.now();
+  } else {
+    state.timer.total = seconds * 1000;
+    state.timer.deadline = Date.now() + seconds * 1000;
+  }
   tick();
 }
 
@@ -2156,6 +2168,18 @@ function tick() {
   const fillEl = document.getElementById("timer-fill");
   const labelEl = document.getElementById("timer-label");
   if (!fillEl || !labelEl) return;
+
+  if (state.timer.unlimited) {
+    // Orqaga sanoq yo'q — shunchaki sarflangan vaqt ko'rsatiladi, hech
+    // qachon avtomatik javob (timeout) bo'lmaydi.
+    const elapsedSec = Math.floor((Date.now() - state.timer.startedAt) / 1000);
+    fillEl.style.width = "100%";
+    fillEl.style.background = "var(--green)";
+    labelEl.classList.remove("warn", "danger");
+    labelEl.textContent = formatSeconds(elapsedSec);
+    state.timer.raf = requestAnimationFrame(tick);
+    return;
+  }
 
   const remainingMs = Math.max(0, state.timer.deadline - Date.now());
   const pct = (remainingMs / state.timer.total) * 100;
@@ -2184,6 +2208,20 @@ function tick() {
 function formatSeconds(total) {
   const m = Math.floor(total / 60);
   const s = total % 60;
+  if (m > 0) return `${m}:${String(s).padStart(2, "0")}`;
+  return `${s}s`;
+}
+
+// Statistikada (test tafsilotlarida) bitta savolga sarflangan vaqtni
+// o'qish uchun qulay shaklga o'tkazadi: soniya, daqiqa:soniya yoki
+// (juda uzoq — masalan "vaqtsiz" rejimda) soat:daqiqa:soniya.
+function formatDuration(ms) {
+  if (ms === null || ms === undefined) return "";
+  const totalSec = Math.round(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   if (m > 0) return `${m}:${String(s).padStart(2, "0")}`;
   return `${s}s`;
 }
@@ -2322,10 +2360,14 @@ async function renderResultDetail() {
         statusClass = "wrong";
         line = `<span class="ans-line">${t("yourAnswerWrong")(`<span class="chosen-wrong">${selectedDisplay}</span>`, `<span class="correct-val">${correctDisplay}</span>`)}</span>`;
       }
+      const timeLine = (q.status !== "pending" && q.time_taken_ms != null)
+        ? `<div class="q-time">${t("questionTimeTaken")(formatDuration(q.time_taken_ms))}</div>`
+        : "";
       return `
         <div class="detail-q-row ${statusClass}">
           <div class="expr">${q.order_index + 1}) ${questionExprHtml(q)}${questionSuffix(q)}</div>
           ${line}
+          ${timeLine}
         </div>`;
     }).join("");
 
