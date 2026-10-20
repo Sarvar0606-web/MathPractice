@@ -150,6 +150,44 @@ _RESET_TABLE_ORDER = (
 )
 
 
+def delete_user(telegram_id: int) -> bool:
+    """BITTA foydalanuvchini va unga tegishli BARCHA ma'lumotni (testlari,
+    o'zi egalik qiladigan guruhlar — ichidagi uy vazifalari bilan birga,
+    duellari, yutuqlari) o'chiradi. Butun bazani tozalashdan (reset_all_data)
+    farqli o'laroq, faqat shu BITTA foydalanuvchiga tegishli yozuvlarga
+    tegadi — boshqa foydalanuvchilarning ma'lumotlari (masalan, uning
+    a'zo bo'lgan guruhlar yoki duel qilgan raqiblarining testlari)
+    saqlanib qoladi. Foydalanuvchi topilmasa False qaytaradi."""
+    if not get_user(telegram_id):
+        return False
+    with db_cursor() as cur:
+        cur.execute(
+            "DELETE FROM questions WHERE attempt_id IN "
+            "(SELECT id FROM attempts WHERE user_id=?)",
+            (telegram_id,),
+        )
+        cur.execute(
+            "DELETE FROM duels WHERE creator_id=? OR opponent_id=?",
+            (telegram_id, telegram_id),
+        )
+        cur.execute(
+            "DELETE FROM homework WHERE group_id IN "
+            "(SELECT id FROM groups WHERE owner_id=?) OR created_by=?",
+            (telegram_id, telegram_id),
+        )
+        cur.execute(
+            "DELETE FROM group_members WHERE group_id IN "
+            "(SELECT id FROM groups WHERE owner_id=?) OR user_id=?",
+            (telegram_id, telegram_id),
+        )
+        cur.execute("DELETE FROM attempts WHERE user_id=?", (telegram_id,))
+        cur.execute("DELETE FROM user_achievements WHERE user_id=?", (telegram_id,))
+        cur.execute("DELETE FROM groups WHERE owner_id=?", (telegram_id,))
+        cur.execute("DELETE FROM pending_referrals WHERE telegram_id=?", (telegram_id,))
+        cur.execute("DELETE FROM users WHERE telegram_id=?", (telegram_id,))
+    return True
+
+
 def reset_all_data() -> None:
     """DIQQAT — QAYTARIB BO'LMAYDI: bazadagi BARCHA ma'lumotni (barcha
     foydalanuvchilar, testlar, guruhlar, uy vazifalari, duellar va h.k.)

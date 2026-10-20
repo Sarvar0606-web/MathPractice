@@ -19,6 +19,60 @@
   --glass-blur: 18px;
   --glass-border: 1px solid rgba(255, 255, 255, 0.55);
   --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  /* ---------- Orqa fon (yorug' tema, standart) ---------- */
+  --page-bg:
+    radial-gradient(640px 420px at 12% -6%, rgba(165, 180, 252, 0.45), transparent 60%),
+    radial-gradient(520px 360px at 108% 10%, rgba(134, 239, 172, 0.30), transparent 55%),
+    radial-gradient(600px 500px at 50% 115%, rgba(250, 204, 21, 0.18), transparent 60%),
+    linear-gradient(180deg, #eef1ff 0%, #f7f8fc 45%, #f3f5fd 100%);
+  color-scheme: light;
+}
+
+/* ---------- Tungi tema ---------- */
+/* Agar foydalanuvchi aniq tanlov qilmagan bo'lsa ("auto"), tizim/Telegram
+   tungi rejimda bo'lsa avtomatik qo'llanadi. "data-theme" atributi esa
+   Mini App ichidagi tema tugmasi orqali qo'lda tanlangan holatni bildiradi
+   va tizim sozlamasidan ustun turadi. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11121a;
+    --card-bg: rgba(36, 38, 52, 0.55);
+    --text: #ecedf7;
+    --hint: #9aa0b8;
+    --accent: #818cf8;
+    --accent-dark: #c7d2fe;
+    --green-bg: rgba(34, 197, 94, 0.2);
+    --red-bg: rgba(239, 68, 68, 0.22);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --page-bg:
+      radial-gradient(640px 420px at 12% -6%, rgba(99, 102, 241, 0.25), transparent 60%),
+      radial-gradient(520px 360px at 108% 10%, rgba(34, 197, 94, 0.14), transparent 55%),
+      radial-gradient(600px 500px at 50% 115%, rgba(250, 204, 21, 0.08), transparent 60%),
+      linear-gradient(180deg, #0f1017 0%, #14151e 45%, #11121a 100%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11121a;
+  --card-bg: rgba(36, 38, 52, 0.55);
+  --text: #ecedf7;
+  --hint: #9aa0b8;
+  --accent: #818cf8;
+  --accent-dark: #c7d2fe;
+  --green-bg: rgba(34, 197, 94, 0.2);
+  --red-bg: rgba(239, 68, 68, 0.22);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --page-bg:
+    radial-gradient(640px 420px at 12% -6%, rgba(99, 102, 241, 0.25), transparent 60%),
+    radial-gradient(520px 360px at 108% 10%, rgba(34, 197, 94, 0.14), transparent 55%),
+    radial-gradient(600px 500px at 50% 115%, rgba(250, 204, 21, 0.08), transparent 60%),
+    linear-gradient(180deg, #0f1017 0%, #14151e 45%, #11121a 100%);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -27,21 +81,18 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background:
-    radial-gradient(640px 420px at 12% -6%, rgba(165, 180, 252, 0.45), transparent 60%),
-    radial-gradient(520px 360px at 108% 10%, rgba(134, 239, 172, 0.30), transparent 55%),
-    radial-gradient(600px 500px at 50% 115%, rgba(250, 204, 21, 0.18), transparent 60%),
-    linear-gradient(180deg, #eef1ff 0%, #f7f8fc 45%, #f3f5fd 100%);
+  background: var(--page-bg);
   background-attachment: fixed;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  transition: background-color .2s ease, color .2s ease;
 }
 
 /* Shisha yuzalar — yarim shaffof fon + orqasidagi rangli blur ko'rinishi +
    ustki qirrada yorug' chiziq (shisha chetining yaltirashi). Ro'yxatdagi
    barcha komponentlar --card-bg'dan foydalanadi, shu bois bitta joyda
    shisha effektini ulash kifoya. */
-.header .back-btn, .header .lang-btn,
+.header .back-btn, .header .lang-btn, .header .theme-btn,
 .lang-select-card, .lang-option-btn,
 .section-card, .menu-row,
 .btn-outline,
@@ -110,7 +161,7 @@ html, body {
   color: var(--hint);
   margin: 2px 0 0;
 }
-.header .lang-btn {
+.header .lang-btn, .header .theme-btn {
   width: 38px; height: 38px;
   border-radius: 12px;
   border: none;
@@ -121,7 +172,7 @@ html, body {
   flex-shrink: 0;
   line-height: 1;
 }
-.header .lang-btn:active { transform: scale(0.94); }
+.header .lang-btn:active, .header .theme-btn:active { transform: scale(0.94); }
 
 /* ---------- Til tanlash ekrani (birinchi kirish) ---------- */
 .lang-select-grid {
@@ -538,13 +589,31 @@ html, body {
   box-shadow: var(--shadow);
   padding: 14px 16px;
   margin-bottom: 10px;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+.admin-user-row-main { flex: 1; min-width: 0; cursor: pointer; }
 .admin-user-row .name { font-weight: 800; font-size: 15px; }
 .admin-user-row .sub { font-size: 12px; color: var(--hint); margin-top: 2px; }
 .admin-user-row .stats { display: flex; gap: 10px; margin-top: 8px; font-size: 12.5px; font-weight: 700; }
 .admin-user-row .stats .c { color: var(--green); }
 .admin-user-row .stats .w { color: var(--red); }
+.admin-user-delete-btn {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  color: var(--red);
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: var(--glass-shine);
+}
+.admin-user-delete-btn:active { transform: scale(0.92); }
+.admin-user-delete-btn[disabled] { opacity: 0.4; cursor: default; }
 
 /* ---------- Yechim (explanation) ---------- */
 .explanation-box {

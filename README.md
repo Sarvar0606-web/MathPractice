@@ -267,6 +267,42 @@ qilmaydi.
     qatorida (daqiqa:soniya, uzoq davom etsa soat:daqiqa:soniya shaklida)
     ko'rsatiladi — bu vaqtli testlarda ham, "Vaqtsiz" rejimida ham bir xil
     ishlaydi.
+22. **Bosh admin uchun "Hammasini tozalash" (to'liq reset)** — faqat
+    **bosh admin** (`SUPER_ADMIN_ID` — `.env` faylidagi `ADMIN_IDS`
+    ro'yxatining birinchi raqami, yoki alohida ko'rsatilgan bo'lsa shu)
+    admin panelidan butun ma'lumotlar bazasini (barcha foydalanuvchilar,
+    natijalar, guruhlar, duellar, uy vazifalari — hammasi) nolga qaytarib,
+    botni "yangidan ishga tushirilgandek" holatga keltira oladi. Xavfli
+    amal bo'lgani uchun ikki qavat himoya bilan: (1) amal bajarilishidan
+    oldin `data/backups/pre_reset_*.db` nomi bilan avtomatik zaxira nusxa
+    olinadi (bu nusxalar kundalik 14 talik avtomatik tozalashga tushmaydi —
+    faqat admin o'zi qo'lda o'chirmaguncha saqlanib qoladi), (2) tasdiqlash
+    uchun admin "TOZALASH" so'zini aniq shu holatda yozib kiritishi kerak.
+23. **Adminlar har bir foydalanuvchini alohida o'chirishi** — admin
+    panelidagi foydalanuvchilar ro'yxatida endi har bir qatorning yonida
+    🗑 (o'chirish) tugmasi mavjud. Oddiy adminlar faqat oddiy (admin
+    bo'lmagan) foydalanuvchilarni o'chira oladi; boshqa adminni o'chirish
+    faqat **bosh admin** (`SUPER_ADMIN_ID`) uchun ochiq, va hech kim
+    (bosh admin ham) o'zini o'zi bu tugma orqali o'chira olmaydi.
+    O'chirish tasdiqlash oynasi (brauzerning oddiy `confirm()` dialogi)
+    bilan himoyalangan, ammo yuqoridagi to'liq tozalashdan farqli ravishda,
+    bitta foydalanuvchini o'chirishdan oldin avtomatik zaxira olinmaydi —
+    xavf darajasi ancha kichikroq bo'lgani uchun ataylab soddalashtirilgan.
+24. **Botni ochish uchun bitta bosiladigan "Ochish" tugmasi** — endi bot
+    bilan yozishma oynasining pastidagi matn yozish qismi yonida (BotFather
+    o'zining chatida ko'rsatadigani kabi) doimiy "Ochish" tugmasi chiqadi —
+    bosilganda Mini App to'g'ridan-to'g'ri ochiladi, `/start` bosish shart
+    emas. Bu Telegram Bot API'ning `setChatMenuButton` metodi orqali
+    o'rnatiladi. **Muhim**: bu tugma avtomatik ishga tushmaydi — yangi
+    kodni serverga joylashtirgandan keyin `python set_webhook.py`
+    skriptini bir marta qo'lda ishga tushirish kerak (webhook o'rnatish
+    bilan bir qatorda endi shu tugmani ham sozlaydi).
+25. **Mini App ichida mavzu (tema) almashtirish** — ilova sozlamalaridan
+    (yuqori panel, 🌓 tugma) Yorug' / Qorong'u / Avtomatik (Telegram/tizim
+    sozlamasiga mos) rejimlardan birini tanlash mumkin. Tanlov shu
+    brauzer/qurilmaning `localStorage`'ida saqlanadi — demak, bu sozlama
+    foydalanuvchi hisobiga emas, balki aynan shu qurilma/brauzerga
+    bog'liq (boshqa qurilmada qaytadan tanlash kerak bo'ladi).
 
 ## Loyiha tuzilishi
 

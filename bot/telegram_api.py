@@ -22,6 +22,20 @@ def webapp_keyboard(url: str, button_text: str = "🧮 Mini App'ni ochish") -> d
     }
 
 
+def set_chat_menu_button(url: str, text: str = "Ochish") -> dict:
+    """Mini App'ni 'Menu' tugmasi o'rniga o'rnatadi — bu tugma Telegram'da
+    xabar yozish maydonining chap tomonida DOIMIY ko'rinib turadi va bir
+    marta bosish bilan (hatto /start yubormasdan ham) Mini App'ni ochadi.
+    chat_id ko'rsatilmagani uchun BARCHA foydalanuvchilar uchun standart
+    (default) qiymat sifatida o'rnatiladi."""
+    resp = requests.post(
+        f"{API_BASE}/setChatMenuButton",
+        json={"menu_button": {"type": "web_app", "text": text, "web_app": {"url": url}}},
+        timeout=15,
+    )
+    return resp.json()
+
+
 def set_webhook(url: str, secret_token: str) -> dict:
     resp = requests.post(
         f"{API_BASE}/setWebhook",

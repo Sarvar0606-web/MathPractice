@@ -658,6 +658,29 @@ def admin_user_attempts(user_id: int):
     return jsonify({"user": user, "attempts": [_attempt_summary(a) for a in attempts]})
 
 
+@api_bp.delete("/admin/users/<int:user_id>")
+def admin_delete_user(user_id: int):
+    """Admin panelidan BITTA foydalanuvchini butunlay o'chiradi (testlari,
+    o'zi egalik qiladigan guruhlari, duellari, yutuqlari bilan birga).
+    O'zini-o'zi o'chirib qo'yishning oldi olinadi; boshqa adminni esa
+    faqat bosh admin o'chira oladi (oddiy admin emas)."""
+    tg_user = current_user()
+    if not _require_admin(tg_user):
+        return err(403, "Faqat admin uchun", "admin_only")
+    if user_id == tg_user["id"]:
+        return err(400, "O'zingizni o'chira olmaysiz", "cannot_delete_self")
+
+    target = crud.get_user(user_id)
+    if target and target["is_admin"] and not crud.is_super_admin(tg_user["id"]):
+        return err(403, "Boshqa adminni faqat bosh admin o'chira oladi", "cannot_delete_admin")
+
+    deleted = crud.delete_user(user_id)
+    if not deleted:
+        return err(404, "Foydalanuvchi topilmadi", "user_not_found")
+    logger.warning("ADMIN_DELETE_USER admin=%s o'chirilgan_user=%s", tg_user["id"], user_id)
+    return jsonify({"ok": True})
+
+
 @api_bp.get("/admin/export")
 def admin_export():
     tg_user = current_user()

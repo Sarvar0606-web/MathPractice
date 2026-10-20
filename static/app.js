@@ -98,6 +98,48 @@ const LANG_STORAGE_KEY = "mathbot_lang";
 
 let LANG = "uz";
 
+// ============================================================
+// TEMA (yorug' / tungi / tizim bo'yicha)
+// ============================================================
+
+const THEMES = ["auto", "light", "dark"];
+const THEME_META = { auto: "🌓", light: "☀️", dark: "🌙" };
+const THEME_STORAGE_KEY = "mathbot_theme";
+
+function loadStoredTheme() {
+  try {
+    const v = localStorage.getItem(THEME_STORAGE_KEY);
+    return THEMES.includes(v) ? v : "auto";
+  } catch (e) {
+    return "auto";
+  }
+}
+
+function storeTheme(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (e) {}
+}
+
+function applyTheme(theme) {
+  // "auto" — hech qanday data-theme qo'yilmaydi, shunda CSS
+  // tizim/Telegram tungi rejimini o'zi aniqlaydi (prefers-color-scheme).
+  if (theme === "light" || theme === "dark") {
+    document.documentElement.setAttribute("data-theme", theme);
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+}
+
+let THEME = loadStoredTheme();
+applyTheme(THEME);
+
+function setTheme(theme) {
+  THEME = theme;
+  storeTheme(theme);
+  applyTheme(theme);
+}
+
 const I18N = {
   uz: {
     genericError: "Xatolik yuz berdi",
@@ -138,11 +180,17 @@ const I18N = {
       duel_already_taken: "Bu duelga boshqa raqib allaqachon qo'shilgan",
       super_admin_only: "Bu amal faqat bosh admin uchun",
       reset_confirm_mismatch: "Tasdiqlash so'zi noto'g'ri",
+      cannot_delete_self: "O'zingizni o'chira olmaysiz",
+      cannot_delete_admin: "Boshqa adminni faqat bosh admin o'chira oladi",
     },
     loading: "Yuklanmoqda...",
     openInTelegram: "Iltimos, botni Telegram ichida oching.",
     chooseLanguageTitle: "Tilni tanlang",
     chooseLanguageSubtitle: "Ilova tilini tanlang",
+    chooseThemeTitle: "Temani tanlang",
+    theme_auto: "Tizim bo'yicha",
+    theme_light: "Yorug'",
+    theme_dark: "Tungi",
     registerTitle: "Ro'yxatdan o'tish",
     registerSubtitle: "Testlarni boshlashdan oldin ma'lumotlaringizni kiriting",
     firstNameLabel: "Ism",
@@ -394,6 +442,8 @@ const I18N = {
     resetConfirmPlaceholder: "Shu yerga yozing",
     resetConfirmBtn: "Ha, hammasini butunlay o'chir",
     resetSuccessMsg: (file) => `✅ Barcha ma'lumot o'chirildi. Zaxira nusxa saqlandi: ${file}`,
+    deleteUserBtn: "Foydalanuvchini o'chirish",
+    deleteUserConfirm: (name) => `${name} butunlay o'chirilsinmi? Uning barcha testlari, agar bo'lsa, guruhi va yutuqlari ham o'chadi. Bu amalni qaytarib bo'lmaydi.`,
     recommendedBadge: "✨ Tavsiya",
     newAchievementToast: (label) => `🎉 Yangi yutuq: ${label}!`,
     streakToast: (n) => `🔥 ${n} kunlik seriya!`,
@@ -447,11 +497,17 @@ const I18N = {
       duel_already_taken: "К этой дуэли уже присоединился другой соперник",
       super_admin_only: "Это действие доступно только главному администратору",
       reset_confirm_mismatch: "Неверное слово подтверждения",
+      cannot_delete_self: "Вы не можете удалить себя",
+      cannot_delete_admin: "Другого администратора может удалить только главный админ",
     },
     loading: "Загрузка...",
     openInTelegram: "Пожалуйста, откройте бота в Telegram.",
     chooseLanguageTitle: "Выберите язык",
     chooseLanguageSubtitle: "Выберите язык приложения",
+    chooseThemeTitle: "Выберите тему",
+    theme_auto: "Как в системе",
+    theme_light: "Светлая",
+    theme_dark: "Тёмная",
     registerTitle: "Регистрация",
     registerSubtitle: "Введите свои данные перед началом тестов",
     firstNameLabel: "Имя",
@@ -703,6 +759,8 @@ const I18N = {
     resetConfirmPlaceholder: "Введите здесь",
     resetConfirmBtn: "Да, удалить всё полностью",
     resetSuccessMsg: (file) => `✅ Все данные удалены. Резервная копия сохранена: ${file}`,
+    deleteUserBtn: "Удалить пользователя",
+    deleteUserConfirm: (name) => `Полностью удалить ${name}? Будут удалены все его тесты, а также группа и достижения, если они есть. Это действие нельзя отменить.`,
     recommendedBadge: "✨ Рекомендуем",
     newAchievementToast: (label) => `🎉 Новое достижение: ${label}!`,
     streakToast: (n) => `🔥 Серия ${n} дней!`,
@@ -756,11 +814,17 @@ const I18N = {
       duel_already_taken: "Another opponent has already joined this duel",
       super_admin_only: "This action is only available to the super admin",
       reset_confirm_mismatch: "Confirmation word doesn't match",
+      cannot_delete_self: "You can't delete yourself",
+      cannot_delete_admin: "Only the super admin can delete another admin",
     },
     loading: "Loading...",
     openInTelegram: "Please open the bot inside Telegram.",
     chooseLanguageTitle: "Choose language",
     chooseLanguageSubtitle: "Choose the app language",
+    chooseThemeTitle: "Choose theme",
+    theme_auto: "System",
+    theme_light: "Light",
+    theme_dark: "Dark",
     registerTitle: "Registration",
     registerSubtitle: "Enter your details before starting the tests",
     firstNameLabel: "First name",
@@ -1012,6 +1076,8 @@ const I18N = {
     resetConfirmPlaceholder: "Type here",
     resetConfirmBtn: "Yes, delete everything",
     resetSuccessMsg: (file) => `✅ All data deleted. Backup saved: ${file}`,
+    deleteUserBtn: "Delete user",
+    deleteUserConfirm: (name) => `Permanently delete ${name}? All their tests, and their group and achievements if any, will be deleted too. This cannot be undone.`,
     recommendedBadge: "✨ Recommended",
     newAchievementToast: (label) => `🎉 New achievement: ${label}!`,
     streakToast: (n) => `🔥 ${n}-day streak!`,
@@ -1153,6 +1219,36 @@ function showLanguageModal() {
       const newLang = btn.dataset.lang;
       modal.remove();
       await setLanguage(newLang);
+    };
+  });
+}
+
+// ---------- Temani almashtirish (yorug' / tungi / tizim bo'yicha) ----------
+function showThemeModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.id = "theme-modal";
+  modal.innerHTML = `
+    <div class="modal-sheet">
+      <h3>${t("chooseThemeTitle")}</h3>
+      <div class="lang-options">
+        ${THEMES.map((th) => `
+          <button class="lang-option-btn${th === THEME ? " active" : ""}" data-theme="${th}">
+            <span class="flag">${THEME_META[th]}</span> ${t("theme_" + th)}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  modal.querySelectorAll(".lang-option-btn").forEach((btn) => {
+    btn.onclick = () => {
+      setTheme(btn.dataset.theme);
+      modal.remove();
+      render();
     };
   });
 }
@@ -1494,6 +1590,7 @@ function header(title, subtitle, showBack) {
         <h1>${title}</h1>
         ${subtitle ? `<p class="subtitle">${subtitle}</p>` : ""}
       </div>
+      <button class="theme-btn" id="btn-theme" title="${t("chooseThemeTitle")}">${THEME_META[THEME]}</button>
       <button class="lang-btn" id="btn-lang">${LANG_META[LANG].flag}</button>
     </div>`;
 }
@@ -1503,6 +1600,8 @@ function bindHeaderControls() {
   if (back) back.onclick = goBack;
   const langBtn = document.getElementById("btn-lang");
   if (langBtn) langBtn.onclick = showLanguageModal;
+  const themeBtn = document.getElementById("btn-theme");
+  if (themeBtn) themeBtn.onclick = showThemeModal;
 }
 
 // ---------- Tilni tanlash (birinchi kirishda) ----------
@@ -2436,18 +2535,37 @@ async function renderAdminUsers() {
     }
     const rows = res.users.map((u) => `
       <div class="admin-user-row" data-id="${u.telegram_id}">
-        <div class="name">${u.last_name} ${u.first_name} ${u.father_name}${u.is_admin ? " 🛡" : ""}</div>
-        <div class="sub">${u.username ? "@" + u.username : t("noUsername")} · ${t("testsCountSuffix")(u.attempts_count)}</div>
-        <div class="stats"><span class="c">✔ ${u.total_correct}</span><span class="w">✘ ${u.total_wrong}</span></div>
+        <div class="admin-user-row-main" data-id="${u.telegram_id}">
+          <div class="name">${u.last_name} ${u.first_name} ${u.father_name}${u.is_admin ? " 🛡" : ""}</div>
+          <div class="sub">${u.username ? "@" + u.username : t("noUsername")} · ${t("testsCountSuffix")(u.attempts_count)}</div>
+          <div class="stats"><span class="c">✔ ${u.total_correct}</span><span class="w">✘ ${u.total_wrong}</span></div>
+        </div>
+        ${u.telegram_id === ME.telegram_id ? "" : `<button class="admin-user-delete-btn" data-id="${u.telegram_id}" data-name="${escapeHtml(`${u.last_name} ${u.first_name}`)}" type="button" title="${t("deleteUserBtn")}">🗑</button>`}
       </div>`).join("");
     appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${topBtns}<div>${rows}</div>`;
     bindHeaderControls();
     bindAdminExportBtn();
     bindAdminTopBtns();
-    document.querySelectorAll(".admin-user-row").forEach((el) => {
+    document.querySelectorAll(".admin-user-row-main").forEach((el) => {
       el.onclick = () => {
         state.viewUserId = parseInt(el.dataset.id, 10);
         pushScreen("admin_attempts");
+      };
+    });
+    document.querySelectorAll(".admin-user-delete-btn").forEach((el) => {
+      el.onclick = async (ev) => {
+        ev.stopPropagation();
+        const uid = parseInt(el.dataset.id, 10);
+        if (!confirm(t("deleteUserConfirm")(el.dataset.name))) return;
+        el.disabled = true;
+        try {
+          await api(`/api/admin/users/${uid}`, { method: "DELETE" });
+          const rowEl = el.closest(".admin-user-row");
+          if (rowEl) rowEl.remove();
+        } catch (e) {
+          alert(e.message);
+          el.disabled = false;
+        }
       };
     });
   } catch (e) {

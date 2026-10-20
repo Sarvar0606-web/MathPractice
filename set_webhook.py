@@ -13,7 +13,7 @@ Ishlatish:
 import sys
 
 from config import BOT_TOKEN, WEBAPP_URL, WEBHOOK_SECRET
-from bot.telegram_api import set_webhook, get_webhook_info
+from bot.telegram_api import set_webhook, get_webhook_info, set_chat_menu_button
 import requests
 
 
@@ -47,6 +47,16 @@ def main():
         print(f"\n✅ Webhook muvaffaqiyatli o'rnatildi: {url}")
     else:
         print("\n❌ Webhook o'rnatilmadi — yuqoridagi xabarni tekshiring.")
+        return
+
+    # Mini App'ni "Menu" tugmasi sifatida ham o'rnatamiz — shunda xabar
+    # yozish maydonining yonida doimiy "Ochish" tugmasi chiqadi va
+    # foydalanuvchi /start yubormasdan ham Mini App'ni ocha oladi.
+    menu_result = set_chat_menu_button(WEBAPP_URL)
+    if menu_result.get("ok"):
+        print("✅ Chat menu tugmasi ('Ochish') o'rnatildi.")
+    else:
+        print(f"⚠️  Chat menu tugmasini o'rnatib bo'lmadi: {menu_result}")
 
 
 if __name__ == "__main__":
