@@ -1712,7 +1712,9 @@ function renderMain() {
   const name = ME.profile ? `${ME.profile.first_name}` : "";
   let rows = CONFIG.sections.map((s) => `
     <div class="menu-row" data-section="${s.key}">
-      <div class="icon-badge" style="background:${s.color}">${s.icon}</div>
+      ${s.icon_img
+        ? `<img class="icon-badge-img" src="${s.icon_img}" alt="">`
+        : `<div class="icon-badge" style="background:${s.color}">${s.icon}</div>`}
       <div>
         <div class="title">${sectionLabel(s.key)}</div>
         <div class="desc">${sectionDescText(s.key)}</div>

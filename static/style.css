@@ -242,15 +242,61 @@ html, body {
 
 .icon-badge {
   width: 48px; height: 48px;
-  border-radius: 16px;
+  border-radius: 30%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.35);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: none;
+  box-shadow:
+    0 10px 18px -6px rgba(0,0,0,0.30),
+    0 2px 5px rgba(0,0,0,0.14),
+    inset 0 2px 3px rgba(255,255,255,0.55),
+    inset 0 -5px 7px rgba(0,0,0,0.20);
+  text-shadow: 0 2px 3px rgba(0,0,0,0.28);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+/* soft top-light + bottom-shade sheen, layered over the inline bg color so
+   each badge reads as a chunky, matte "clay" tile instead of a flat chip */
+.icon-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(160deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.16) 100%);
+  pointer-events: none;
+}
+/* small glossy highlight blob, matching the soft specular dot on each
+   reference icon tile. Negative z-index keeps both overlays behind the
+   badge's own text/emoji content (which paints as a normal inline
+   descendant), while isolation:isolate above stops them escaping the tile. */
+.icon-badge::after {
+  content: "";
+  position: absolute;
+  top: 6%;
+  left: 12%;
+  width: 48%;
+  height: 32%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 72%);
+  border-radius: 50%;
+  filter: blur(1px);
+  pointer-events: none;
+}
+.section-card:active .icon-badge,
+.menu-row:active .icon-badge,
+.icon-badge:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow:
+    0 5px 10px -4px rgba(0,0,0,0.26),
+    0 1px 3px rgba(0,0,0,0.12),
+    inset 0 2px 3px rgba(255,255,255,0.5),
+    inset 0 -3px 5px rgba(0,0,0,0.20);
 }
 
 .section-card .title {
@@ -276,6 +322,22 @@ html, body {
 }
 .menu-row:active { transform: scale(0.98); }
 .menu-row .icon-badge { width: 52px; height: 52px; font-size: 26px; }
+/* real rendered "clay" tile icons (icon_img from config) — these already
+   bake in their own color, shadow and rounded tile, so they get a plain
+   drop-shadow for grounding instead of the .icon-badge chrome */
+.icon-badge-img {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.22));
+  transition: transform .15s ease;
+}
+.menu-row .icon-badge-img { width: 52px; height: 52px; }
+.menu-row:active .icon-badge-img,
+.section-card:active .icon-badge-img {
+  transform: translateY(1px) scale(0.96);
+}
 .menu-row .title { font-weight: 800; font-size: 16px; }
 .menu-row .desc { font-size: 12.5px; color: var(--hint); margin-top: 2px; }
 .menu-row .chevron { margin-left: auto; color: var(--hint); font-size: 20px; }
