@@ -10,11 +10,24 @@ load_dotenv(BASE_DIR / ".env")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 _admin_ids_raw = os.getenv("ADMIN_IDS", "")
-ADMIN_IDS = {
+_admin_ids_list = [
     int(x.strip())
     for x in _admin_ids_raw.split(",")
     if x.strip().isdigit()
-}
+]
+ADMIN_IDS = set(_admin_ids_list)
+
+# "Bosh admin" — barcha ma'lumotni butunlay tozalash (reset) kabi eng
+# og'ir/xavfli amallarni faqat shu BITTA foydalanuvchi bajara oladi.
+# .env'da SUPER_ADMIN_ID alohida ko'rsatilishi mumkin; aks holda
+# ADMIN_IDS ro'yxatidagi BIRINCHI ID avtomatik "bosh admin" hisoblanadi.
+_super_admin_raw = os.getenv("SUPER_ADMIN_ID", "").strip()
+if _super_admin_raw.isdigit():
+    SUPER_ADMIN_ID = int(_super_admin_raw)
+elif _admin_ids_list:
+    SUPER_ADMIN_ID = _admin_ids_list[0]
+else:
+    SUPER_ADMIN_ID = None
 
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").rstrip("/")
 

@@ -5,7 +5,7 @@ import random
 import string
 from typing import Optional
 
-from config import ACHIEVEMENTS, ADMIN_IDS
+from config import ACHIEVEMENTS, ADMIN_IDS, SUPER_ADMIN_ID
 from db.database import db_cursor, get_db
 
 
@@ -123,6 +123,50 @@ def is_admin(telegram_id: int) -> bool:
     if user and user["is_admin"]:
         return True
     return telegram_id in ADMIN_IDS
+
+
+def is_super_admin(telegram_id: int) -> bool:
+    """"Bosh admin" — faqat shu foydalanuvchi butun ma'lumotlar bazasini
+    tozalash (reset) kabi qaytarib bo'lmaydigan amallarni bajara oladi.
+    DB'dagi 'is_admin' bayrog'iga emas, faqat .env'dagi SUPER_ADMIN_ID
+    (yoki ADMIN_IDS ro'yxatidagi birinchi ID) ga bog'liq."""
+    return SUPER_ADMIN_ID is not None and telegram_id == SUPER_ADMIN_ID
+
+
+# Reset paytida qaysi tartibda o'chirilishi kerakligi (FOREIGN KEY
+# cheklovlariga mos: avval "bola" jadval, keyin "ota" jadval):
+#   questions -> attempts
+#   duels -> attempts, users
+#   homework -> groups, users
+#   group_members -> groups, users
+#   attempts -> users
+#   user_achievements -> users
+#   groups -> users
+#   pending_referrals -> (bog'liqlik yo'q)
+#   users -> (eng oxirida)
+_RESET_TABLE_ORDER = (
+    "questions", "duels", "homework", "group_members",
+    "attempts", "user_achievements", "groups", "pending_referrals", "users",
+)
+
+
+def reset_all_data() -> None:
+    """DIQQAT — QAYTARIB BO'LMAYDI: bazadagi BARCHA ma'lumotni (barcha
+    foydalanuvchilar, testlar, guruhlar, uy vazifalari, duellar va h.k.)
+    butunlay o'chiradi — bot xuddi yangi o'rnatilgandek bo'ib qoladi.
+    Faqat .env'dagi ADMIN_IDS/SUPER_ADMIN_ID (kod darajasidagi admin
+    huquqi) saqlanadi, chunki ular bazada emas, konfiguratsiyada turadi.
+    Chaqirishdan oldin albatta zaxira nusxa olinishi kerak
+    (backup_db.backup_before_reset) — bu funksiyaning o'zi buni qilmaydi."""
+    with db_cursor() as cur:
+        for table in _RESET_TABLE_ORDER:
+            cur.execute(f"DELETE FROM {table}")
+        # AUTOINCREMENT hisoblagichlarini ham nolga qaytaradi — shunda
+        # keyingi yozuvlar yana id=1 dan boshlanadi (haqiqiy yangi DB'dagidek).
+        try:
+            cur.execute("DELETE FROM sqlite_sequence")
+        except Exception:
+            pass
 
 
 def list_all_users() -> list[dict]:

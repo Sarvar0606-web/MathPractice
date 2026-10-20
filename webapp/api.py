@@ -9,11 +9,16 @@ from config import (
     QUESTIONS_PER_TEST, SECTIONS, SUPPORTED_LANGUAGES, TIME_OPTIONS,
 )
 from db import crud
+from backup_db import backup_before_reset
 from bot.telegram_api import send_message
 from logic.certificate import generate_certificate_pdf
 from logic.question_generator import generate_mixed_test, generate_review_test, generate_test
 from webapp.auth import AuthError, get_current_telegram_user
 from webapp.logger import logger
+
+# "Bosh admin" butun bazani tozalashni (reset) tasdiqlashi uchun aniq
+# yozishi kerak bo'lgan so'z — tasodifiy bosilib ketishdan himoya.
+RESET_CONFIRM_PHRASE = "TOZALASH"
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -63,6 +68,7 @@ def get_me():
         "registered": user is not None,
         "profile": user,
         "is_admin": crud.is_admin(tg_user["id"]),
+        "is_super_admin": crud.is_super_admin(tg_user["id"]),
     })
 
 
@@ -697,6 +703,41 @@ def admin_analytics():
     if not _require_admin(tg_user):
         return err(403, "Faqat admin uchun", "admin_only")
     return jsonify(crud.admin_analytics(days=7))
+
+
+@api_bp.post("/admin/reset-all")
+def admin_reset_all():
+    """BOSH ADMIN uchun: bazadagi BARCHA ma'lumotni (foydalanuvchilar,
+    testlar, guruhlar, uy vazifalari, duellar — hammasi) butunlay
+    o'chiradi, bot xuddi yangi o'rnatilgandek bo'lib qoladi. Faqat
+    .env'dagi admin huquqi (ADMIN_IDS/SUPER_ADMIN_ID) saqlanadi, chunki u
+    bazada emas, konfiguratsiyada turadi.
+
+    Xavfsizlik choralari: (1) faqat SUPER_ADMIN_ID bajara oladi — oddiy
+    adminlar emas; (2) tasodifiy bosilib ketmasligi uchun admin aniq
+    tasdiqlash so'zini yuborishi shart; (3) o'chirishdan OLDIN avtomatik
+    ravishda to'liq DB zaxira nusxasi olinadi (data/backups/pre_reset_*.db)
+    — shu fayl orqali kerak bo'lsa qo'lda qayta tiklash mumkin."""
+    tg_user = current_user()
+    if not crud.is_super_admin(tg_user["id"]):
+        return err(403, "Bu amal faqat bosh admin uchun", "super_admin_only")
+
+    body = request.get_json(silent=True) or {}
+    confirm_text = str(body.get("confirm_text") or "").strip()
+    if confirm_text != RESET_CONFIRM_PHRASE:
+        return err(
+            400,
+            f"Tasdiqlash uchun aniq \"{RESET_CONFIRM_PHRASE}\" so'zini yozing",
+            "reset_confirm_mismatch",
+        )
+
+    backup_path = backup_before_reset()
+    crud.reset_all_data()
+    logger.warning(
+        "ADMIN_RESET_ALL bosh_admin=%s zaxira=%s — BARCHA MA'LUMOT O'CHIRILDI",
+        tg_user["id"], backup_path.name if backup_path else "(zaxira olinmadi)",
+    )
+    return jsonify({"ok": True, "backup_file": backup_path.name if backup_path else None})
 
 
 MAX_BROADCAST_LEN = 3500  # Telegram xabar limiti (4096) dan xavfsiz zaxira bilan kamroq

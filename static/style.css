@@ -1,6 +1,8 @@
 :root {
   --bg: var(--tg-theme-bg-color, #f2f4fb);
-  --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+  /* "Shisha" (glass) dizayn: card-bg endi yarim shaffof — orqa fondagi
+     yumshoq gradient blur orqali ko'rinib turadi. */
+  --card-bg: rgba(255, 255, 255, 0.6);
   --text: var(--tg-theme-text-color, #1f2333);
   --hint: var(--tg-theme-hint-color, #7c8194);
   --accent: #6366f1;
@@ -10,8 +12,13 @@
   --red: #ef4444;
   --red-bg: #fee2e2;
   --yellow: #f59e0b;
-  --radius: 18px;
-  --shadow: 0 6px 20px rgba(60, 60, 120, 0.10);
+  --radius: 20px;
+  --shadow: 0 10px 28px rgba(60, 60, 120, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+  /* ---------- Shisha (glassmorphism) token'lari ---------- */
+  --glass-blur: 18px;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.55);
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 * { box-sizing: border-box; }
@@ -20,9 +27,32 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: linear-gradient(180deg, #eef1ff 0%, #f7f8fc 40%);
+  background:
+    radial-gradient(640px 420px at 12% -6%, rgba(165, 180, 252, 0.45), transparent 60%),
+    radial-gradient(520px 360px at 108% 10%, rgba(134, 239, 172, 0.30), transparent 55%),
+    radial-gradient(600px 500px at 50% 115%, rgba(250, 204, 21, 0.18), transparent 60%),
+    linear-gradient(180deg, #eef1ff 0%, #f7f8fc 45%, #f3f5fd 100%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+}
+
+/* Shisha yuzalar — yarim shaffof fon + orqasidagi rangli blur ko'rinishi +
+   ustki qirrada yorug' chiziq (shisha chetining yaltirashi). Ro'yxatdagi
+   barcha komponentlar --card-bg'dan foydalanadi, shu bois bitta joyda
+   shisha effektini ulash kifoya. */
+.header .back-btn, .header .lang-btn,
+.lang-select-card, .lang-option-btn,
+.section-card, .menu-row,
+.btn-outline,
+.form-group input, .form-group select,
+.choice-btn, .test-topbar, .question-card, .answer-btn,
+.modal-sheet, .result-row, .detail-q-row, .admin-user-row,
+.explanation-box, .typed-answer-input, .broadcast-textarea,
+.hint-box, .stat-card, .leaderboard-row {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--glass-border);
 }
 
 #app {
@@ -122,16 +152,17 @@ html, body {
   align-items: center;
   gap: 10px;
   background: var(--card-bg);
-  border: 2px solid #e4e6f7;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border: 1.5px solid rgba(99, 102, 241, 0.18);
+  border-radius: 999px;
+  padding: 14px 18px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   color: var(--text);
   text-align: left;
+  box-shadow: var(--glass-shine);
 }
-.lang-option-btn.active { border-color: var(--accent); background: #eef0ff; }
+.lang-option-btn.active { border-color: var(--accent); background: rgba(99, 102, 241, 0.14); }
 .lang-option-btn .flag { font-size: 20px; }
 
 /* ---------- Cards / menu grid ---------- */
@@ -160,14 +191,15 @@ html, body {
 
 .icon-badge {
   width: 48px; height: 48px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.35);
 }
 
 .section-card .title {
@@ -197,30 +229,60 @@ html, body {
 .menu-row .desc { font-size: 12.5px; color: var(--hint); margin-top: 2px; }
 .menu-row .chevron { margin-left: auto; color: var(--hint); font-size: 20px; }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons (shisha/pill uslub) ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: none;
-  border-radius: 14px;
-  padding: 14px 18px;
+  border-radius: 999px;
+  padding: 15px 22px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   width: 100%;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow);
+  transition: transform .08s ease, box-shadow .15s ease, filter .15s ease;
 }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:active { background: var(--accent-dark); }
+.btn:active { transform: translateY(1px) scale(0.98); filter: brightness(0.97); }
+
+.btn-primary {
+  background: linear-gradient(150deg, #818cf8 0%, var(--accent) 55%, var(--accent-dark) 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.btn-primary:active { background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%); }
+
 .btn-outline {
   background: var(--card-bg);
   color: var(--accent-dark);
-  border: 2px solid #e2e4fb;
+  border: 1.5px solid rgba(99, 102, 241, 0.28);
 }
-.btn-success { background: var(--green); color: #fff; }
-.btn-danger-outline { background: var(--card-bg); color: var(--red); border: 2px solid var(--red-bg); }
+
+.btn-success {
+  background: linear-gradient(150deg, #4ade80 0%, var(--green) 55%, #16a34a 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.btn-danger-outline {
+  background: var(--card-bg);
+  color: var(--red);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.08), var(--glass-shine);
+}
 .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+.btn[disabled] { opacity: 0.45; cursor: default; box-shadow: none; filter: none; }
+
+/* Juda xavfli (qaytarib bo'lmas) amallar uchun — qizil shisha pill */
+.btn-danger {
+  background: linear-gradient(150deg, #f87171 0%, var(--red) 55%, #b91c1c 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
 
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 14px; }
@@ -233,12 +295,17 @@ html, body {
 }
 .form-group input, .form-group select {
   width: 100%;
-  padding: 13px 14px;
-  border-radius: 12px;
-  border: 2px solid #e4e6f7;
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
   background: var(--card-bg);
   color: var(--text);
   font-size: 15px;
+  box-shadow: var(--glass-shine);
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 .form-row { display: flex; gap: 10px; }
 .form-row .form-group { flex: 1; }
@@ -252,15 +319,17 @@ html, body {
 }
 .choice-btn {
   background: var(--card-bg);
-  border: 2px solid #e4e6f7;
-  border-radius: 14px;
+  border: 1.5px solid rgba(99, 102, 241, 0.18);
+  border-radius: 20px;
   padding: 16px 8px;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   color: var(--text);
+  box-shadow: var(--glass-shine);
+  transition: transform .08s ease, border-color .12s ease;
 }
-.choice-btn:active { border-color: var(--accent); }
+.choice-btn:active { border-color: var(--accent); transform: scale(0.97); }
 
 /* ---------- Test / progress header ---------- */
 .test-topbar {
@@ -376,10 +445,10 @@ html, body {
   transition: all .12s ease;
 }
 .answer-btn:active { transform: scale(0.96); }
-.answer-btn.selected { border-color: var(--accent); background: #eef0ff; }
+.answer-btn.selected { border-color: var(--accent); background: rgba(99, 102, 241, 0.12); }
 .answer-btn.compare-btn { font-size: 30px; padding: 22px 10px; }
-.answer-btn.correct { border-color: var(--green); background: var(--green-bg); color: #15803d; }
-.answer-btn.wrong { border-color: var(--red); background: var(--red-bg); color: #b91c1c; }
+.answer-btn.correct { border-color: var(--green); background: rgba(34, 197, 94, 0.18); color: #15803d; }
+.answer-btn.wrong { border-color: var(--red); background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
 .answer-btn[disabled] { cursor: default; }
 
 /* ---------- Modal (confirm) ---------- */
@@ -391,12 +460,13 @@ html, body {
   z-index: 50;
 }
 .modal-sheet {
-  background: var(--card-bg);
+  background: rgba(255, 255, 255, 0.85);
   width: 100%;
   max-width: 560px;
-  border-radius: 22px 22px 0 0;
+  border-radius: 26px 26px 0 0;
   padding: 22px 20px 26px;
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.7);
+  border-bottom: none;
 }
 .modal-sheet h3 { margin: 0 0 6px; font-size: 17px; }
 .modal-sheet p { margin: 0 0 16px; color: var(--hint); font-size: 14px; }
@@ -514,14 +584,20 @@ html, body {
   display: block;
   width: auto;
   margin: 0 auto 14px auto;
-  padding: 6px 14px;
+  padding: 8px 18px;
   font-size: 12.5px;
-  border: none;
-  background: none;
+  font-weight: 700;
+  border: 1.5px solid rgba(99, 102, 241, 0.22);
+  border-radius: 999px;
+  background: var(--card-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shine);
   color: var(--accent-dark, var(--accent));
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
 }
+.input-mode-toggle:active { transform: scale(0.97); }
 
 /* ---------- Admin: xabar yuborish (broadcast) ---------- */
 .broadcast-textarea {
@@ -554,9 +630,8 @@ html, body {
   width: auto;
   display: block;
   margin: 0 auto 14px auto;
-  padding: 6px 16px;
+  padding: 8px 18px;
   font-size: 13px;
-  border-radius: 20px;
 }
 .hint-box {
   background: var(--card-bg);
@@ -571,15 +646,19 @@ html, body {
 
 /* ---------- Seriya / yutuq toast'lari (test yakunida) ---------- */
 .toast-banner {
-  border-radius: 14px;
-  padding: 12px 16px;
+  border-radius: 999px;
+  padding: 12px 18px;
   font-weight: 700;
   text-align: center;
   margin-bottom: 10px;
   font-size: 14px;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: var(--shadow);
 }
-.toast-banner.streak { background: #fff7ed; color: #c2410c; }
-.toast-banner.achievement { background: #fef9c3; color: #854d0e; }
+.toast-banner.streak { background: rgba(255, 237, 213, 0.78); color: #c2410c; }
+.toast-banner.achievement { background: rgba(254, 249, 195, 0.82); color: #854d0e; }
 
 /* ---------- Tavsiya etilgan daraja (adaptive) ---------- */
 .choice-btn { position: relative; }
@@ -633,18 +712,25 @@ html, body {
 .achievement-card {
   text-align: center;
   padding: 10px 4px;
-  border-radius: 12px;
-  background: #f1f2fa;
+  border-radius: 16px;
+  background: rgba(241, 242, 250, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   opacity: 0.45;
 }
-.achievement-card.earned { opacity: 1; background: #eef0ff; }
+.achievement-card.earned {
+  opacity: 1;
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: var(--glass-shine);
+}
 .achievement-card .ach-icon { font-size: 22px; }
 .achievement-card .ach-label { font-size: 10px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
 
 .referral-code {
-  background: #f1f2fa;
-  border-radius: 10px;
-  padding: 10px 12px;
+  background: rgba(241, 242, 250, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  padding: 10px 14px;
   font-size: 12.5px;
   font-family: monospace;
   word-break: break-all;

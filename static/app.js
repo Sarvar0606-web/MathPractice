@@ -136,6 +136,8 @@ const I18N = {
       duel_not_found: "Bunday kod bilan duel topilmadi",
       duel_own: "O'zingiz yaratgan duelga qo'shila olmaysiz",
       duel_already_taken: "Bu duelga boshqa raqib allaqachon qo'shilgan",
+      super_admin_only: "Bu amal faqat bosh admin uchun",
+      reset_confirm_mismatch: "Tasdiqlash so'zi noto'g'ri",
     },
     loading: "Yuklanmoqda...",
     openInTelegram: "Iltimos, botni Telegram ichida oching.",
@@ -385,6 +387,13 @@ const I18N = {
     broadcastSendBtn: "📤 Yuborish",
     broadcastConfirm: "Xabar BARCHA foydalanuvchilarga yuborilsinmi?",
     broadcastResult: (sent, failed, total) => `✅ Yuborildi: ${sent} / ${total}${failed ? ` (❌ xato: ${failed})` : ""}`,
+    adminResetBtn: "🗑 Hammasini tozalash",
+    resetWarningTitle: "DIQQAT — qaytarib bo'lmaydi!",
+    resetWarningBody: "Bu amal barcha foydalanuvchilarni, testlarni, guruhlarni, uy vazifalarini va duellarni BUTUNLAY o'chiradi — bot xuddi yangi o'rnatilgandek bo'lib qoladi. Faqat sizning admin huquqingiz saqlanadi. O'chirishdan oldin avtomatik zaxira nusxa olinadi.",
+    resetConfirmLabel: (phrase) => `Davom etish uchun "${phrase}" so'zini aniq yozing:`,
+    resetConfirmPlaceholder: "Shu yerga yozing",
+    resetConfirmBtn: "Ha, hammasini butunlay o'chir",
+    resetSuccessMsg: (file) => `✅ Barcha ma'lumot o'chirildi. Zaxira nusxa saqlandi: ${file}`,
     recommendedBadge: "✨ Tavsiya",
     newAchievementToast: (label) => `🎉 Yangi yutuq: ${label}!`,
     streakToast: (n) => `🔥 ${n} kunlik seriya!`,
@@ -436,6 +445,8 @@ const I18N = {
       duel_not_found: "Дуэль с таким кодом не найдена",
       duel_own: "Нельзя присоединиться к своей же дуэли",
       duel_already_taken: "К этой дуэли уже присоединился другой соперник",
+      super_admin_only: "Это действие доступно только главному администратору",
+      reset_confirm_mismatch: "Неверное слово подтверждения",
     },
     loading: "Загрузка...",
     openInTelegram: "Пожалуйста, откройте бота в Telegram.",
@@ -685,6 +696,13 @@ const I18N = {
     broadcastSendBtn: "📤 Отправить",
     broadcastConfirm: "Отправить сообщение ВСЕМ пользователям?",
     broadcastResult: (sent, failed, total) => `✅ Отправлено: ${sent} / ${total}${failed ? ` (❌ ошибок: ${failed})` : ""}`,
+    adminResetBtn: "🗑 Сбросить всё",
+    resetWarningTitle: "ВНИМАНИЕ — нельзя отменить!",
+    resetWarningBody: "Это действие ПОЛНОСТЬЮ удалит всех пользователей, тесты, группы, домашние задания и дуэли — бот станет как только что установленный. Сохранятся только ваши права администратора. Перед удалением автоматически создаётся резервная копия.",
+    resetConfirmLabel: (phrase) => `Чтобы продолжить, введите точно слово "${phrase}":`,
+    resetConfirmPlaceholder: "Введите здесь",
+    resetConfirmBtn: "Да, удалить всё полностью",
+    resetSuccessMsg: (file) => `✅ Все данные удалены. Резервная копия сохранена: ${file}`,
     recommendedBadge: "✨ Рекомендуем",
     newAchievementToast: (label) => `🎉 Новое достижение: ${label}!`,
     streakToast: (n) => `🔥 Серия ${n} дней!`,
@@ -736,6 +754,8 @@ const I18N = {
       duel_not_found: "No duel found with that code",
       duel_own: "You can't join your own duel",
       duel_already_taken: "Another opponent has already joined this duel",
+      super_admin_only: "This action is only available to the super admin",
+      reset_confirm_mismatch: "Confirmation word doesn't match",
     },
     loading: "Loading...",
     openInTelegram: "Please open the bot inside Telegram.",
@@ -985,6 +1005,13 @@ const I18N = {
     broadcastSendBtn: "📤 Send",
     broadcastConfirm: "Send this message to ALL users?",
     broadcastResult: (sent, failed, total) => `✅ Sent: ${sent} / ${total}${failed ? ` (❌ failed: ${failed})` : ""}`,
+    adminResetBtn: "🗑 Reset everything",
+    resetWarningTitle: "WARNING — this cannot be undone!",
+    resetWarningBody: "This will PERMANENTLY delete all users, tests, groups, homework and duels — the bot will go back to a freshly-installed state. Only your admin rights are kept. A backup is taken automatically before deleting.",
+    resetConfirmLabel: (phrase) => `Type "${phrase}" exactly to continue:`,
+    resetConfirmPlaceholder: "Type here",
+    resetConfirmBtn: "Yes, delete everything",
+    resetSuccessMsg: (file) => `✅ All data deleted. Backup saved: ${file}`,
     recommendedBadge: "✨ Recommended",
     newAchievementToast: (label) => `🎉 New achievement: ${label}!`,
     streakToast: (n) => `🔥 ${n}-day streak!`,
@@ -1452,6 +1479,7 @@ function render() {
     case "admin_users": return renderAdminUsers();
     case "admin_analytics": return renderAdminAnalytics();
     case "admin_broadcast": return renderAdminBroadcast();
+    case "admin_reset": return renderAdminReset();
     case "stats": return renderStats();
     case "leaderboard": return renderLeaderboard();
     default: return renderMain();
@@ -2397,6 +2425,7 @@ async function renderAdminUsers() {
         <button class="btn btn-outline" id="btn-admin-export">${t("adminExportBtn")}</button>
         <button class="btn btn-outline" id="btn-admin-analytics">${t("adminAnalyticsBtn")}</button>
         <button class="btn btn-outline" id="btn-admin-broadcast">${t("adminBroadcastBtn")}</button>
+        ${ME.is_super_admin ? `<button class="btn btn-danger-outline" id="btn-admin-reset">${t("adminResetBtn")}</button>` : ""}
       </div>`;
     if (!res.users.length) {
       appEl.innerHTML = `${header(t("adminPanelTitle"), t("adminPanelDesc"), true)}${topBtns}<div class="empty-state">${t("noUsersYet")}</div>`;
@@ -2432,6 +2461,8 @@ function bindAdminTopBtns() {
   if (analyticsBtn) analyticsBtn.onclick = () => pushScreen("admin_analytics");
   const broadcastBtn = document.getElementById("btn-admin-broadcast");
   if (broadcastBtn) broadcastBtn.onclick = () => pushScreen("admin_broadcast");
+  const resetBtn = document.getElementById("btn-admin-reset");
+  if (resetBtn) resetBtn.onclick = () => pushScreen("admin_reset");
 }
 
 // ---------- Admin: analitika (DAU + ommabop mavzular) ----------
@@ -2509,6 +2540,62 @@ function renderAdminBroadcast() {
       resultEl.innerHTML = `<div class="feedback-banner wrong">${escapeHtml(e.message)}</div>`;
     } finally {
       btn.disabled = false;
+    }
+  };
+}
+
+// ---------- Admin (bosh admin): barcha ma'lumotni tozalash (reset) ----------
+const RESET_CONFIRM_PHRASE = "TOZALASH"; // backenddagi RESET_CONFIRM_PHRASE bilan bir xil bo'lishi SHART
+
+function renderAdminReset() {
+  appEl.innerHTML = `
+    ${header(t("adminResetBtn"), null, true)}
+    <div class="feedback-banner wrong" style="margin-bottom:16px;">
+      <b>${t("resetWarningTitle")}</b><br/>${t("resetWarningBody")}
+    </div>
+    <div class="form-group">
+      <label>${t("resetConfirmLabel")(RESET_CONFIRM_PHRASE)}</label>
+      <input type="text" id="reset-confirm-input" placeholder="${t("resetConfirmPlaceholder")}" autocomplete="off" autocapitalize="off" spellcheck="false" />
+    </div>
+    <button class="btn btn-danger" id="btn-reset-confirm" disabled>${t("resetConfirmBtn")}</button>
+    <div id="reset-result" style="margin-top:12px;"></div>
+  `;
+  bindHeaderControls();
+
+  const input = document.getElementById("reset-confirm-input");
+  const btn = document.getElementById("btn-reset-confirm");
+  input.oninput = () => {
+    btn.disabled = input.value.trim() !== RESET_CONFIRM_PHRASE;
+  };
+  btn.onclick = async () => {
+    btn.disabled = true;
+    const resultEl = document.getElementById("reset-result");
+    resultEl.innerHTML = `<div class="empty-state">${t("loading")}</div>`;
+    try {
+      const res = await api("/api/admin/reset-all", {
+        method: "POST",
+        body: { confirm_text: input.value.trim() },
+      });
+      resultEl.innerHTML = `<div class="feedback-banner correct">${t("resetSuccessMsg")(res.backup_file || "-")}</div>`;
+      input.disabled = true;
+      setTimeout(async () => {
+        // Reset tufayli admin o'zining ro'yxatdan o'tish yozuvi ham
+        // o'chdi (faqat .env'dagi admin huquqi saqlandi) — ilovani
+        // boshidan yuklaymiz, shunda qayta ro'yxatdan o'tish ekrani chiqadi.
+        state.navStack = [];
+        state.viewAttemptId = null;
+        state.viewUserId = null;
+        state.viewGroupId = null;
+        state.duelId = null;
+        try {
+          ME = await api("/api/me");
+        } catch (e) { /* e'tiborsiz — pastdagi fallback ishlaydi */ }
+        state.screen = ME && ME.registered ? "main" : "register";
+        render();
+      }, 1800);
+    } catch (e) {
+      resultEl.innerHTML = `<div class="feedback-banner wrong">${escapeHtml(e.message)}</div>`;
+      btn.disabled = input.value.trim() !== RESET_CONFIRM_PHRASE;
     }
   };
 }

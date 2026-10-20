@@ -45,6 +45,25 @@ def backup_database() -> Optional[Path]:
     return dest
 
 
+def backup_before_reset() -> Optional[Path]:
+    """Admin panelidagi 'Hammasini tozalash (Reset)' tugmasi bosilishidan
+    OLDIN chaqiriladi. Oddiy kunlik backup_database() dan farqli o'laroq,
+    bu fayl nomi "mathbot_*.db" shabloniga to'g'ri kelmaydi — shuning
+    uchun _prune_old_backups() uni HECH QACHON avtomatik o'chirmaydi
+    (chunki bu qaytarib bo'lmaydigan amaldan oldingi yagona qayta tiklash
+    nuqtasi; kerak bo'lmay qolgach, uni serverdan admin qo'lda o'chiradi)."""
+    if not DB_PATH.exists():
+        logger.warning("PRE_RESET_BACKUP_SKIP: DB fayli topilmadi (%s)", DB_PATH)
+        return None
+
+    BACKUP_DIR.mkdir(exist_ok=True)
+    stamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
+    dest = BACKUP_DIR / f"pre_reset_{stamp}.db"
+    shutil.copy(DB_PATH, dest)
+    logger.warning("PRE_RESET_BACKUP_OK fayl=%s hajmi=%s bayt", dest.name, dest.stat().st_size)
+    return dest
+
+
 def _prune_old_backups() -> None:
     # Fayl nomi "mathbot_YYYY-MM-DD_HHMMSS.db" formatida — lug'aviy
     # (alphabetical) tartiblash xronologik tartibga to'g'ri keladi.
