@@ -82,6 +82,16 @@ Kelajakda kodni yangilashda: kompyuteringizda o'zgartirasiz → GitHub
 Desktop orqali commit + push → PythonAnywhere konsolida `git pull` →
 Web-app sahifasida **Reload** tugmasini bosasiz.
 
+**Muhim — `requirements.txt` haqida**: har safar `git pull` qilgandan
+keyin, Reload tugmasini bosishdan OLDIN, PythonAnywhere konsolida
+albatta `pip install -r requirements.txt --user` ni ham qayta ishga
+tushiring. Aks holda, agar yangi commit yangi kutubxona (masalan hozirgi
+yangilanishdagi `Pillow` — ikonkalar sozlamalari funksiyasi uchun
+qo'shildi) qo'shgan bo'lsa, server eski kutubxonalar bilan qolib,
+`ImportError` bilan ishdan to'xtab qolishi mumkin (bu loyihada avval
+xuddi shu sababdan — `fpdf2` qo'shilgandan keyin bu qadam o'tkazib
+yuborilgani uchun — real xatolik yuz bergan edi).
+
 ### Nofaol foydalanuvchilarga eslatma (ixtiyoriy, tavsiya etiladi)
 
 2+ kundan beri test yechmagan foydalanuvchilarga bot avtomatik eslatma
@@ -303,6 +313,30 @@ qilmaydi.
     brauzer/qurilmaning `localStorage`'ida saqlanadi — demak, bu sozlama
     foydalanuvchi hisobiga emas, balki aynan shu qurilma/brauzerga
     bog'liq (boshqa qurilmada qaytadan tanlash kerak bo'ladi).
+26. **Ikonkalar sozlamalari (admin)** — admin panelida **"🖼 Ikonkalar
+    sozlamalari"** tugmasi orqali Mini Appdagi ixtiyoriy ikonkani (bosh
+    menyudagi bo'limlar, bo'lim ichidagi har bir amal, yutuqlar, va
+    "Aralash imtihon"/"Duel"/"Guruhlar" kabi qolgan menyu qatorlari —
+    mini appda qancha ikonka bo'lsa, hammasi) qo'lda yuklangan PNG rasm
+    bilan almashtirish mumkin. Ishlash tartibi: bo'limga (masalan
+    Arifmetika) kirib, o'zining ikonkasini sozlash yoki ichkariga kirib
+    har bir amal (Qo'shish, Ayirish, ...) uchun alohida ikonka yuklash;
+    shu tartibda "Yutuqlar ikonkalari" va "Boshqa ikonkalar" (qolgan
+    bosh menyu qatorlari) guruhlari ham alohida sozlanadi. Yuklanadigan
+    rasm **PNG formatda, orqa foni shaffof (transparent)** bo'lishi
+    tavsiya etiladi; tavsiya etilgan o'lcham — kvadrat, masalan
+    512×512 piksel (boshqa o'lchamda yuklansa ham, tizim avtomatik
+    markazlashtirib moslashtiradi, shuning uchun natija har doim bir xil
+    o'lchamda chiqadi). Har bir ikonkani alohida "↺ Asl holatga
+    qaytarish" tugmasi bilan standart (emoji) ko'rinishiga qaytarish
+    mumkin. **Kengaytiriluvchanlik**: kelajakda `config.py`'ga yangi
+    bo'lim/amal/yutuq qo'shilsa, u avtomatik ravishda shu sozlash
+    ro'yxatida ham paydo bo'ladi — qayta kodlash shart emas; faqat
+    bosh menyuga butunlay yangi, alohida ikonka talab qiladigan qator
+    (masalan hozirgi "Duel" yoki "Guruhlar" kabi) qo'shilsa, shu bitta
+    yangi qatorni ro'yxatga bir marta qo'lda qo'shish kerak bo'ladi
+    (`config.py` ichidagi `MISC_ICON_SLOT_KEYS` ro'yxati va unga mos
+    frontend joyi).
 
 ## Loyiha tuzilishi
 

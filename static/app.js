@@ -182,6 +182,11 @@ const I18N = {
       reset_confirm_mismatch: "Tasdiqlash so'zi noto'g'ri",
       cannot_delete_self: "O'zingizni o'chira olmaysiz",
       cannot_delete_admin: "Boshqa adminni faqat bosh admin o'chira oladi",
+      no_file: "Fayl yuborilmadi",
+      invalid_image: "Fayl rasm (PNG) emas",
+      icon_too_large: "Fayl hajmi 5 MB dan oshmasligi kerak",
+      invalid_icon_slot: "Noma'lum ikonka joyi",
+      icon_not_set: "Bu joy uchun moslashtirilgan ikonka topilmadi",
     },
     loading: "Yuklanmoqda...",
     openInTelegram: "Iltimos, botni Telegram ichida oching.",
@@ -456,6 +461,21 @@ const I18N = {
     submitAnswerBtn: "Tekshirish",
     switchToTypedBtn: "⌨️ Yozib javob berish",
     switchToChoiceBtn: "🔢 Variantlardan tanlash",
+    adminIconsBtn: "🖼 Ikonkalar sozlamalari",
+    iconSettingsTitle: "Ikonkalar sozlamalari",
+    iconSettingsDesc: "Mini appdagi istalgan ikonkani o'zingiz yuklagan rasm bilan almashtiring",
+    iconSectionRowDesc: "Bu bo'lim va uning ichidagi amallar ikonkalarini sozlash",
+    iconAchievementsGroup: "Yutuqlar ikonkalari",
+    iconAchievementsGroupDesc: "Har bir yutuq uchun alohida ikonka",
+    iconMiscGroup: "Boshqa ikonkalar",
+    iconMiscGroupDesc: "Bosh menyudagi qolgan bo'limlar ikonkalari",
+    iconUploadBtn: "🖼 Yuklash",
+    iconResetBtn: "↺ Asl holatga qaytarish",
+    iconResetConfirm: "Bu ikonkani asl (standart) holatiga qaytarasizmi?",
+    iconUploadHint: "PNG format, orqa foni shaffof (transparent) bo'lsin. Tavsiya etilgan o'lcham: kvadrat, masalan 512×512 piksel. Yuklangan rasm avtomatik moslashtiriladi.",
+    iconSectionOpsHeading: "Bo'lim ichidagi amallar",
+    iconGroupOwnerLabel: "Guruh egasi belgisi",
+    iconGroupMemberLabel: "Guruh a'zosi belgisi",
   },
 
   ru: {
@@ -499,6 +519,11 @@ const I18N = {
       reset_confirm_mismatch: "Неверное слово подтверждения",
       cannot_delete_self: "Вы не можете удалить себя",
       cannot_delete_admin: "Другого администратора может удалить только главный админ",
+      no_file: "Файл не отправлен",
+      invalid_image: "Файл не является изображением (PNG)",
+      icon_too_large: "Размер файла не должен превышать 5 МБ",
+      invalid_icon_slot: "Неизвестное место иконки",
+      icon_not_set: "Для этого места не найдена настроенная иконка",
     },
     loading: "Загрузка...",
     openInTelegram: "Пожалуйста, откройте бота в Telegram.",
@@ -773,6 +798,21 @@ const I18N = {
     submitAnswerBtn: "Проверить",
     switchToTypedBtn: "⌨️ Ввести ответ вручную",
     switchToChoiceBtn: "🔢 Выбрать из вариантов",
+    adminIconsBtn: "🖼 Настройки иконок",
+    iconSettingsTitle: "Настройки иконок",
+    iconSettingsDesc: "Замените любую иконку в мини-приложении на свою загруженную картинку",
+    iconSectionRowDesc: "Настроить иконки этого раздела и его операций",
+    iconAchievementsGroup: "Иконки достижений",
+    iconAchievementsGroupDesc: "Отдельная иконка для каждого достижения",
+    iconMiscGroup: "Остальные иконки",
+    iconMiscGroupDesc: "Иконки остальных пунктов главного меню",
+    iconUploadBtn: "🖼 Загрузить",
+    iconResetBtn: "↺ Вернуть стандартную",
+    iconResetConfirm: "Вернуть эту иконку к стандартному виду?",
+    iconUploadHint: "Формат PNG, прозрачный фон. Рекомендуемый размер: квадрат, например 512×512 пикселей. Загруженное изображение будет автоматически подогнано.",
+    iconSectionOpsHeading: "Операции внутри раздела",
+    iconGroupOwnerLabel: "Значок владельца группы",
+    iconGroupMemberLabel: "Значок участника группы",
   },
 
   en: {
@@ -816,6 +856,11 @@ const I18N = {
       reset_confirm_mismatch: "Confirmation word doesn't match",
       cannot_delete_self: "You can't delete yourself",
       cannot_delete_admin: "Only the super admin can delete another admin",
+      no_file: "No file was sent",
+      invalid_image: "File is not an image (PNG)",
+      icon_too_large: "File size must not exceed 5 MB",
+      invalid_icon_slot: "Unknown icon slot",
+      icon_not_set: "No custom icon found for this slot",
     },
     loading: "Loading...",
     openInTelegram: "Please open the bot inside Telegram.",
@@ -1090,6 +1135,21 @@ const I18N = {
     submitAnswerBtn: "Check",
     switchToTypedBtn: "⌨️ Type your answer",
     switchToChoiceBtn: "🔢 Choose from options",
+    adminIconsBtn: "🖼 Icon settings",
+    iconSettingsTitle: "Icon settings",
+    iconSettingsDesc: "Replace any icon in the Mini App with your own uploaded image",
+    iconSectionRowDesc: "Configure this section's icon and its operations' icons",
+    iconAchievementsGroup: "Achievement icons",
+    iconAchievementsGroupDesc: "A separate icon for each achievement",
+    iconMiscGroup: "Other icons",
+    iconMiscGroupDesc: "Icons for the remaining main menu items",
+    iconUploadBtn: "🖼 Upload",
+    iconResetBtn: "↺ Reset to default",
+    iconResetConfirm: "Reset this icon back to its default?",
+    iconUploadHint: "PNG format, transparent background. Recommended size: square, e.g. 512×512 pixels. The uploaded image will be auto-fitted.",
+    iconSectionOpsHeading: "Operations in this section",
+    iconGroupOwnerLabel: "Group owner badge",
+    iconGroupMemberLabel: "Group member badge",
   },
 };
 
@@ -1103,6 +1163,31 @@ function t(key, ...args) {
     return args.length > 0 ? entry(...args) : entry;
   }
   return entry;
+}
+
+// ---------- Moslashtirilgan ikonkalar (admin yuklagan) ----------
+// Har bir ikonka ko'rsatiladigan joyda shu funksiya ishlatiladi: agar admin
+// shu slot uchun rasm yuklagan bo'lsa (CONFIG.custom_icons xaritasida bor
+// bo'lsa) o'sha rasm <img> sifatida, aks holda standart emoji+rangli
+// doira (.icon-badge) ko'rsatiladi. extraStyle — o'lcham kabi qo'shimcha
+// inline uslublar uchun (ixtiyoriy).
+function iconHtml(slotKey, defaultEmoji, color, extraStyle) {
+  const url = CONFIG && CONFIG.custom_icons && CONFIG.custom_icons[slotKey];
+  const style = extraStyle || "";
+  if (url) {
+    return `<img class="icon-badge-img" src="${url}" alt="" style="${style}">`;
+  }
+  return `<div class="icon-badge" style="background:${color};${style}">${defaultEmoji}</div>`;
+}
+
+// Bare variant — rangli .icon-badge "quti"siz joylar uchun (masalan yutuq
+// belgilari): moslashtirilgan rasm bo'lsa <img>, bo'lmasa sodda emoji matni.
+function iconOrEmoji(slotKey, defaultEmoji, extraStyle) {
+  const url = CONFIG && CONFIG.custom_icons && CONFIG.custom_icons[slotKey];
+  if (url) {
+    return `<img class="icon-badge-img" src="${url}" alt="" style="${extraStyle || ""}">`;
+  }
+  return defaultEmoji;
 }
 
 function opLabel(key) {
@@ -1576,6 +1661,10 @@ function render() {
     case "admin_analytics": return renderAdminAnalytics();
     case "admin_broadcast": return renderAdminBroadcast();
     case "admin_reset": return renderAdminReset();
+    case "admin_icons": return renderAdminIcons();
+    case "admin_icons_section": return renderAdminIconsSection();
+    case "admin_icons_achievements": return renderAdminIconsAchievements();
+    case "admin_icons_misc": return renderAdminIconsMisc();
     case "stats": return renderStats();
     case "leaderboard": return renderLeaderboard();
     default: return renderMain();
@@ -1712,9 +1801,7 @@ function renderMain() {
   const name = ME.profile ? `${ME.profile.first_name}` : "";
   let rows = CONFIG.sections.map((s) => `
     <div class="menu-row" data-section="${s.key}">
-      ${s.icon_img
-        ? `<img class="icon-badge-img" src="${s.icon_img}" alt="">`
-        : `<div class="icon-badge" style="background:${s.color}">${s.icon}</div>`}
+      ${iconHtml(`section__${s.key}`, s.icon, s.color)}
       <div>
         <div class="title">${sectionLabel(s.key)}</div>
         <div class="desc">${sectionDescText(s.key)}</div>
@@ -1724,7 +1811,7 @@ function renderMain() {
   `).join("");
   rows += `
     <div class="menu-row" id="row-mixed-exam">
-      <div class="icon-badge" style="background:#dc2626">🎯</div>
+      ${iconHtml("misc__mixed_exam", "🎯", "#dc2626")}
       <div>
         <div class="title">${t("mixedExamTitle")}</div>
         <div class="desc">${t("mixedExamDesc")}</div>
@@ -1732,7 +1819,7 @@ function renderMain() {
       <div class="chevron">›</div>
     </div>
     <div class="menu-row" id="row-duel">
-      <div class="icon-badge" style="background:#db2777">🤝</div>
+      ${iconHtml("misc__duel", "🤝", "#db2777")}
       <div>
         <div class="title">${t("duelTitle")}</div>
         <div class="desc">${t("duelDesc")}</div>
@@ -1740,7 +1827,7 @@ function renderMain() {
       <div class="chevron">›</div>
     </div>
     <div class="menu-row" id="row-groups">
-      <div class="icon-badge" style="background:#0891b2">👥</div>
+      ${iconHtml("misc__groups", "👥", "#0891b2")}
       <div>
         <div class="title">${t("groupsTitle")}</div>
         <div class="desc">${t("groupsDesc")}</div>
@@ -1748,7 +1835,7 @@ function renderMain() {
       <div class="chevron">›</div>
     </div>
     <div class="menu-row" id="row-mistake-review">
-      <div class="icon-badge" style="background:#ea580c">🔁</div>
+      ${iconHtml("misc__mistake_review", "🔁", "#ea580c")}
       <div>
         <div class="title">${t("mistakeReviewTitle")}</div>
         <div class="desc">${t("mistakeReviewDesc")}</div>
@@ -1756,7 +1843,7 @@ function renderMain() {
       <div class="chevron">›</div>
     </div>
     <div class="menu-row" id="row-results">
-      <div class="icon-badge" style="background:#14b8a6">📊</div>
+      ${iconHtml("misc__my_results", "📊", "#14b8a6")}
       <div>
         <div class="title">${t("myResultsTitle")}</div>
         <div class="desc">${t("myResultsDesc")}</div>
@@ -1764,7 +1851,7 @@ function renderMain() {
       <div class="chevron">›</div>
     </div>
     <div class="menu-row" id="row-stats">
-      <div class="icon-badge" style="background:#7c3aed">🔥</div>
+      ${iconHtml("misc__stats", "🔥", "#7c3aed")}
       <div>
         <div class="title">${t("statsTitle")}</div>
         <div class="desc">${t("statsDesc")}</div>
@@ -1775,7 +1862,7 @@ function renderMain() {
   if (ME.is_admin) {
     rows += `
       <div class="menu-row" id="row-admin">
-        <div class="icon-badge" style="background:#0f172a">🛡</div>
+        ${iconHtml("misc__admin_panel", "🛡", "#0f172a")}
         <div>
           <div class="title">${t("adminPanelTitle")}</div>
           <div class="desc">${t("adminPanelDesc")}</div>
@@ -1813,7 +1900,7 @@ function renderSection() {
     const op = CONFIG.operations[key];
     return `
       <div class="section-card" data-op="${key}" style="border-color:${op.color}22">
-        <div class="icon-badge" style="background:${op.color}">${OP_EMOJI[key] || op.symbol}</div>
+        ${iconHtml(`operation__${key}`, OP_EMOJI[key] || op.symbol, op.color)}
         <div class="title">${opLabel(key)}</div>
         <div class="desc">${sectionCardDesc(sectionKey)}</div>
       </div>`;
@@ -2438,7 +2525,7 @@ async function renderResultsList(isAdminView, userId) {
       const date = (a.finished_at || a.started_at || "").replace("T", " ").slice(0, 16);
       return `
         <div class="result-row" data-id="${a.id}">
-          <div class="icon-badge" style="background:${op.color || "#6366f1"};width:40px;height:40px;font-size:18px;">${OP_EMOJI[a.operation] || "❓"}</div>
+          ${iconHtml(`operation__${a.operation}`, OP_EMOJI[a.operation] || "❓", op.color || "#6366f1", "width:40px;height:40px;font-size:18px;")}
           <div class="meta">
             <div class="title">${opLabel(a.operation)}</div>
             <div class="date">${date}</div>
@@ -2526,6 +2613,7 @@ async function renderAdminUsers() {
         <button class="btn btn-outline" id="btn-admin-export">${t("adminExportBtn")}</button>
         <button class="btn btn-outline" id="btn-admin-analytics">${t("adminAnalyticsBtn")}</button>
         <button class="btn btn-outline" id="btn-admin-broadcast">${t("adminBroadcastBtn")}</button>
+        <button class="btn btn-outline" id="btn-admin-icons">${t("adminIconsBtn")}</button>
         ${ME.is_super_admin ? `<button class="btn btn-danger-outline" id="btn-admin-reset">${t("adminResetBtn")}</button>` : ""}
       </div>`;
     if (!res.users.length) {
@@ -2583,6 +2671,8 @@ function bindAdminTopBtns() {
   if (broadcastBtn) broadcastBtn.onclick = () => pushScreen("admin_broadcast");
   const resetBtn = document.getElementById("btn-admin-reset");
   if (resetBtn) resetBtn.onclick = () => pushScreen("admin_reset");
+  const iconsBtn = document.getElementById("btn-admin-icons");
+  if (iconsBtn) iconsBtn.onclick = () => pushScreen("admin_icons");
 }
 
 // ---------- Admin: analitika (DAU + ommabop mavzular) ----------
@@ -2720,6 +2810,215 @@ function renderAdminReset() {
   };
 }
 
+// ---------- Admin: Ikonkalarni sozlash ----------
+// Admin mini app ichidagi istalgan ikonkani (bo'lim, amal, yutuq yoki
+// boshqa UI belgisi) qo'lda PNG rasm bilan almashtirishi mumkin. Slot
+// ro'yxati CONFIG.sections / CONFIG.operations'dan avtomatik hosil
+// bo'ladi — backendga yangi bo'lim/amal qo'shilsa, bu yerda ham qo'shimcha
+// kod yozmasdan avtomatik paydo bo'ladi. Faqat MISC_ICON_ITEMS (bosh
+// menyudagi alohida qatorlar) qo'lda ro'yxatlanadi.
+const MISC_ICON_ITEMS = [
+  { key: "mixed_exam", emoji: "🎯", color: "#dc2626", labelKey: "mixedExamTitle" },
+  { key: "duel", emoji: "🤝", color: "#db2777", labelKey: "duelTitle" },
+  { key: "groups", emoji: "👥", color: "#0891b2", labelKey: "groupsTitle" },
+  { key: "mistake_review", emoji: "🔁", color: "#ea580c", labelKey: "mistakeReviewTitle" },
+  { key: "my_results", emoji: "📊", color: "#14b8a6", labelKey: "myResultsTitle" },
+  { key: "stats", emoji: "🔥", color: "#7c3aed", labelKey: "statsTitle" },
+  { key: "admin_panel", emoji: "🛡", color: "#0f172a", labelKey: "adminPanelTitle" },
+  { key: "group_owner", emoji: "🎓", color: "#0891b2", labelKey: "iconGroupOwnerLabel" },
+  { key: "group_member", emoji: "👥", color: "#0891b2", labelKey: "iconGroupMemberLabel" },
+];
+
+let _pendingIconUploadSlot = null;
+
+function iconUploadInputEl() {
+  let input = document.getElementById("icon-upload-input");
+  if (!input) {
+    input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png";
+    input.id = "icon-upload-input";
+    input.style.display = "none";
+    document.body.appendChild(input);
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      const slotKey = _pendingIconUploadSlot;
+      input.value = "";
+      _pendingIconUploadSlot = null;
+      if (!file || !slotKey) return;
+      await doIconUpload(slotKey, file);
+    };
+  }
+  return input;
+}
+
+function triggerIconUpload(slotKey) {
+  _pendingIconUploadSlot = slotKey;
+  iconUploadInputEl().click();
+}
+
+async function doIconUpload(slotKey, file) {
+  const rowEl = document.querySelector(`.icon-slot-row[data-slot="${slotKey}"]`);
+  const btns = rowEl ? rowEl.querySelectorAll("button") : [];
+  btns.forEach((b) => (b.disabled = true));
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`/api/admin/icons/${encodeURIComponent(slotKey)}`, {
+      method: "POST",
+      headers: { "X-Telegram-Init-Data": INIT_DATA },
+      body: fd,
+    });
+    if (!res.ok) {
+      let msg = t("genericError");
+      try {
+        const j = await res.json();
+        const errs = I18N[LANG] && I18N[LANG].errors;
+        msg = (j.code && errs && errs[j.code]) || j.detail || msg;
+      } catch (e) { /* e'tiborsiz */ }
+      throw new Error(msg);
+    }
+    CONFIG = await api("/api/config");
+    render();
+  } catch (e) {
+    alert(e.message);
+    btns.forEach((b) => (b.disabled = false));
+  }
+}
+
+async function doIconReset(slotKey) {
+  try {
+    await api(`/api/admin/icons/${encodeURIComponent(slotKey)}`, { method: "DELETE" });
+    CONFIG = await api("/api/config");
+    render();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function renderIconSlotRow(slotKey, defaultEmoji, color, label) {
+  const hasCustom = !!(CONFIG.custom_icons && CONFIG.custom_icons[slotKey]);
+  return `
+    <div class="icon-slot-row" data-slot="${slotKey}">
+      ${iconHtml(slotKey, defaultEmoji, color)}
+      <div class="icon-slot-label">${escapeHtml(label)}</div>
+      <div class="icon-slot-actions">
+        <button class="btn btn-outline icon-upload-btn" data-slot="${slotKey}" type="button">${t("iconUploadBtn")}</button>
+        ${hasCustom ? `<button class="btn btn-danger-outline icon-reset-btn" data-slot="${slotKey}" type="button">${t("iconResetBtn")}</button>` : ""}
+      </div>
+    </div>`;
+}
+
+function bindIconSlotRows() {
+  document.querySelectorAll(".icon-upload-btn").forEach((el) => {
+    el.onclick = () => triggerIconUpload(el.dataset.slot);
+  });
+  document.querySelectorAll(".icon-reset-btn").forEach((el) => {
+    el.onclick = async () => {
+      if (!confirm(t("iconResetConfirm"))) return;
+      await doIconReset(el.dataset.slot);
+    };
+  });
+}
+
+function iconUploadHintHtml() {
+  return `<div style="margin:6px 0 14px;font-size:13px;color:var(--hint);">${t("iconUploadHint")}</div>`;
+}
+
+function renderAdminIcons() {
+  const sectionRows = CONFIG.sections.map((s) => `
+    <div class="menu-row" data-icon-section="${s.key}">
+      ${iconHtml(`section__${s.key}`, s.icon, s.color)}
+      <div>
+        <div class="title">${sectionLabel(s.key)}</div>
+        <div class="desc">${t("iconSectionRowDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>`).join("");
+
+  appEl.innerHTML = `
+    ${header(t("iconSettingsTitle"), t("iconSettingsDesc"), true)}
+    ${sectionRows}
+    <div class="menu-row" id="row-icon-achievements">
+      <div class="icon-badge" style="background:#f59e0b">🏅</div>
+      <div>
+        <div class="title">${t("iconAchievementsGroup")}</div>
+        <div class="desc">${t("iconAchievementsGroupDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+    <div class="menu-row" id="row-icon-misc">
+      <div class="icon-badge" style="background:#64748b">✨</div>
+      <div>
+        <div class="title">${t("iconMiscGroup")}</div>
+        <div class="desc">${t("iconMiscGroupDesc")}</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+  `;
+  bindHeaderControls();
+  document.querySelectorAll(".menu-row[data-icon-section]").forEach((el) => {
+    el.onclick = () => {
+      state.iconSectionKey = el.dataset.iconSection;
+      pushScreen("admin_icons_section");
+    };
+  });
+  document.getElementById("row-icon-achievements").onclick = () => pushScreen("admin_icons_achievements");
+  document.getElementById("row-icon-misc").onclick = () => pushScreen("admin_icons_misc");
+}
+
+function renderAdminIconsSection() {
+  const sectionKey = state.iconSectionKey;
+  const s = CONFIG.sections.find((x) => x.key === sectionKey);
+  if (!s) { pushScreen("admin_icons"); return; }
+  const opKeys = Object.keys(CONFIG.operations).filter((k) => CONFIG.operations[k].section === sectionKey);
+  const ownRow = renderIconSlotRow(`section__${sectionKey}`, s.icon, s.color, sectionLabel(sectionKey));
+  const opRows = opKeys.map((k) =>
+    renderIconSlotRow(`operation__${k}`, OP_EMOJI[k] || CONFIG.operations[k].symbol, CONFIG.operations[k].color, opLabel(k))
+  ).join("");
+
+  appEl.innerHTML = `
+    ${header(sectionLabel(sectionKey), t("iconSettingsDesc"), true)}
+    ${iconUploadHintHtml()}
+    ${ownRow}
+    <div style="margin:18px 0 8px;font-weight:800;font-size:14px;">${t("iconSectionOpsHeading")}</div>
+    ${opRows}
+  `;
+  bindHeaderControls();
+  bindIconSlotRows();
+}
+
+function renderAdminIconsAchievements() {
+  const dict = I18N[LANG] || I18N.uz;
+  const keys = Object.keys((I18N.uz && I18N.uz.achievements) || {});
+  const rows = keys.map((key) => {
+    const meta = dict.achievements[key] || { icon: "🏅", label: key };
+    return renderIconSlotRow(`achievement__${key}`, meta.icon, "#f59e0b", meta.label);
+  }).join("");
+
+  appEl.innerHTML = `
+    ${header(t("iconAchievementsGroup"), t("iconSettingsDesc"), true)}
+    ${iconUploadHintHtml()}
+    ${rows}
+  `;
+  bindHeaderControls();
+  bindIconSlotRows();
+}
+
+function renderAdminIconsMisc() {
+  const rows = MISC_ICON_ITEMS.map((it) =>
+    renderIconSlotRow(`misc__${it.key}`, it.emoji, it.color, t(it.labelKey))
+  ).join("");
+
+  appEl.innerHTML = `
+    ${header(t("iconMiscGroup"), t("iconSettingsDesc"), true)}
+    ${iconUploadHintHtml()}
+    ${rows}
+  `;
+  bindHeaderControls();
+  bindIconSlotRows();
+}
+
 function bindAdminExportBtn() {
   const btn = document.getElementById("btn-admin-export");
   if (!btn) return;
@@ -2773,7 +3072,7 @@ async function renderStats() {
     const achievementCards = res.achievements.map((a) => {
       const meta = dict.achievements[a.key] || { icon: "🏅", label: a.key };
       return `<div class="achievement-card${a.earned ? " earned" : ""}">
-        <div class="ach-icon">${meta.icon}</div>
+        <div class="ach-icon">${iconOrEmoji(`achievement__${a.key}`, meta.icon, "width:26px;height:26px;filter:none;")}</div>
         <div class="ach-label">${meta.label}</div>
       </div>`;
     }).join("");
@@ -2997,7 +3296,9 @@ async function renderGroups() {
     const rows = res.groups.length
       ? res.groups.map((g) => `
           <div class="menu-row" data-id="${g.id}">
-            <div class="icon-badge" style="background:#0891b2">${g.is_owner ? "🎓" : "👥"}</div>
+            ${g.is_owner
+              ? iconHtml("misc__group_owner", "🎓", "#0891b2")
+              : iconHtml("misc__group_member", "👥", "#0891b2")}
             <div>
               <div class="title">${escapeHtml(g.name)}</div>
               <div class="desc">${t("groupMemberCount")(g.member_count)}${g.is_owner ? " · " + t("groupOwnerBadge") : ""}</div>

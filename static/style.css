@@ -342,6 +342,43 @@ html, body {
 .menu-row .desc { font-size: 12.5px; color: var(--hint); margin-top: 2px; }
 .menu-row .chevron { margin-left: auto; color: var(--hint); font-size: 20px; }
 
+/* ---------- Admin: ikonkalar sozlamalari (icon-slot rows) ---------- */
+.icon-slot-row {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.icon-slot-row .icon-badge,
+.icon-slot-row .icon-badge-img {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.icon-slot-row .icon-badge { font-size: 22px; }
+.icon-slot-label {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 0;
+  word-break: break-word;
+}
+.icon-slot-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.icon-slot-actions .btn {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 12.5px;
+}
+
 /* ---------- Buttons (shisha/pill uslub) ---------- */
 .btn {
   display: inline-flex;

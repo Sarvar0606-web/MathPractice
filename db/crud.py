@@ -950,3 +950,34 @@ def duel_result(duel_id: int, viewer_id: int) -> Optional[dict]:
         "opponent": opponent_side,
         "both_finished": both_finished,
     }
+
+
+# ---------- Ikonkalarni moslashtirish (admin) ----------
+
+def list_custom_icons() -> dict:
+    """Barcha moslashtirilgan (admin yuklagan) ikonkalarni {slot_key: updated_at}
+    ko'rinishida qaytaradi — mavjudligini bilish uchun yetarli."""
+    with db_cursor() as cur:
+        cur.execute("SELECT slot_key, updated_at FROM custom_icons")
+        return {row["slot_key"]: row["updated_at"] for row in cur.fetchall()}
+
+
+def set_custom_icon(slot_key: str, admin_id: int) -> None:
+    """Shu slot uchun moslashtirilgan rasm o'rnatilgani (yoki yangilangani)ni
+    qayd etadi — rasmning o'zi fayl sifatida alohida saqlanadi (webapp/api.py)."""
+    with db_cursor() as cur:
+        cur.execute(
+            """INSERT INTO custom_icons (slot_key, updated_by, updated_at)
+               VALUES (?, ?, datetime('now'))
+               ON CONFLICT(slot_key) DO UPDATE SET
+                   updated_by = excluded.updated_by,
+                   updated_at = excluded.updated_at""",
+            (slot_key, admin_id),
+        )
+
+
+def remove_custom_icon(slot_key: str) -> bool:
+    """Moslashtirilgan ikonkani bekor qiladi (standart emojiga qaytaradi)."""
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM custom_icons WHERE slot_key=?", (slot_key,))
+        return cur.rowcount > 0

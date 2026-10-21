@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
+STATIC_DIR = BASE_DIR / "static"
+# Admin mini app ichidan yuklagan moslashtirilgan ikonkalar shu yerda
+# saqlanadi (slot_key.png nomi bilan) — webapp/api.py shu papkaga yozadi
+# va /static/icons/custom/<slot_key>.png orqali xizmat qiladi.
+CUSTOM_ICONS_DIR = STATIC_DIR / "icons" / "custom"
+
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 _admin_ids_raw = os.getenv("ADMIN_IDS", "")
@@ -86,7 +92,6 @@ SECTIONS = [
         "key": "arithmetic",
         "label": "Arifmetika",
         "icon": "🧮",
-        "icon_img": "/static/icons/section_arithmetic.png",
         "color": "#6366f1",
         "desc": "Qo'shish, ayirish, ko'paytirish, bo'lish, solishtirish",
     },
@@ -94,7 +99,6 @@ SECTIONS = [
         "key": "fractions",
         "label": "Kasrlar",
         "icon": "🍕",
-        "icon_img": "/static/icons/section_fractions.png",
         "color": "#f43f5e",
         "desc": "Kasrlar ustida amallar",
     },
@@ -102,7 +106,6 @@ SECTIONS = [
         "key": "percent",
         "label": "Foizlar",
         "icon": "💯",
-        "icon_img": "/static/icons/section_percent.png",
         "color": "#f59e0b",
         "desc": "Foizlar bilan bog'liq masalalar",
     },
@@ -110,7 +113,6 @@ SECTIONS = [
         "key": "algebra",
         "label": "Algebra",
         "icon": "🧮",
-        "icon_img": "/static/icons/section_algebra.png",
         "color": "#0ea5e9",
         "desc": "Tenglama, tengsizlik, ifodalar bilan ishlash",
     },
@@ -118,7 +120,6 @@ SECTIONS = [
         "key": "geometry",
         "label": "Geometriya",
         "icon": "📐",
-        "icon_img": "/static/icons/section_geometry.png",
         "color": "#10b981",
         "desc": "Perimetr, yuza, hajm va boshqa masalalar",
     },
@@ -126,7 +127,6 @@ SECTIONS = [
         "key": "functions",
         "label": "Funksiyalar",
         "icon": "📈",
-        "icon_img": "/static/icons/section_functions.png",
         "color": "#3b82f6",
         "desc": "Chiziqli va kvadrat funksiyalar bilan ishlash",
     },
@@ -134,7 +134,6 @@ SECTIONS = [
         "key": "statistics",
         "label": "Ehtimollik va statistika",
         "icon": "🎲",
-        "icon_img": "/static/icons/section_statistics.png",
         "color": "#ec4899",
         "desc": "O'rtacha qiymat, mediana, ehtimollik va boshqalar",
     },
@@ -142,7 +141,6 @@ SECTIONS = [
         "key": "logic",
         "label": "Mantiqiy masalalar",
         "icon": "🧩",
-        "icon_img": "/static/icons/section_logic.png",
         "color": "#7c3aed",
         "desc": "Ketma-ketlik, ortiqchasini topish, yosh va taqqoslash masalalari",
     },
@@ -216,3 +214,33 @@ OPERATIONS = {
     "logic_age": {"label": "Yosh masalalari", "symbol": "👤", "color": "#059669", "icon": "age", "section": "logic"},
     "logic_comparison": {"label": "Taqqoslash", "symbol": "><", "color": "#2563eb", "icon": "comparison", "section": "logic"},
 }
+
+# ---------- Ikonkalarni moslashtirish (admin) uchun slot ro'yxati ----------
+# Har bir "slot" — mini appdagi bitta ikonka joyi. SECTIONS/OPERATIONS/
+# ACHIEVEMENTS'dan avtomatik hosil bo'ladi: shu ro'yxatlarga keyinchalik
+# yangi bo'lim/amal/yutuq qo'shilsa, u ham hech qanday qo'shimcha kod
+# yozmasdan "Ikonkalar sozlamalari" bo'limida avtomatik paydo bo'ladi.
+# MISC_ICON_SLOT_KEYS — bosh menyudagi alohida (ro'yxatga bog'liq bo'lmagan)
+# qatorlar uchun; bular yangi qo'shilsa shu ro'yxatga qo'lda bitta qator
+# qo'shish kifoya.
+MISC_ICON_SLOT_KEYS = [
+    "mixed_exam", "duel", "groups", "mistake_review",
+    "my_results", "stats", "admin_panel", "group_owner", "group_member",
+]
+
+
+def get_all_icon_slot_keys() -> set:
+    """Mini appdagi barcha moslashtirish mumkin bo'lgan ikonka joylarining
+    to'liq kaliti to'plamini qaytaradi — yuklash/o'chirish so'rovlarini shu
+    ro'yxatga nisbatan tekshirish uchun ishlatiladi (begona slot_key bilan
+    fayl yozilib ketmasligi uchun)."""
+    keys = set()
+    for s in SECTIONS:
+        keys.add(f"section__{s['key']}")
+    for k in OPERATIONS:
+        keys.add(f"operation__{k}")
+    for a in ACHIEVEMENTS:
+        keys.add(f"achievement__{a}")
+    for m in MISC_ICON_SLOT_KEYS:
+        keys.add(f"misc__{m}")
+    return keys

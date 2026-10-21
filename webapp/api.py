@@ -1,12 +1,15 @@
 """REST API endpointlari (Flask blueprint)."""
 import datetime
 import io
+import time
 
 from flask import Blueprint, jsonify, request, send_file
+from PIL import Image, UnidentifiedImageError
 
 from config import (
-    BOT_USERNAME, MAX_DIGITS, MIN_DIGITS, OPERATIONS,
+    BOT_USERNAME, CUSTOM_ICONS_DIR, MAX_DIGITS, MIN_DIGITS, OPERATIONS,
     QUESTIONS_PER_TEST, SECTIONS, SUPPORTED_LANGUAGES, TIME_OPTIONS,
+    get_all_icon_slot_keys,
 )
 from db import crud
 from backup_db import backup_before_reset
@@ -45,6 +48,18 @@ def handle_auth_error(e: AuthError):
 
 # ---------- Umumiy sozlamalar ----------
 
+def _custom_icons_map() -> dict:
+    """{slot_key: '/static/icons/custom/<slot_key>.png?v=<updated_at>'} —
+    frontend har bir ikonka joyida shu xaritadan qarab, mavjud bo'lsa
+    rasmni, bo'lmasa standart emojini ko'rsatadi. '?v=' — admin rasmni
+    yangilaganda brauzer eski nusxani keshidan olib qolmasligi uchun."""
+    custom = crud.list_custom_icons()
+    return {
+        slot_key: f"/static/icons/custom/{slot_key}.png?v={updated_at.replace(' ', 'T')}"
+        for slot_key, updated_at in custom.items()
+    }
+
+
 @api_bp.get("/config")
 def get_config():
     return jsonify({
@@ -54,6 +69,7 @@ def get_config():
         "min_digits": MIN_DIGITS,
         "max_digits": MAX_DIGITS,
         "questions_per_test": QUESTIONS_PER_TEST,
+        "custom_icons": _custom_icons_map(),
     })
 
 
@@ -761,6 +777,81 @@ def admin_reset_all():
         tg_user["id"], backup_path.name if backup_path else "(zaxira olinmadi)",
     )
     return jsonify({"ok": True, "backup_file": backup_path.name if backup_path else None})
+
+
+# ---------- Ikonkalarni moslashtirish (admin) ----------
+
+ICON_CANVAS_SIZE = 256  # har bir moslashtirilgan ikonka shu o'lchamdagi
+                        # shaffof (transparent) kvadrat ichiga markazlashtiriladi
+ICON_MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+@api_bp.post("/admin/icons/<slot_key>")
+def admin_upload_icon(slot_key: str):
+    """Admin mini app ichidagi istalgan ikonka joyi (bo'lim, amal, yutuq
+    yoki boshqa UI belgisi) uchun o'zining PNG rasmini yuklaydi. Rasm
+    avtomatik ravishda ICON_CANVAS_SIZE x ICON_CANVAS_SIZE shaffof
+    kvadratga (nisbatini buzmasdan, markazlashtirib) moslashtiriladi —
+    shunda qanday o'lchamda yuklanishidan qat'i nazar, barcha ikonkalar
+    mini app ichida bir xil ko'rinishda chiqadi."""
+    tg_user = current_user()
+    if not _require_admin(tg_user):
+        return err(403, "Faqat admin uchun", "admin_only")
+    if slot_key not in get_all_icon_slot_keys():
+        return err(400, "Noma'lum ikonka joyi", "invalid_icon_slot")
+
+    file = request.files.get("file")
+    if not file or not file.filename:
+        return err(400, "Fayl yuborilmadi", "no_file")
+
+    file.stream.seek(0, 2)
+    size = file.stream.tell()
+    file.stream.seek(0)
+    if size > ICON_MAX_UPLOAD_BYTES:
+        return err(400, "Fayl hajmi 5 MB dan oshmasligi kerak", "icon_too_large")
+
+    try:
+        img = Image.open(file.stream)
+        img.load()
+    except UnidentifiedImageError:
+        return err(400, "Fayl rasm (PNG) emas", "invalid_image")
+    except Exception:
+        return err(400, "Rasmni o'qib bo'lmadi", "invalid_image")
+
+    img = img.convert("RGBA")
+    img.thumbnail((ICON_CANVAS_SIZE - 8, ICON_CANVAS_SIZE - 8))
+    canvas = Image.new("RGBA", (ICON_CANVAS_SIZE, ICON_CANVAS_SIZE), (0, 0, 0, 0))
+    x = (ICON_CANVAS_SIZE - img.width) // 2
+    y = (ICON_CANVAS_SIZE - img.height) // 2
+    canvas.paste(img, (x, y), img)
+
+    CUSTOM_ICONS_DIR.mkdir(parents=True, exist_ok=True)
+    dest_path = CUSTOM_ICONS_DIR / f"{slot_key}.png"
+    canvas.save(dest_path, "PNG")
+
+    crud.set_custom_icon(slot_key, tg_user["id"])
+    logger.info("ADMIN_ICON_UPLOAD admin=%s slot=%s", tg_user["id"], slot_key)
+    return jsonify({"ok": True, "url": f"/static/icons/custom/{slot_key}.png?v={int(time.time())}"})
+
+
+@api_bp.delete("/admin/icons/<slot_key>")
+def admin_reset_icon(slot_key: str):
+    """Moslashtirilgan ikonkani bekor qiladi — bo'lim standart emojisiga
+    qaytadi."""
+    tg_user = current_user()
+    if not _require_admin(tg_user):
+        return err(403, "Faqat admin uchun", "admin_only")
+    if slot_key not in get_all_icon_slot_keys():
+        return err(400, "Noma'lum ikonka joyi", "invalid_icon_slot")
+
+    removed = crud.remove_custom_icon(slot_key)
+    dest_path = CUSTOM_ICONS_DIR / f"{slot_key}.png"
+    if dest_path.exists():
+        dest_path.unlink()
+    if not removed:
+        return err(404, "Bu joy uchun moslashtirilgan ikonka topilmadi", "icon_not_set")
+    logger.info("ADMIN_ICON_RESET admin=%s slot=%s", tg_user["id"], slot_key)
+    return jsonify({"ok": True})
 
 
 MAX_BROADCAST_LEN = 3500  # Telegram xabar limiti (4096) dan xavfsiz zaxira bilan kamroq

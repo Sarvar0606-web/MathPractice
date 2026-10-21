@@ -210,6 +210,20 @@ def init_db():
         created_at            TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_duels_join_code ON duels(join_code);
+
+    -- Admin tomonidan mini app ichidagi istalgan ikonkani (bo'lim, amal,
+    -- yutuq yoki boshqa UI belgisi) qo'lda PNG rasm bilan almashtirishi
+    -- uchun. slot_key masalan "section__arithmetic", "operation__add",
+    -- "achievement__first_test", "misc__duel" kabi bo'ladi (config.py
+    -- get_all_icon_slot_keys() shu kalitlarni hosil qiladi). Mos rasm
+    -- static/icons/custom/<slot_key>.png yo'lida saqlanadi — shu jadval
+    -- faqat "shu slot uchun moslashtirilgan rasm bormi" degan holatni
+    -- va kim/qachon o'rnatganini bildiradi.
+    CREATE TABLE IF NOT EXISTS custom_icons (
+        slot_key    TEXT PRIMARY KEY,
+        updated_by  INTEGER,
+        updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     """)
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code "
